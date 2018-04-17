@@ -1007,4 +1007,27 @@ module cardamom_io
   !
   !--------------------------------------------------------------------
   !
+  subroutine write_results_GRIB_format(pars,prob,PI,MCO)
+    use MCMCOPT, only: PARAMETER_INFO, MCMC_OPTIONS
+    !subroutine to write output to GRIB format
+    implicit none
+    
+    ! declare input variables
+    type ( parameter_info ), intent(in) :: PI
+    type ( mcmc_options ), intent(in) :: MCO
+    double precision, dimension(PI%npars), intent(in) :: pars
+    double precision, intent(in) :: prob
+
+    ! declare local variables
+    integer :: n
+
+    ! write out the file. Its binary format has already been determined at the
+    ! openning of the file
+    do n = 1, PI%npars
+       write(pfile_unit) pars(n)
+       write(sfile_unit) PI%stepsize(n)
+    end do
+
+    magic_gribify_function(pars, prob, PI, MCO)
+  end subroutine write_results_GRIB_format
 end module cardamom_io
