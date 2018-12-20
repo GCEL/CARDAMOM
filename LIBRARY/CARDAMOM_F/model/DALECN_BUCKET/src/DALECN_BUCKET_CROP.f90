@@ -10,7 +10,8 @@ private
 public :: CARBON_MODEL_CROP    &
          ,resp_rate_temp_coeff &
          ,ts_length            &
-         ,sec_in_hour
+         ,sec_in_hour          &
+         ,DS
 
 ! declare some module level variables
 double precision, parameter :: sec_in_day = 86400d0
@@ -127,7 +128,7 @@ double precision ::           ts_length, & ! time step length in hours
   ! residue fraction of stem left post harvest
   double precision, parameter :: st_res = 0.1d0
   ! LAI above which self shading turnover occurs
-  double precision, parameter :: LAICR = 4d0
+  double precision, parameter :: LAICR = 4.5d0
   ! allocation to storage organ relative to GPP
   double precision, parameter :: rel_gso_max = 0.35d0
 
@@ -142,7 +143,7 @@ contains
   subroutine CARBON_MODEL_CROP(start,finish,met,pars,deltat,nodays,lat,lai_out &
                        ,NEE_out,FLUXES,POOLS,pft,nopars,nomet,nopools,nofluxes &
                        ,GPP_out,stock_seed_labile,DS_shoot,DS_root,fol_frac    &
-                       ,stem_frac,root_frac,DS_LRLV,LRLV,DS_LRRT,LRRT)
+                       ,stem_frac,root_frac,DS_LRLV,LRLV,DS_LRRT,LRRT, DS_array, leaf_N_mass)
 
     use CARBON_MODEL_MOD, only: arrhenious,acm_gpp,calculate_transpiration,calculate_soil_evaporation     &
                                ,calculate_wetcanopy_evaporation,acm_meteorological_constants,acm_albedo_gc&
@@ -187,7 +188,8 @@ contains
                          ,stock_seed_labile             & ! seed carbon to get things going
                          ,deltat(nodays)                & ! time step in decimal days
                          ,pars(nopars)                  & ! number of parameters
-                         ,lat                 ! site latitude (degrees)
+                         ,lat                           & ! site latitude (degrees)
+                         ,leaf_N_mass(1,nodays)
 
     double precision, dimension(:), intent(inout) ::          DS_shoot, & !
                                                                DS_root, & !
@@ -197,7 +199,8 @@ contains
                                                                DS_LRLV, & !
                                                                   LRLV, & !
                                                                DS_LRRT, & !
-                                                                  LRRT    !
+                                                                  LRRT, & !
+                                                                  DS_array
 
     double precision, dimension(nodays), intent(inout) :: lai_out & ! leaf area index
                                                ,GPP_out & ! Gross primary productivity
@@ -220,7 +223,8 @@ contains
                                     ,infi   ! used to calculate infinity for diagnositc
 
     integer :: nxp,n
-
+   
+    
     ! met drivers are:
     ! 1st run day
     ! 2nd min daily temp (oC)
@@ -291,6 +295,8 @@ contains
     ! p(34) ! turnover rate of labile C
     ! p(35) ! turnover rate of autotrophic C
 
+   
+        
     ! zero some values
     lai_out(1:nodays) = dble_zero ; NEE_out(1:nodays) = dble_zero ; GPP_out(1:nodays) = dble_zero
     FLUXES(1:nodays,1:nofluxes) = dble_zero ; POOLS(1:nodays,1:nopools) = dble_zero
@@ -320,9 +326,9 @@ contains
     max_lai_lwrad_release      = 9.852855d-01  ! Max fraction of LW emitted (1-par) from canopy to be released
     lai_half_lwrad_release     = 7.535450d-01  ! LAI at which LW emitted from canopy to be released at 50 %
     max_lai_lwrad_reflected    = 1.955832d-02  ! LAI at which 50 % LW is reflected back to sky
-
-    ! load some values
-    avN = 10d0**pars(11) !TLS 1 ! foliar N
+    
+    ! load some values                      ! AR
+    !avN = 10d0**pars(11) !TLS 1 ! foliar N  ! AR
     deltaWP = minlwp !-2.0  ! leafWP-soilWP (i.e. -2-0)
     Rtot = dble_one ! totaly hydraulic resistance ! p12 from ACM recal (updated)
 
@@ -340,10 +346,10 @@ contains
     frac_GPP_resp_auto                = pars(2)  ! fraction of GPP allocated to autotrophic carbon pool
     DR_pre                            = pars(3)  ! development rate coefficient DS (0->1)
     DR_post                           = pars(4)  ! development rate coefficient DS (1->2)
-    turnover_rate_foliage             = pars(6) / 24d0 ! pars(5)  ! turnover_rate of foliage (day->hr)
+    turnover_rate_foliage             = (pars(5) / 24d0)*1.5 ! pars(5)  ! turnover_rate of foliage (day->hr)
     turnover_rate_stem                = pars(6) / 24d0 ! turnover rate of stem (day->hr)
     RDRSHMAX                          = pars(7) / 24d0 ! maximum rate of foliar turnover due to self shading (day->hr)
-    VDh                               = pars(8)  ! effective vernalisation days when plants are 50 % vernalised
+    VDh                               = pars(8)*0.8  ! effective vernalisation days when plants are 50 % vernalised
     mineralisation_rate_litter        = pars(9) / 24d0 ! mineralisation rate litter (day->hr)
     mineralisation_rate_soilOrgMatter = pars(10)/ 24d0 ! mineralisation rate som (day->hr)
     sow_day                           = nint(mod(pars(12),365.25d0)) ! sow day (doy)
@@ -354,7 +360,7 @@ contains
     LCA                               = pars(17) ! leaf mass area (gC.m-2)
     tmin                              = pars(26)-273.15d0 ! min temperature for development
     tmax                              = pars(27)-273.15d0 ! max temperature for development
-    topt                              = pars(28)-273.15d0 ! optimum temperature for development
+    topt                              = (pars(28)-273.15d0) ! optimum temperature for development
     tmin_v                            = pars(29)-273.15d0 ! min temperature for vernalisation
     tmax_v                            = pars(30)-273.15d0 ! max temperature for vernalisation
     topt_v                            = pars(31)-273.15d0 ! optimim temperature for vernalisation
@@ -374,7 +380,7 @@ contains
         stock_soilOrgMatter               = pars(23) ! som C
         stock_resp_auto                   = pars(24) ! autotrophic resp pool
         stock_storage_organ               = pars(25) ! storage organ (i.e. desired crop)
-
+        
         ! assigning initial conditions
         POOLS(1,1) = pars(18) ! Clabile
         POOLS(1,2) = pars(19) ! Cfoliar
@@ -386,11 +392,13 @@ contains
         ! POOLS(1,8) ! WATER IN ROOT ZONE ASSIGNED LATER
         POOLS(1,9) = pars(25) ! Cstorage
 
+        
+
         ! logical switches
         vernal_calcs    = .true.
         ploughed        = .false.
         sown            = .false.
-        use_seed_labile = .false.
+        use_seed_labile = .true.
         emerged         = .false.
 
         ! pair incoming variables to local module levels
@@ -496,13 +504,21 @@ contains
 
     do n = start, finish
 
+      
+       
+      !avN = 10d0**pars(11) !TLS 1 ! foliar N  ! AR       
+      avN = 10d0**((leaf_N_mass(1,n))*0.1) !TLS 1 ! foliar N  ! AR       
+       
       !!!!!!!!!!
       ! assign drivers and update some prognostic variables
       !!!!!!!!!!
-
+             
       ! Incoming drivers
       mint = met(2,n)  ! minimum temperature (oC)
       maxt = met(3,n)  ! maximum temperature (oC)
+
+      !print*, met(6,n)
+      
       leafT = maxt     ! initial canopy temperature (oC)
       swrad = met(4,n) ! incoming short wave radiation (MJ/m2/day)
       co2 = met(5,n)   ! CO2 (ppm)
@@ -584,6 +600,7 @@ contains
       ! GPP (gC.m-2.day-1)
       if (lai > vsmall .and. stomatal_conductance > vsmall) then
          GPP_out(n) = max(dble_zero,acm_gpp(stomatal_conductance))
+         
          ! Canopy transpiration (kgH2O/m2/day)
          call calculate_transpiration(transpiration)
       else
@@ -647,10 +664,17 @@ contains
 
       ! determine development stage (DS)
       call development_stage(deltat(n))
+      DS_array(n) = DS
+      
+      
       ! determine the carbon partitioning based on development stage
       call carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac)
+
       ! begin carbon allocation for crops
       call calc_pools_crops(DS_LRRT,LRRT)
+
+      !print*, stock_storage_organ
+      
       ! conduct management updates at the end of the day
       call management_dates(stock_seed_labile,deltat(n))
 
@@ -709,135 +733,137 @@ contains
       ! storage organ pool
       POOLS(n+1,9) = stock_storage_organ
 
-      do nxp = 1, nopools
-         if (POOLS(n+1,nxp) /= POOLS(n+1,nxp) .or. POOLS(n+1,nxp) < dble_zero) then
-             print*,"step",n,"FLUXES",nxp
-             print*,"met",met(:,n)
-             print*,"POOLS",POOLS(n,:)
-             print*,"FLUXES",FLUXES(n,:)
-             print*,"POOLS+1",POOLS(n+1,:)
-             print*,"wSWP",wSWP
-             print*,"waterfrac",soil_waterfrac
-             print*,"steps_in_day",steps_in_day
-             print*,stock_labile, stock_foliage
-             print*,stock_stem,stock_roots
-             print*,stock_litter,stock_soilOrgMatter
-             print*,stock_storage_organ,stock_resp_auto
-             print*,gpp_acm,nee_dalec
-             print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
-             print*,"pars",pars
-             print*,"DR",DR
-             print*,"alloc_to_labile",alloc_to_labile,"remob",remob
-             print*,"DR stuff",fT,fV,fP
-             print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
-             print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
-             print*,"avtemp",avtemp
-             print*,"sown",sown,"emerged",emerged
-             print*,"root_frac_intpol",root_frac_intpol
-             print*,"npp_shoot",npp_shoot,"npp",npp
-             print*,"RDR",RDR,"ts_length",ts_length
-             stop
-         endif
-      enddo
+      
+      
+!!$      do nxp = 1, nopools
+!!$         if (POOLS(n+1,nxp) /= POOLS(n+1,nxp) .or. POOLS(n+1,nxp) < dble_zero) then
+!!$             print*,"step",n,"FLUXES",nxp
+!!$             print*,"met",met(:,n)
+!!$             print*,"POOLS",POOLS(n,:)
+!!$             print*,"FLUXES",FLUXES(n,:)
+!!$             print*,"POOLS+1",POOLS(n+1,:)
+!!$             print*,"wSWP",wSWP
+!!$             print*,"waterfrac",soil_waterfrac
+!!$             print*,"steps_in_day",steps_in_day
+!!$             print*,stock_labile, stock_foliage
+!!$             print*,stock_stem,stock_roots
+!!$             print*,stock_litter,stock_soilOrgMatter
+!!$             print*,stock_storage_organ,stock_resp_auto
+!!$             print*,gpp_acm,nee_dalec
+!!$             print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
+!!$             print*,"pars",pars
+!!$             print*,"DR",DR
+!!$             print*,"alloc_to_labile",alloc_to_labile,"remob",remob
+!!$             print*,"DR stuff",fT,fV,fP
+!!$             print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
+!!$             print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
+!!$             print*,"avtemp",avtemp
+!!$             print*,"sown",sown,"emerged",emerged
+!!$             print*,"root_frac_intpol",root_frac_intpol
+!!$             print*,"npp_shoot",npp_shoot,"npp",npp
+!!$             print*,"RDR",RDR,"ts_length",ts_length
+!!$             stop
+!!$         endif
+!!$      enddo
+!!$
+!!$      do nxp = 1, nofluxes
+!!$         if (nxp /= 19) then
+!!$            if (FLUXES(n,nxp) /= FLUXES(n,nxp) .or. FLUXES(n,nxp) < dble_zero) then
+!!$                 print*,"Special: step",n,"FLUXES",nxp
+!!$                 print*,"met",met(:,n)
+!!$                 print*,"POOLS",POOLS(n,:)
+!!$                 print*,"FLUXES",FLUXES(n,:)
+!!$                 print*,"POOLS+1",POOLS(n+1,:)
+!!$                 print*,"wSWP",wSWP
+!!$                 print*,"waterfrac",soil_waterfrac
+!!$                 print*,"steps_in_day",steps_in_day
+!!$                 print*,stock_labile, stock_foliage
+!!$                 print*,stock_stem,stock_roots
+!!$                 print*,stock_litter,stock_soilOrgMatter
+!!$                 print*,stock_storage_organ,stock_resp_auto
+!!$                 print*,gpp_acm,nee_dalec
+!!$                 print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
+!!$                 print*,"pars",pars
+!!$                 print*,"DR",DR
+!!$                 print*,"alloc_to_labile",alloc_to_labile,"remob",remob
+!!$                 print*,"DR stuff",fT,fV,fP
+!!$                 print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
+!!$                 print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
+!!$                 print*,"avtemp",avtemp
+!!$                 print*,"sown",sown,"emerged",emerged
+!!$                 print*,"root_frac_intpol",root_frac_intpol
+!!$                 print*,"npp_shoot",npp_shoot,"npp",npp
+!!$                 print*,"RDR",RDR,"ts_length",ts_length
+!!$                 stop
+!!$            end if
+!!$         else
+!!$             if (FLUXES(n,nxp) /= FLUXES(n,nxp)) then
+!!$                 print*,"Default: step",n,"FLUXES",nxp
+!!$                 print*,"met",met(:,n)
+!!$                 print*,"POOLS",POOLS(n,:)
+!!$                 print*,"FLUXES",FLUXES(n,:)
+!!$                 print*,"POOLS+1",POOLS(n+1,:)
+!!$                 print*,"wSWP",wSWP
+!!$                 print*,"waterfrac",soil_waterfrac
+!!$                 print*,"steps_in_day",steps_in_day
+!!$                 print*,stock_labile, stock_foliage
+!!$                 print*,stock_stem,stock_roots
+!!$                 print*,stock_litter,stock_soilOrgMatter
+!!$                 print*,stock_storage_organ,stock_resp_auto
+!!$                 print*,gpp_acm,nee_dalec
+!!$                 print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
+!!$                 print*,"pars",pars
+!!$                 print*,"DR",DR
+!!$                 print*,"alloc_to_labile",alloc_to_labile,"remob",remob
+!!$                 print*,"DR stuff",fT,fV,fP
+!!$                 print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
+!!$                 print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
+!!$                 print*,"avtemp",avtemp
+!!$                 print*,"sown",sown,"emerged",emerged
+!!$                 print*,"root_frac_intpol",root_frac_intpol
+!!$                 print*,"npp_shoot",npp_shoot,"npp",npp
+!!$                 print*,"RDR",RDR,"ts_length",ts_length
+!!$                 stop
+!!$             endif
+!!$         end if
+!!$      enddo
 
-      do nxp = 1, nofluxes
-         if (nxp /= 19) then
-            if (FLUXES(n,nxp) /= FLUXES(n,nxp) .or. FLUXES(n,nxp) < dble_zero) then
-                 print*,"Special: step",n,"FLUXES",nxp
-                 print*,"met",met(:,n)
-                 print*,"POOLS",POOLS(n,:)
-                 print*,"FLUXES",FLUXES(n,:)
-                 print*,"POOLS+1",POOLS(n+1,:)
-                 print*,"wSWP",wSWP
-                 print*,"waterfrac",soil_waterfrac
-                 print*,"steps_in_day",steps_in_day
-                 print*,stock_labile, stock_foliage
-                 print*,stock_stem,stock_roots
-                 print*,stock_litter,stock_soilOrgMatter
-                 print*,stock_storage_organ,stock_resp_auto
-                 print*,gpp_acm,nee_dalec
-                 print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
-                 print*,"pars",pars
-                 print*,"DR",DR
-                 print*,"alloc_to_labile",alloc_to_labile,"remob",remob
-                 print*,"DR stuff",fT,fV,fP
-                 print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
-                 print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
-                 print*,"avtemp",avtemp
-                 print*,"sown",sown,"emerged",emerged
-                 print*,"root_frac_intpol",root_frac_intpol
-                 print*,"npp_shoot",npp_shoot,"npp",npp
-                 print*,"RDR",RDR,"ts_length",ts_length
-                 stop
-            end if
-         else
-             if (FLUXES(n,nxp) /= FLUXES(n,nxp)) then
-                 print*,"Default: step",n,"FLUXES",nxp
-                 print*,"met",met(:,n)
-                 print*,"POOLS",POOLS(n,:)
-                 print*,"FLUXES",FLUXES(n,:)
-                 print*,"POOLS+1",POOLS(n+1,:)
-                 print*,"wSWP",wSWP
-                 print*,"waterfrac",soil_waterfrac
-                 print*,"steps_in_day",steps_in_day
-                 print*,stock_labile, stock_foliage
-                 print*,stock_stem,stock_roots
-                 print*,stock_litter,stock_soilOrgMatter
-                 print*,stock_storage_organ,stock_resp_auto
-                 print*,gpp_acm,nee_dalec
-                 print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
-                 print*,"pars",pars
-                 print*,"DR",DR
-                 print*,"alloc_to_labile",alloc_to_labile,"remob",remob
-                 print*,"DR stuff",fT,fV,fP
-                 print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
-                 print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
-                 print*,"avtemp",avtemp
-                 print*,"sown",sown,"emerged",emerged
-                 print*,"root_frac_intpol",root_frac_intpol
-                 print*,"npp_shoot",npp_shoot,"npp",npp
-                 print*,"RDR",RDR,"ts_length",ts_length
-                 stop
-             endif
-         end if
-      enddo
-
-      if (stock_labile < dble_zero .or. stock_foliage < dble_zero .or. stock_stem < dble_zero .or. &
-          stock_roots < dble_zero .or. stock_litter < dble_zero .or. stock_soilOrgMatter < dble_zero .or. &
-          stock_storage_organ < dble_zero .or. stock_resp_auto < dble_zero .or. &
-          stock_labile /= stock_labile .or. stock_foliage /= stock_foliage .or. &
-          stock_stem /= stock_stem .or. &
-          stock_roots /= stock_roots .or. stock_litter /= stock_litter .or. &
-          stock_soilOrgMatter /= stock_soilOrgMatter .or. &
-          stock_storage_organ /= stock_storage_organ .or. &
-          stock_resp_auto /= stock_resp_auto .or.  &
-          gpp_acm < dble_zero .or. gpp_acm /= gpp_acm .or. resp_rate < dble_zero .or. &
-          resp_rate /= resp_rate .or. decomposition < dble_zero .or. alloc_from_labile < dble_zero .or. &
-          resp_cost_labile_to_foliage < dble_zero .or. alloc_to_foliage < dble_zero .or. &
-          alloc_to_stem < dble_zero .or. alloc_to_roots < dble_zero .or. remob < dble_zero .or. &
-          alloc_from_labile < dble_zero .or. resp_cost_labile_to_foliage < dble_zero .or. wSWP /= wSWP) then
-          print*,"stocks less than zero or NaN", n
-          print*,"steps_in_day",steps_in_day
-          print*,stock_labile, stock_foliage
-          print*,stock_stem,stock_roots
-          print*,stock_litter,stock_soilOrgMatter
-          print*,stock_storage_organ,stock_resp_auto
-          print*,gpp_acm,nee_dalec
-          print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
-          print*,"pars",pars(1:33)
-          print*,"fluxes",fluxes(n,1:16)
-          print*,"DR",DR
-          print*,"alloc_to_labile",alloc_to_labile,"remob",remob
-          print*,"DR stuff",fT,fV,fP
-          print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
-          print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
-          print*,"avtemp",avtemp
-          print*,"sown",sown,"emerged",emerged
-          print*,"root_frac_intpol",root_frac_intpol
-          print*,"npp_shoot",npp_shoot,"npp",npp
-          print*,"RDR",RDR,"ts_length",ts_length
-          stop
-      endif
+!!$      if (stock_labile < dble_zero .or. stock_foliage < dble_zero .or. stock_stem < dble_zero .or. &
+!!$          stock_roots < dble_zero .or. stock_litter < dble_zero .or. stock_soilOrgMatter < dble_zero .or. &
+!!$          stock_storage_organ < dble_zero .or. stock_resp_auto < dble_zero .or. &
+!!$          stock_labile /= stock_labile .or. stock_foliage /= stock_foliage .or. &
+!!$          stock_stem /= stock_stem .or. &
+!!$          stock_roots /= stock_roots .or. stock_litter /= stock_litter .or. &
+!!$          stock_soilOrgMatter /= stock_soilOrgMatter .or. &
+!!$          stock_storage_organ /= stock_storage_organ .or. &
+!!$          stock_resp_auto /= stock_resp_auto .or.  &
+!!$          gpp_acm < dble_zero .or. gpp_acm /= gpp_acm .or. resp_rate < dble_zero .or. &
+!!$          resp_rate /= resp_rate .or. decomposition < dble_zero .or. alloc_from_labile < dble_zero .or. &
+!!$          resp_cost_labile_to_foliage < dble_zero .or. alloc_to_foliage < dble_zero .or. &
+!!$          alloc_to_stem < dble_zero .or. alloc_to_roots < dble_zero .or. remob < dble_zero .or. &
+!!$          alloc_from_labile < dble_zero .or. resp_cost_labile_to_foliage < dble_zero .or. wSWP /= wSWP) then
+!!$          print*,"stocks less than zero or NaN", n
+!!$          print*,"steps_in_day",steps_in_day
+!!$          print*,stock_labile, stock_foliage
+!!$          print*,stock_stem,stock_roots
+!!$          print*,stock_litter,stock_soilOrgMatter
+!!$          print*,stock_storage_organ,stock_resp_auto
+!!$          print*,gpp_acm,nee_dalec
+!!$          print*,resp_auto,resp_h_soilOrgMatter,resp_h_litter
+!!$          print*,"pars",pars(1:33)
+!!$          print*,"fluxes",fluxes(n,1:16)
+!!$          print*,"DR",DR
+!!$          print*,"alloc_to_labile",alloc_to_labile,"remob",remob
+!!$          print*,"DR stuff",fT,fV,fP
+!!$          print*,"leaf","stem","rootlitter",litterfall_foliage,litterfall_stem,litterfall_roots
+!!$          print*,"daylength",dayl_hours,"VD",VD,"VDh",VDh
+!!$          print*,"avtemp",avtemp
+!!$          print*,"sown",sown,"emerged",emerged
+!!$          print*,"root_frac_intpol",root_frac_intpol
+!!$          print*,"npp_shoot",npp_shoot,"npp",npp
+!!$          print*,"RDR",RDR,"ts_length",ts_length
+!!$          stop
+!!$      endif
 
     end do ! no days loop
 
@@ -898,7 +924,7 @@ contains
 
     ! NPP as a fraction of GPP (1-.32=.68 or 68%) + allocation..
     npp = ( dble_one - frac_GPP_resp_auto ) * gpp_acm + alloc_from_labile
-    ! from labile pool; = SHORT-TERM POOL
+    ! from labile pool; = SHORT-TERM POOL    
 
     root_frac_intpol  = max(dble_zero,min(dble_one,root_frac_intpol))
     alloc_to_roots    = root_frac_intpol * npp         !
@@ -995,7 +1021,8 @@ contains
     stock_soilOrgMatter = max(dble_zero, stock_soilOrgMatter + decomposition    - resp_h_soilOrgMatter)
     stock_dead_foliage  = max(dble_zero, stock_dead_foliage  + litterfall_foliage * 0.5d0) ! remainder of litfol is remobilisedi
     stock_labile        = max(dble_zero, stock_labile + alloc_to_labile  - alloc_from_labile - resp_cost_labile_to_foliage + remob)
-
+    
+    
     ! respiratory pool: new photosynthates are added (gC.m-2.t-1)
     stock_resp_auto = stock_resp_auto + frac_GPP_resp_auto * gpp_acm
     ! autotrophic respiration; Ra (typically ~7% of respiratory pool) (gC.m-2.t-1)
@@ -1138,6 +1165,8 @@ contains
 
     endif ! emerged or not
 
+   
+    
   end subroutine development_stage
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
@@ -1185,7 +1214,7 @@ contains
         if (.not.ploughed) call plough
         ! the field needs sowing..
         sown = .true.
-
+        
         ! this switch controls whether the labile carbon within the seed is used
         ! for growth
         use_seed_labile = .true.
@@ -1222,10 +1251,13 @@ contains
       if ( harvest_sanity .and. nint(doy) >= harvest_day) then
          ! the field needs harvesting..
          call harvest
+         
       endif
 
-    endif ! sown or not
+   endif ! sown or not
 
+   
+   
   end subroutine management_dates
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
@@ -1249,6 +1281,7 @@ contains
     ! the stuff we actually want from the harvest...
     yield = stock_storage_organ !+ stock_stem * ( dble_one - st_res )
 
+    
     ! the biomass that is harvested in addition to the storage-organ..
     BM_EX  = stock_foliage * ( dble_one - lv_res )          &
               + stock_stem * ( dble_one - st_res )          &
@@ -1441,5 +1474,6 @@ contains
   end function interpolate
 !
 !--------------------------------------------------------------------
-!
+  
+  
 end module CARBON_MODEL_CROP_MOD

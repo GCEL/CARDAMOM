@@ -698,7 +698,9 @@ contains
     mean_days_per_step = nint(mean_days_per_step / dble(nodays)) ! now update to mean
 
     ! Parameters related to ACM-GPP-ET, but not actually parameters of the ACM-GPP-ET model
+    ! AR: change from pars(11)
     avN = 10d0**pars(11)             ! Average foliar Nitrogen content gN/m2leaf
+    !avN = 10d0**met(7,n)
     deltaWP = minlwp                 ! leafWP-soilWP (i.e. -2-0 MPa)
     Rtot = dble_one                  ! Reset Total hydraulic resistance to 1
     canopy_zero_efficiency = pars(3) ! canopy age (days) past peak at which NUE = 0
@@ -1933,6 +1935,7 @@ contains
     ! sanity check
     if (acm_gpp /= acm_gpp) acm_gpp = dble_zero
     ! don't forget to return
+        
     return
 
   end function acm_gpp
