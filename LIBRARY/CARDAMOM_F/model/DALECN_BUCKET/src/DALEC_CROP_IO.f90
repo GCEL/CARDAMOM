@@ -343,7 +343,7 @@ contains
     
     write (filename, "(I1)") treatment_num
     
-    output_dir = '/home/arevill/DALEC_CROP_OUTPUTS/'   
+    output_dir = 'src/STANDALONE/OUTPUTS/'   
     
     ! All the 16 fluxes could be included here
     ! write FLUXES -----------------------
