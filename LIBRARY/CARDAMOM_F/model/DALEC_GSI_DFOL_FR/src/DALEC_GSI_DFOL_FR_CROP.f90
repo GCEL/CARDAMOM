@@ -196,6 +196,9 @@ contains
              ,constants(10)          & ! parameters for ACM
              ,declin,sinld,cosld,aob
 
+    ! Allocate lai array
+    double precision, allocatable, dimension(:) :: foliar_N_array
+
     integer :: p,f,nxp,n
     character(20) :: t
 
@@ -269,12 +272,25 @@ contains
     ! p(34) ! turnover rate of labile C
     ! p(35) ! turnover rate of autotrophic C
 
+    ! Create an array of daily foliar N values ---------------------- !
+    if (.not. allocated(foliar_n_array)) allocate( foliar_n_array(nodays))
+
+    ! set the same value for all elements in array
+    foliar_n_array(1:nodays) = 1.0
+
+    ! Just a test(e.g. day 307)
+    print*,'e.g. foliar_N on day 307= ', foliar_n_array(307)
+
+    ! --------------------------------------------------------------- !
+    
     ! load some values
     gpppars(4) = 1.0 ! 10.0**pars(11) !1.0 ! foliar N
     gpppars(7) = lat
     gpppars(9) = -2.0 ! leafWP-soilWP
     gpppars(10) = 1.0 ! 0.2 !1.0 ! totaly hydraulic resistance
     gpppars(11) = pi
+
+    
 
     ! assign acm parameters
     ! cropland
@@ -417,13 +433,17 @@ contains
       gpppars(1)=lai(n)
       gpppars(2)=met(3,n) ! max temp
       gpppars(3)=met(2,n) ! min temp
+
+      ! Set daily foliar N value based on foliar N array
+      gpppars(4)=foliar_n_array(n)
+
       gpppars(5)=met(5,n) ! co2
       gpppars(6)=ceiling(met(6,n)-(deltat(n)*0.5)) ! doy
       gpppars(8)=met(4,n) ! radiation
 
       ! allocate doy of year
       doy=met(6,n)
-
+      
       ! calculate new gpp value
       ! GPP (gC.m-2.day-1)
       if (lai(n) > 1e-6) then
