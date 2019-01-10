@@ -6,7 +6,7 @@ program MAIN_DALEC
   use DALEC_CROP_DEV_VARIABLES,     only: DS_shoot,DS_root,fol_frac,stem_frac,root_frac,DS_LRLV, &
                                           LRLV,DS_LRRT,LRRT
   
-  use DALEC_CROP_IO,                only: read_met_data, read_veg_parameters, read_dev_data, output_data, read_leaf
+  use DALEC_CROP_IO,                only: read_met_data, read_veg_parameters, output_data, read_leaf
   
 
   use CARBON_MODEL_CROP_MOD,        only: CARBON_MODEL_CROP
@@ -77,9 +77,7 @@ program MAIN_DALEC
   ! Actually if you go to DALEC_CROP_IO.f90 you will see that I am using some hard-coded parameters, but we could update these with the ones from your optimisation.
   call read_veg_parameters(pars, num_pars, sow_day, harvest_day, plough_day)
    
-  ! Read development *csv file
-  call read_dev_data
-
+  
   ! Read met data *csv into met_data array (doy,min_t,max_t,rad)
   call read_met_data(num_days)
 
@@ -113,9 +111,7 @@ program MAIN_DALEC
   
      ! Call the modelling part
      call CARBON_MODEL_CROP(start,finish,met_data,pars,deltat,num_days,lat,lai,NEE,FLUXES,POOLS &
-                              ,pft,num_pars,num_met,num_pools,num_fluxes,GPP,stock_seed_labile&
-                              ,DS_shoot,DS_root,fol_frac,stem_frac,root_frac,DS_LRLV  &
-                              ,LRLV,DS_LRRT,LRRT)  
+                              ,pft,num_pars,num_met,num_pools,num_fluxes,GPP,stock_seed_labile)
      
      call output_data(FLUXES,POOLS, pars)
 

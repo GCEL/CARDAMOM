@@ -144,9 +144,7 @@ contains
 !--------------------------------------------------------------------
 !
   subroutine CARBON_MODEL_CROP(start,finish,met,pars,deltat,nodays,lat,lai,NEE,FLUXES,POOLS &
-                       ,pft,nopars,nomet,nopools,nofluxes,GPP,stock_seed_labile&
-                       ,DS_shoot,DS_root,fol_frac,stem_frac,root_frac,DS_LRLV  &
-                       ,LRLV,DS_LRRT,LRRT)
+                       ,pft,nopars,nomet,nopools,nofluxes,GPP,stock_seed_labile)
 
     ! The Data Assimilation Linked Ecosystem Carbon - Combined Deciduous
     ! Evergreen Analytical (DALEC_CDEA) model. The subroutine calls the
@@ -154,6 +152,8 @@ contains
     ! ecosystem carbon pools. These pools are subject to turnovers /
     ! decompostion resulting in ecosystem phenology and fluxes of CO2
 
+    use DALEC_CROP_DEV_VARIABLES ! Now need to define the variables here
+    
     implicit none
 
     ! declare input variables
@@ -172,15 +172,15 @@ contains
                          ,pars(nopars)                  & ! number of parameters
                          ,lat                 ! site latitude (degrees)
 
-    double precision, dimension(:), intent(inout) ::          DS_shoot, & !
-                                                               DS_root, & !
-                                                              fol_frac, & !
-                                                             stem_frac, & !
-                                                             root_frac, & !
-                                                               DS_LRLV, & ! 
-                                                                  LRLV, & !
-                                                               DS_LRRT, & !
-                                                                  LRRT    ! 
+!!$    double precision, dimension(:), intent(inout) ::          DS_shoot, & !
+!!$                                                               DS_root, & !
+!!$                                                              fol_frac, & !
+!!$                                                             stem_frac, & !
+!!$                                                             root_frac, & !
+!!$                                                               DS_LRLV, & ! 
+!!$                                                                  LRLV, & !
+!!$                                                               DS_LRRT, & !
+!!$                                                                  LRRT    ! 
 
     double precision, dimension(nodays), intent(inout) :: lai & ! leaf area index
                                                ,GPP & ! Gross primary productivity
@@ -298,6 +298,31 @@ contains
     constants(8)=0.011136
     constants(9)=2.1001
     constants(10)=0.789798
+
+    ! -- Define allocation fractions (from development.csv SPA-Crop file) ---------------- !
+    
+    ! First allocate arrays [DS_shoot,DS_root, DS_LRLV(loss rate leaves), DS_LRRT(loss rate roots)]  
+    if (.not. allocated(DS_shoot)) allocate( DS_shoot(10) , fol_frac(10) , stem_frac(10)  )  ! Shoot array
+    if (.not. allocated(DS_root)) allocate( DS_root(5) , root_frac(5) ) ! Root array
+    if (.not. allocated(DS_LRLV)) allocate( DS_LRLV(5) , LRLV(5) ) ! Loss rate leaves
+    if (.not. allocated(DS_LRRT)) allocate( DS_LRRT(5) , LRRT(5) ) ! Loss rate roots
+
+    !stock_seed_labile = 9.0 ! this is passed from the MAIN_DALEC_CROP.f90 file instead
+    
+    DS_shoot  = (/ 0.0,0.33,0.43,0.53,0.62,0.77,0.95,1.14,1.38,2.1 /)
+    fol_frac  = (/ 0.9,0.85,0.83,0.75,0.56,0.2,0.09,0.05,0.0,0.0 /)
+    stem_frac = (/ 0.1,0.15,0.17,0.25,0.44,0.8,0.64,0.62,0.0,0.0 /)
+
+    DS_root   = (/ 0.0,0.33,0.53,1.0,2.1 /)   
+    root_frac = (/ 0.5,0.5,0.25,0.0,0.0 /)
+
+    DS_LRLV   = (/ 0.0,1.0,1.3,1.8,2.5 /)
+    LRLV      = (/ 0.0,0.0,0.025,0.025,0.025 /)
+
+    DS_LRRT   = (/ 0.0,1.0,1.3,1.8,2.5 /) 
+    LRRT      = (/ 0.0,0.0,0.00625,0.00625,0.00625 /)        
+
+    ! ------------------------------------------------------------------------------------ !
 
     ! length of time step in hours..
     ts_length = ((sum(deltat)/nodays) * sec_in_day) / sec_in_hour

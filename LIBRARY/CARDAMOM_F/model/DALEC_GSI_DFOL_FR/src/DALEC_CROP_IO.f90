@@ -4,7 +4,7 @@ module DALEC_CROP_IO
 
   private
 
-  public :: read_met_data, read_veg_parameters, read_dev_data, output_data, read_leaf
+  public :: read_met_data, read_veg_parameters, output_data, read_leaf
   
   
 contains
@@ -146,103 +146,7 @@ contains
 
 !
 !---------------------------------------------------------------------------------------------------------
-!  
-  subroutine read_dev_data
-
-    use DALEC_CROP_DEV_VARIABLES
-    
-    ! Read the contents of the development.csv file !
-
-    implicit none
-    
-    ! Local
-    character(LEN=200)               :: input_dev, head
-    integer                          :: columns, i, rows, dev_file = 400
-
-    
-    ! open Winter Wheat crop development file
-    open(unit = dev_file, file= 'src/STANDALONE/INPUTS/WW_crops_development.csv', status='old')
-
-    ! maybe need to include stock_seed_labile here
-
-    read(unit=dev_file,fmt=*) head  
-    
-    ! read in C partitioning/fraction data and corresponding developmental stages (DS)
-    ! shoot
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows, columns
-    if (.not. allocated(DS_shoot)) allocate( DS_shoot(rows) , fol_frac(rows) , stem_frac(rows)  )  
-    do i = 1 , rows
-       read(unit=dev_file,fmt=*) DS_shoot(i), fol_frac(i), stem_frac(i)        
-    enddo
-     
-    ! root
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DS_root)) allocate( DS_root(rows) , root_frac(rows) )
-    do i = 1 , rows
-       read(unit=dev_file,fmt=*) DS_root(i), root_frac(i)
-    enddo
-
-
-    ! loss rates of leaves and roots
-    ! leaves
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DS_LRLV)) allocate( DS_LRLV(rows) , LRLV(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) DS_LRLV(i), LRLV(i)
-    enddo
-
-    ! roots
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DS_LRRT)) allocate( DS_LRRT(rows) , LRRT(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) DS_LRRT(i), LRRT(i)
-    enddo
-
-    ! developmental rate as a function of temperature (not needed when calculated through modified Wang&Engel model,
-    ! which is the current set-up)
-    !preanthesis (before flowering)
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DR_T_PRA)) allocate( DR_T_PRA(rows) , DRAO_T_PRA(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) DR_T_PRA(i), DRAO_T_PRA(i)
-    enddo
-
-    ! postanthesis
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DR_T_POA)) allocate( DR_T_POA(rows) , DRAO_T_POA(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) DR_T_POA(i), DRAO_T_POA(i)
-    enddo
- 
-    ! photoperiod (daylength effect on development)
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(DR_P)) allocate( DR_P(rows) , DRAO_P(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) DR_P(i), DRAO_P(i)
-    enddo
-
-    ! LCA ratios (if LCA to be dynamic, but currently not used)
-    read(unit=dev_file,fmt=*) head
-    read(unit=dev_file,fmt=*) rows , columns
-    if (.not. allocated(LCA_DS)) allocate( LCA_DS(rows)  , LCA_ratio(rows) )
-    do i = 1 , rows
-      read(unit=dev_file,fmt=*) LCA_DS(i), LCA_ratio(i)
-    enddo
-  
-    rewind(dev_file)
-        
-    
-  end subroutine read_dev_data  
-!
-!---------------------------------------------------------------------------------------------------------
-!  
+!    
   subroutine read_met_data(num_days)
 
     use DALEC_CROP_MET_VARIABLES
