@@ -6,7 +6,7 @@ program MAIN_DALEC
   use DALEC_CROP_DEV_VARIABLES,     only: DS_shoot,DS_root,fol_frac,stem_frac,root_frac,DS_LRLV, &
                                           LRLV,DS_LRRT,LRRT
   
-  use DALEC_CROP_IO,                only: read_met_data, read_veg_parameters, output_data, read_leaf
+  use DALEC_CROP_IO,                only: read_met_data, read_veg_parameters, output_data
   
 
   use CARBON_MODEL_CROP_MOD,        only: CARBON_MODEL_CROP
@@ -54,9 +54,9 @@ program MAIN_DALEC
   finish = 730
   num_days = 730
   lat = 55.880653
-  sow_day = 273
-  harvest_day = 237
-  plough_day = 730
+  !sow_day = 273
+  !harvest_day = 237
+  !plough_day = 730
   pft=1 ! could be removed
   
   num_pools = 9
@@ -81,9 +81,7 @@ program MAIN_DALEC
   ! Read met data *csv into met_data array (doy,min_t,max_t,rad)
   call read_met_data(num_days)
 
-  ! This is currently not in use but it was where I set it to read leaf parameters (i.e. N content) based on the observations 
-  !call read_leaf(num_days)
- 
+
   
   ! set up data for CARBON_MODEL_CROP
   ! Allocate LAI array

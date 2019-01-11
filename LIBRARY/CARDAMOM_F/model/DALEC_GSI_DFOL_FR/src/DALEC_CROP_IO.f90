@@ -4,7 +4,7 @@ module DALEC_CROP_IO
 
   private
 
-  public :: read_met_data, read_veg_parameters, output_data, read_leaf
+  public :: read_met_data, read_veg_parameters, output_data
   
   
 contains
@@ -26,121 +26,48 @@ contains
     integer                          :: veg_file= 101, i
 
     ! VEG DATA DIRECTORY
-    input_veg = ('src/STANDALONE/INPUTS/'//'WW_crops_veg.csv')
+    input_veg = ('src/INPUTS/'//'pars.csv')
 
     open (unit= veg_file, file=trim(input_veg), status='old')   ! veg file open
 
-    ! Skip first few lines
-    do i = 1,4
-       read(veg_file,*) dummy
-    end do
 
+    read(veg_file,*) pars(1) 
+    read(veg_file,*) pars(2)
+    read(veg_file,*) pars(3)
+    read(veg_file,*) pars(4)
+    read(veg_file,*) pars(5)
+    read(veg_file,*) pars(6)
+    read(veg_file,*) pars(7)
+    read(veg_file,*) pars(8)
+    read(veg_file,*) pars(9)
+    read(veg_file,*) pars(10)
+    read(veg_file,*) pars(11)
+    read(veg_file,*) pars(12) ! sow day
+    read(veg_file,*) pars(13)
+    read(veg_file,*) pars(14)
+    read(veg_file,*) pars(15) ! harvest day
+    read(veg_file,*) pars(16) ! plough day
+    read(veg_file,*) pars(17)
+    read(veg_file,*) pars(18)
+    read(veg_file,*) pars(19)
+    read(veg_file,*) pars(20)
+    read(veg_file,*) pars(21)
+    read(veg_file,*) pars(22)
+    read(veg_file,*) pars(23)
+    read(veg_file,*) pars(24)
+    read(veg_file,*) pars(25)
+    read(veg_file,*) pars(26)
+    read(veg_file,*) pars(27)
+    read(veg_file,*) pars(28)
+    read(veg_file,*) pars(29)
+    read(veg_file,*) pars(30)
+    read(veg_file,*) pars(31)
+    read(veg_file,*) pars(32)
+    read(veg_file,*) pars(33)
+    read(veg_file,*) pars(34)
+    read(veg_file,*) pars(35)
     
-    read(veg_file,*) dummy !, foliar_n
-    read(veg_file,*) dummy !stem conductivity
-    read(veg_file,*) dummy !min LWP
-    read(veg_file,*) dummy !stomatal efficiency
-    read(veg_file,*) dummy !leaf capacitance
-    read(veg_file,*) dummy !LAT
-    read(veg_file,*) dummy !detailed layer by layer output
-    read(veg_file,*) dummy !characteristic dimensions of leaf
-    read(veg_file,*) dummy !root resistivity
-    read(veg_file,*) dummy !height of tower with sensors
-    read(veg_file,*) dummy !tree conductivity
-    read(veg_file,*) dummy !Rate coefficient Vcmax
-    read(veg_file,*) dummy !Rate coefficient Jmax
-    read(veg_file,*) dummy, pars(17)
-    read(veg_file,*) dummy !max root depth
-    read(veg_file,*) dummy !Root biomass to reach 50% of max depth
-    read(veg_file,*) dummy, pars(1) 
-    read(veg_file,*) dummy, pars(2)
-    read(veg_file,*) dummy, pars(5)
-    read(veg_file,*) dummy, pars(6)
-    read(veg_file,*) dummy, pars(10)
-    read(veg_file,*) dummy, pars(9)
-    read(veg_file,*) dummy, pars(34)
-    read(veg_file,*) dummy, pars(13)
-    read(veg_file,*) dummy, pars(11)
-    read(veg_file,*) dummy, pars(19)
-    read(veg_file,*) dummy, pars(21)
-    read(veg_file,*) dummy, pars(20)
-    read(veg_file,*) dummy, pars(22)
-    read(veg_file,*) dummy, pars(23)
-    read(veg_file,*) dummy, pars(18)
-    read(veg_file,*) dummy, pars(24)
-    read(veg_file,*) dummy !THROUGHFALL, fraction of precip that penetrates canopy
-    read(veg_file,*) dummy !max storage, water retained in canopy
-    read(veg_file,*) dummy, pars(14)
-    read(veg_file,*) dummy !Fraction of leaf biomass remaining after harvest 
-    read(veg_file,*) dummy !Fraction of stem biomass remaining after harvest
-    read(veg_file,*) dummy, pars(3)
-    read(veg_file,*) dummy, pars(4)
-    read(veg_file,*) dummy, pars(26)
-    read(veg_file,*) dummy, pars(28)
-    read(veg_file,*) dummy, pars(27)
-    read(veg_file,*) dummy, pars(29)
-    read(veg_file,*) dummy, pars(31)
-    read(veg_file,*) dummy, pars(30)
-    read(veg_file,*) dummy, pars(8)
-    read(veg_file,*) dummy !critical lai
-    read(veg_file,*) dummy, pars(7)
-    read(veg_file,*) dummy, pars(32)
-    read(veg_file,*) dummy, pars(33)
-
-    
-
-    rewind(veg_file)
-    
-    pars(12) = sow_day    
-    pars(15) = harvest_day
-    pars(16) = plough_day
-        
-    !pars(25) = stock_storage_organ
-
-
-    ! LUKE PARAMETERS
-    pars(1:38)= (/5.396430e-05,  & !1
-                  3.591521e-01,  & !2 Frac GPP
-                  (3.538961e-02)*0.7,  & !3 DR pre
-                  4.559480e-02*1.7,  & !4 DR post
-                  8.596312e-02,  & !5
-                  9.389972e-03,  & !6
-                  4.176272e-04,  & !7 Max rate of foliar turnover due to self-shading
-                  2.620799e+01,  & !8
-                  1.009997e-01,  & !9
-                  1.302387e-05,  & !10
-                  3.5e-01,  & !11 foliar N (was 3.038757e-01)
-                  3.172564e+02,  & !12
-                  2.069155e-01,  & !13
-                  1.032496e+02*1.35,  & !14 PHUem
-                  3.111215e+02,  & !15
-                  3.771163e+02,  & !16
-                  2.419578e+01*0.857,  & !17 LMA
-                  3.317560e+00,  & !18
-                  0e+00,         & !19 foliar c  2.757770e+00
-                  0e+00,         & !20 roots 3.507375e+00
-                  0e+00,         & !21 stem 2.318463e+00
-                  2.184431e+00,  & !22
-                  1.289216e+04,  & !23
-                  1.076274e+00,  & !24
-                  0e+00,  & !25
-                  2.723468e+02,  & !26 min temp
-                  2.999132e+02,  & !27 max temp
-                  2.842096e+02,  & !28 opt temp
-                  2.691015e+02,  & !29
-                  2.912893e+02,  & !30
-                  2.767106e+02,  & !31
-                  8.791524e+00,  & !32 Critical photoperiod for development
-                  1.283520e-01,  & !33 Photoperiod sensitivity
-                  9.999767e-02,  & !34
-                  4.610077e-02,  & !35
-                  3.437755e+01,  & !36
-                  4.170504e-01,  & !37
-                  3.972297e-01/)   !38
-
-
-    ! Change foliar
-    
+    close(veg_file)
     
   end subroutine read_veg_parameters
 
@@ -163,7 +90,7 @@ contains
     if (.not. allocated (met_data)) allocate (met_data (6, num_days)) ! for output LAI
     
     ! MET DRIVER DIRECTORY
-    input_met = ('src/STANDALONE/INPUTS/ES_met_2017_2018_v2.csv')
+    input_met = ('src/INPUTS/ES_met_2017_2018_v2.csv')
           
     open (unit= met_file, file=trim(input_met), status='old')   ! Local Met
 
@@ -179,42 +106,7 @@ contains
     !print*, (met_data(11,:))
     
   end subroutine read_met_data
-!
-!---------------------------------------------------------------------------------------------------------
-!  
 
- subroutine read_leaf(num_days)
-
-    use DALEC_CROP_LEAF_MASS
-
-    implicit none
-
-    ! Arguments
-    integer, intent(in) :: num_days
-
-    ! Local
-    character(LEN=200)               :: input_leaf, head
-    integer                          :: leaf_file= 109, m
-    real                             :: dummy
-        
-    if (.not. allocated (leaf_mass)) allocate (leaf_mass (5, num_days)) ! for output LAI
-    
-    ! MET DRIVER DIRECTORY
-    input_leaf = ('src/STANDALONE/INPUTS/leaf_mass_v1.csv')
-          
-    open (unit= leaf_file, file=trim(input_leaf), status='old')   ! Local Met
-
-    read(leaf_file,*) head
-
-    ! julian day, min_t, max_temp, radiation, co2, DOY
-    do m = 1,num_days
-       read(leaf_file,*) dummy, leaf_mass(1,m), leaf_mass(2,m), leaf_mass(3,m), leaf_mass(4,m), leaf_mass(5,m)
-    end do
-
-   
-  
-    
-  end subroutine read_leaf
 !
 !---------------------------------------------------------------------------------------------------------
 !  
@@ -242,7 +134,7 @@ contains
     
     !write (filename, "(I1)") treatment_num
     
-    output_dir = 'src/STANDALONE/OUTPUTS/'   
+    output_dir = 'src/OUTPUTS/'   
     
     ! All the 16 fluxes could be included here
     ! write FLUXES -----------------------
