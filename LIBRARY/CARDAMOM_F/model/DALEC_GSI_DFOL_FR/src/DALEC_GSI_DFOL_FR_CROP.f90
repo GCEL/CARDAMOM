@@ -8,7 +8,11 @@ private
 
 ! explicit publics
 public :: CARBON_MODEL_CROP    &
-         ,resp_rate_temp_coeff &
+         ,acm, management_dates,harvest &
+         ,plough, interpolate, vernalization &
+         ,development_stage, photoperiod_impact, temperature_impact &
+         ,calc_pools_crops, carbon_alloc_fractions & 
+         ,resp_rate_temp_coeff & 
          ,ts_length            &
          ,sec_in_day           &
          ,sec_in_hour
@@ -118,7 +122,8 @@ double precision ::           ts_length, & ! time step length in hours
                                   RDRDV, & !
                                     RDR, & !
                               daylength, & !
-                              leaf_CN_snap
+                           leaf_CN_snap, &
+                           days_in_step
 
 
   ! defines Q10 = 2 in exponential temperature response for heterotrophic respiration
@@ -138,8 +143,9 @@ contains
 !
 !--------------------------------------------------------------------
 !
-  subroutine CARBON_MODEL_CROP(start,finish,met,pars,deltat,nodays,lat,lai,NEE,FLUXES,POOLS &
-                       ,pft,nopars,nomet,nopools,nofluxes,GPP,stock_seed_labile)
+  subroutine CARBON_MODEL_CROP(start,finish,met,pars,deltat,nodays,lat,   &
+                               LAI,NEE,FLUXES,POOLS,GPP,leaf_N,           &
+                               nopars,nomet,nopools,nofluxes)
 
     ! The Data Assimilation Linked Ecosystem Carbon (DALEC) model. 
     ! The subroutine calls the Aggregated Canopy Model to simulate GPP 
@@ -147,7 +153,7 @@ contains
     ! These pools are subject to turnovers/decompostion resulting in 
     ! ecosystem phenology and fluxes of CO2
 
-    use DALEC_CROP_DEV_VARIABLES ! Now need to define the variables here
+    ! use DALEC_CROP_DEV_VARIABLES ! Now need to define the variables here
 
     implicit none
 
@@ -155,47 +161,53 @@ contains
     integer, intent(in) :: start    & 
                           ,finish   & 
                           ,nopars   & ! number of paremeters in vector
-                          ,pft      & ! plant functional type
                           ,nomet    & ! number of meteorological fields
                           ,nofluxes & ! number of model fluxes
                           ,nopools  & ! number of model pools
                           ,nodays     ! number of days in simulation
 
     double precision, intent(in) :: met(nomet,nodays) & ! met drivers
-                         ,stock_seed_labile           & ! seed carbon to get things going
                          ,deltat(nodays)              & ! time step in decimal days
                          ,pars(nopars)                & ! number of parameters
                          ,lat                           ! site latitude (degrees)
 
-    ! double precision, dimension(:), intent(inout) ::   DS_shoot, & !
-    !                                                     DS_root, & !
-    !                                                    fol_frac, & !
-    !                                                   stem_frac, & !
-    !                                                   root_frac, & !
-    !                                                     DS_LRLV, & ! 
-    !                                                        LRLV, & !
-    !                                                     DS_LRRT, & !
-    !                                                        LRRT    ! 
+    double precision,  intent(out) :: lai(nodays) & ! leaf area index
+                                     ,GPP(nodays) & ! Gross primary productivity
+                                     ,NEE(nodays)   ! net ecosystem exchange of CO2
 
-    double precision, dimension(nodays), intent(inout) :: lai & ! leaf area index
-                                                         ,GPP & ! Gross primary productivity
-                                                         ,NEE   ! net ecosystem exchange of CO2
+    double precision,intent(out)   :: POOLS((nodays+1),nopools)! vector of ecosystem pools
+ 
+    double precision,intent(out)   :: FLUXES(nodays,nofluxes)! vector of ecosystem fluxes
 
-    double precision, dimension((nodays+1),nopools), intent(inout) :: POOLS ! vector of ecosystem pools
+    double precision, intent(out)  :: leaf_N(nodays) ! vector of ecosystem fluxes
  
-    double precision, dimension(nodays,nofluxes), intent(inout)    :: FLUXES ! vector of ecosystem fluxes
- 
-    ! declare local variables
+    !f2py intent(in) :: start, finish, deltat, lat, met, pars, nodays, nopars, nomet, nopools, nofluxes
+
+    !f2py intent(out) :: LAI, GPP, NEE, POOLS, FLUXES, leaf_N
+
     double precision :: airt_weighting(3) &
                        ,gpppars(12)            & ! ACM inputs (LAI+met)
                        ,constants(10)          & ! parameters for ACM
-                       ,declin,sinld,cosld,aob
+                       ,declin,sinld,cosld,aob &
+                       ,stock_seed_labile
 
     integer :: p,f,nxp,n
     character(20) :: t
 
-    ! Allocate lai array
-    double precision, allocatable, dimension(:) :: leaf_N, DS_crop_N, leaf_CN
+    double precision, allocatable, dimension(:) ::        DS_shoot, & !
+                                                           DS_root, & !
+                                                          fol_frac, & !
+                                                         stem_frac, & !
+                                                         root_frac, & !
+                                                           DS_LRLV, & ! 
+                                                              LRLV, & !
+                                                           DS_LRRT, & !
+                                                              LRRT, &  !
+                                                         DS_crop_N, &
+                                                           leaf_CN
+                                                           
+    save
+
 
     ! MET drivers :
     ! 1 = run day
@@ -282,8 +294,6 @@ contains
     constants(9)  = 0.38  
     constants(10) = 2.72e-8
 
-
-    ! -- Define allocation fractions (from development.csv SPA-Crop file) ---------------- !
     
     ! First allocate arrays [DS_shoot,DS_root, DS_LRLV(loss rate leaves), DS_LRRT(loss rate roots)]  
     if (.not. allocated(DS_shoot)) allocate( DS_shoot(10) , fol_frac(10) , stem_frac(10)  )  ! Shoot array
@@ -292,7 +302,7 @@ contains
     if (.not. allocated(DS_LRRT)) allocate( DS_LRRT(5) , LRRT(5) ) ! Loss rate roots
     if (.not. allocated(DS_crop_N)) allocate( DS_crop_N(6) , leaf_CN(6) ) ! leaf C:N ratio
 
-    !stock_seed_labile = 9.0 ! this is passed from the MAIN_DALEC_CROP.f90 file instead
+    stock_seed_labile = 9.0
     
     DS_shoot  = (/ 0.0,0.33,0.43,0.53,0.62,0.77,0.95,1.14,1.38,2.1 /)
     fol_frac  = (/ 0.9,0.85,0.83,0.75,0.56,0.2,0.09,0.05,0.0,0.0 /)
@@ -313,13 +323,8 @@ contains
     DS_LRRT   = (/ 0.0,1.0,1.3,1.8,2.5 /) 
     LRRT      = (/ 0.0,0.0,0.00625,0.00625,0.00625 /)        
 
-    ! Create an array of daily foliar N values ---------------------- !
-    if (.not. allocated(leaf_N)) allocate( leaf_N(nodays))
-
     ! set the same value for all elements in array
-    leaf_N(1:nodays) = pars(11)
-
-    ! --------------------------------------------------------------- !
+    leaf_N(1:nodays) = 10 ** pars(11)
 
     ! length of time step in hours..
     ts_length = ((sum(deltat)/nodays) * sec_in_day) / sec_in_hour
@@ -328,6 +333,7 @@ contains
     ! steps_in_day = 1d0 ; step_of_day = 1d0
     steps_in_day = 1 / (sum(deltat)/nodays) ! number of steps in a day 
     step_of_day  = 1 / (sum(deltat)/nodays) ! current step of the day 
+    days_in_step = sum(deltat)/nodays
 
     ! parameters 
     decomposition_rate                = pars(1)  ! decomposition rate (frac / hr)
@@ -353,11 +359,9 @@ contains
     PHSC                              = pars(33) ! photoperiod sensitivity
     turnover_rate_labile              = pars(34) ! turnover rate labile C
     turnover_rate_resp_auto           = pars(35) ! turnover rate of autotrophic carbon for respiration
-    
-    ! (could know) management dates :
-    plough_day                        = nint(mod(pars(12)-2d0,365.25)) ! nint(mod(pars(16),365.25)) ! plough day (doy)
-    sow_day                           = nint(mod(pars(12),365.25)) ! sow day (doy)
-    harvest_day                       = nint(mod(pars(15),365.25)) ! nint(mod(pars(15),365.25)) ! harvest day (doy)
+    plough_day                        = nint(pars(16)) ! nint(mod(pars(16),365.25)) ! plough day (doy)
+    sow_day                           = nint(pars(12)) ! sow day (doy)
+    harvest_day                       = nint(pars(15)) ! nint(mod(pars(15),365.25)) ! harvest day (doy)
 
 
     if (start == 1) then
@@ -386,14 +390,14 @@ contains
         RDRDV = 0.0 
 
         ! assigning initial conditions
-        POOLS(1,1)=pars(18)
-        POOLS(1,2)=pars(19)
-        POOLS(1,3)=pars(20)
-        POOLS(1,4)=pars(21)
-        POOLS(1,5)=pars(22)
-        POOLS(1,6)=pars(23)
-        POOLS(1,7)=pars(24) 
-        POOLS(1,8)=pars(25)
+        POOLS(1,1) = pars(18)
+        POOLS(1,2) = pars(19)
+        POOLS(1,3) = pars(20)
+        POOLS(1,4) = pars(21)
+        POOLS(1,5) = pars(22)
+        POOLS(1,6) = pars(23)
+        POOLS(1,7) = pars(24) 
+        POOLS(1,8) = pars(25)
  
         stock_labile          = pars(18) ! labile C
         stock_foliage         = pars(19) ! foliar C
@@ -402,7 +406,7 @@ contains
         stock_litter          = pars(22) ! litter C
         stock_soilOrgMatter   = pars(23) ! som C
         stock_resp_auto       = pars(24) ! autotrophic resp pool
-        stock_storage_organ   = pars(25) ! storage organ (i.e. desired crop)
+        stock_storage_organ   = pars(25) ! storage organ 
 
     endif ! start == 1
 
@@ -412,15 +416,15 @@ contains
 
     do n = start, finish
  
-      ! Leaf N calculation 
-      if ( (DS > 0.) .and. (DS <= 1.5) ) then 
+      ! Leaf N cacluation 
+      if ( (DS .gt. 0.0) .and. (DS .le. 1.5) ) then 
         leaf_CN_snap = interpolate( DS , DS_crop_N , leaf_CN , size(DS_crop_N) )
         leaf_N(n)  = (leaf_CN_snap  / POOLS(n,2)) ** (-1)
       endif 
-      if  (DS > 1.5) then                
+      if  (DS .gt. 1.5) then                
           leaf_N(n) = leaf_N(n-1)
       endif
-
+      
       ! calculate LAI value
       lai(n)    = POOLS(n,2) / LMA
       lai_local = lai(n)
@@ -456,7 +460,7 @@ contains
       mean_alloc_to_storage_organ     = 0.0
 
       ! determine development stage (DS)
-      call development_stage
+      call development_stage()
       ! determine the carbon partitioning based on development stage
       call carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac)
       ! begin carbon allocation for crops
@@ -474,33 +478,38 @@ contains
       ! temprate (i.e. temperature modified rate of metabolic activity))
       FLUXES(n,2) = resp_rate
       ! autotrophic respiration (gC.m-2.day-1)
-      FLUXES(n,3) = resp_auto
+      FLUXES(n,3) = resp_auto * steps_in_day
       ! leaf production rate (gC.m-2.day-1)
-      FLUXES(n,4) = alloc_to_foliage
+      FLUXES(n,4) = alloc_to_foliage * steps_in_day
       ! labile production (gC.m-2.day-1)
-      FLUXES(n,5) = alloc_to_labile + remob
+      FLUXES(n,5) = (alloc_to_labile + remob) * steps_in_day
       ! root production (gC.m-2.day-1)
-      FLUXES(n,6) = alloc_to_roots
+      FLUXES(n,6) = alloc_to_roots * steps_in_day
       ! wood production 
-      FLUXES(n,7) = alloc_to_stem
+      FLUXES(n,7) = alloc_to_stem * steps_in_day
       ! alloc to storage organ
-      FLUXES(n,9) = alloc_to_storage_organ
+      FLUXES(n,9) = alloc_to_storage_organ * steps_in_day
       ! alloc to autotrophic pool
       FLUXES(n,16) = frac_GPP_resp_auto * gpp_acm
       ! labile production
-      FLUXES(n,8) = alloc_from_labile + resp_cost_labile_to_foliage
+      FLUXES(n,8) = (alloc_from_labile + resp_cost_labile_to_foliage) * steps_in_day
       ! total leaf litter production
-      FLUXES(n,10) = litterfall_foliage
+      FLUXES(n,10) = litterfall_foliage * steps_in_day
       ! total wood production
-      FLUXES(n,11) = litterfall_stem
+      FLUXES(n,11) = litterfall_stem * steps_in_day
       ! total root litter production
-      FLUXES(n,12) = litterfall_roots
+      FLUXES(n,12) = litterfall_roots * steps_in_day
       ! respiration heterotrophic litter
-      FLUXES(n,13) = resp_h_litter
+      FLUXES(n,13) = resp_h_litter * steps_in_day
       ! respiration heterotrophic som
-      FLUXES(n,14) = resp_h_soilOrgMatter
-      ! litter to som
-      FLUXES(n,15) = decomposition
+      FLUXES(n,14) = resp_h_soilOrgMatter * steps_in_day
+      ! litter to som 
+      FLUXES(n,15) = decomposition * steps_in_day
+      ! alloc to autotrophic pool
+      FLUXES(n,16) = frac_GPP_resp_auto * GPP(n)
+
+      ! write(*,*) steps_in_da
+
 
       ! labile pool
       POOLS(n+1,1) = stock_labile
@@ -574,16 +583,17 @@ contains
     ! determine temperature range 
     trange=0.5*(maxt-mint)
     ! daily canopy conductance 
-    gc=abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange)) ! default
+    gc = abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange)) ! default
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited
     ! photosynthesis (gC.m-2.day-1)
-    pn=lai_local*nit*NUE*exp(temp_exponent*maxt) ! default
+    pn = lai_local*nit*NUE*exp(temp_exponent*maxt) ! default
     ! pp and qq represent limitation by diffusion and metabolites respecitively
-    pp=pn/gc ; qq=co2_comp_point-co2_half_sat
+    pp = pn/gc 
+    qq = co2_comp_point-co2_half_sat
     ! calculate internal CO2 concentration (ppm)
-    ci=0.5*(co2+qq-pp+((co2+qq-pp)**2-4.0*(co2*qq-pp*co2_comp_point))**0.5)
+    ci = 0.5*(co2+qq-pp+((co2+qq-pp)**2-4.0*(co2*qq-pp*co2_comp_point))**0.5)
     ! limit maximum quantium efficiency by leaf area, hyperbola
-    e0=lai_coef*lai_local**2/(lai_local**2+lai_const)
+    e0 = lai_coef*lai_local**2/(lai_local**2+lai_const)
     ! calculate day length (hours)
     dec = - asin( sin( 23.45 * deg_to_rad ) * cos( 2.0 * pi * ( doy + 10.0 ) / 365.0 ) )
     sinld = sin( lat*deg_to_rad ) * sin( dec )
@@ -591,11 +601,11 @@ contains
     aob = max(-1.0,min(1.0,sinld / cosld))
     daylength = 12.0 * ( 1.0 + 2.0 * asin( aob ) / pi )
     ! calculate CO2 limited rate of photosynthesis
-    pd=gc*(co2-ci)
+    pd = gc*(co2-ci)
     ! calculate combined light and CO2 limited photosynthesis
-    cps=e0*radiation*pd/(e0*radiation+pd)
+    cps = e0*radiation*pd/(e0*radiation+pd)
     ! correct for day length variation
-    acm=cps*(dayl_coef*daylength+dayl_const)
+    acm = cps*(dayl_coef*daylength+dayl_const)
 
     ! don't forget to return
     return
@@ -727,7 +737,6 @@ contains
     decomposition = decomposition_rate * stock_litter * resp_rate * ts_length
 
     ! Recalculate Carbon Pools...
-
     stock_foliage       = max(0d0, stock_foliage + alloc_to_foliage - litterfall_foliage)
     stock_stem          = max(0d0, stock_stem + alloc_to_stem - litterfall_stem)
     stock_storage_organ = max(0d0, stock_storage_organ + alloc_to_storage_organ)
@@ -846,17 +855,17 @@ contains
           DR = DR_pre * fT * fP   ! DR is affected by temperature, photoperiod...
 
           if ( vernal_calcs ) DR = DR * fV ! ...and vernalization (for winter cereals)
-          DS = DS + DR    ! developmental stage (DS), calculated as the sum of daily developmental rates
+          DS = DS + ( DR + days_in_step ) ! developmental stage (DS), calculated as the sum of daily developmental rates
 
        else    ! in the reproductive phase (after flowering):
 
           DR = DR_post * fT   ! DR is affected only by temperature
-          DS = DS + DR
+          DS = DS + ( DR + days_in_step )
 
        endif
 
     endif
-
+  
   end subroutine development_stage
   
   !
@@ -921,7 +930,7 @@ contains
 
          ! estimate emergence date based on the accumulated phenological heat units (PHU)
          ! where PHU is the (positive) heat over tmin..
-         tmp = max( avtemp - tmin , 0.0 ) * steps_in_day
+         tmp = max( avtemp - tmin , 0.0 ) * days_in_step
          PHU = PHU + tmp
 
          ! set the development stage and emergence..
@@ -992,6 +1001,7 @@ contains
     ! reset logical variables..
     sown    = .False.
     emerged = .False.
+    ploughed = .False.
     fV = 0.0 ; fT = 0.0 ; fP = 0.0
     VD = 0.0 ; DS = -9999
 
@@ -1047,14 +1057,8 @@ contains
   !
   subroutine plough()
 
-    ! this s/r will reset various carbon pools, to mimic the effect of the
-    ! farmer ploughing. !
-
     implicit none
 
-    ! Move all plant stocks into the litter pool.
-    ! ( many of these should already be empty after the harvest, )
-    ! ( e.g. the stocks for labile, foliage, storage-organ stem. )
     stock_litter        = stock_litter + stock_dead_foliage &
                           + stock_foliage + stock_labile    &
                            + stock_roots + stock_stem       &
@@ -1066,6 +1070,10 @@ contains
     stock_roots         = 0.0
     stock_stem          = 0.0
     stock_storage_organ = 0.0
+
+    ploughed = .true. ; DS = -1.0 ; PHU = 0.0
+    max_raso = 0.0 ; raso = 0.0 ; max_raso_old = 0.0 ; raso_old = 0.0
+    mean_alloc_to_storage_organ_old = 0.0 ; mean_alloc_to_storage_organ = 0.0
 
   end subroutine plough
   !
@@ -1110,7 +1118,7 @@ contains
     nmr = 2.0 * ( ( dttmin_v ) ** a ) * ( doptmin_v ** a ) - ( ( dttmin_v ) ** (2.0 * a ) )
     dnr = doptmin_v ** ( 2.0 * a )
     fvn = nmr / dnr
-    VD = VD + fvn
+    VD = VD + (fvn + days_in_step)
     ! final output value : 
     vernalization = max( 0d0 , min( 1d0 , ( VD ** 5.0 ) / ( ( VDh ** 5.0 ) + (VD ** 5.0 ) ) ) )
 
