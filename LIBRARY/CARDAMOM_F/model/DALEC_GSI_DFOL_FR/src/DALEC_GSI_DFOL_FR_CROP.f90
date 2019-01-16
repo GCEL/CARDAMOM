@@ -377,7 +377,7 @@ contains
         HI = 0.0
         ploughed = .false.
         vernal_calcs = .true. 
-        sown = .true.
+        sown = .false.
         use_seed_labile = .true.  
         emerged = .false.
         stock_dead_foliage=0.0
@@ -406,8 +406,16 @@ contains
         stock_litter          = pars(22) ! litter C
         stock_soilOrgMatter   = pars(23) ! som C
         stock_resp_auto       = pars(24) ! autotrophic resp pool
-        stock_storage_organ   = pars(25) ! storage organ 
+        stock_storage_organ   = pars(25) ! storage organ
 
+        ! Load developmental PARS
+        tmin  = pars(26)! min temperature for development
+        tmax  = pars(27)! max temperature for development
+        topt  = pars(28)! optimum temperature for development
+        tmin_v= pars(29)! min temperature for vernalisation
+        tmax_v = pars(30)! max temperature for vernalisation
+        topt_v = pars(31)! optimim temperature for vernalisation
+        
     endif ! start == 1
 
     ! 
@@ -415,14 +423,13 @@ contains
     ! 
 
     do n = start, finish
- 
+       
       ! Leaf N cacluation 
       if ( (DS .gt. 0.0) .and. (DS .le. 1.5) ) then 
         leaf_CN_snap = interpolate( DS , DS_crop_N , leaf_CN , size(DS_crop_N) )
         leaf_N(n)  = (leaf_CN_snap  / POOLS(n,2)) ** (-1)
-      endif 
-      if  (DS .gt. 1.5) then                
-          leaf_N(n) = leaf_N(n-1)
+      else if (DS .gt. 1.5) then                
+        leaf_N(n) = leaf_N(n-1)
       endif
       
       ! calculate LAI value
@@ -437,7 +444,7 @@ contains
       gpppars(5) = met(5,n)                          ! co2
       gpppars(6) = ceiling(met(6,n)-(deltat(n)*0.5)) ! doy
       gpppars(8) = met(4,n)                          ! radiation
-
+      
       ! allocate doy of year
       doy = met(6,n)
 
@@ -449,7 +456,7 @@ contains
       end if
 
       ! pass relevant variables into crop module memory
-      avtemp =  0.5 * ( met(3,n) + met(2,n) )
+      avtemp = 0.5 * ( met(3,n) + met(2,n) )
 
       ! Heterotrophic respiration rate (Q10):  doubles with 
       ! 10 degree temperature rise resprate from soil file = 0.0693
@@ -459,8 +466,8 @@ contains
       mean_alloc_to_storage_organ_old = mean_alloc_to_storage_organ
       mean_alloc_to_storage_organ     = 0.0
 
-      ! determine development stage (DS)
-      call development_stage()
+      ! determine development stage (DS) 
+      call development_stage()                
       ! determine the carbon partitioning based on development stage
       call carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac)
       ! begin carbon allocation for crops
@@ -815,6 +822,8 @@ contains
 
     implicit none
 
+    
+    
     ! local variables..
     double precision ::  doptmin, & ! Difference between optimum and minimum temperature
                          dmaxmin, & ! Difference between maximum and minimum temperature
@@ -824,48 +833,58 @@ contains
                        dttmin_v     ! Difference between daily average and minimum vernalization temperatures
 
     doptmin   = topt   - tmin   ! difference between optimal and minimum cardinal temperatures
+    doptmin   = topt   - tmin   ! difference between optimal and minimum cardinal temperatures
     dmaxmin   = tmax   - tmin   ! difference between maximum and minimum cardinal temperatures
     dttmin    = avtemp - tmin   ! difference between daily average and minimum cardinal temperatures
     doptmin_v = topt_v - tmin_v ! same as above,
     dmaxmin_v = tmax_v - tmin_v !       but for vernalization 
     dttmin_v  = avtemp - tmin_v ! cardinal temperatures
+        
+    ! Calculation of developmental function values: vernalization (fV),
+    ! temperature (fT) and
+    ! photoperiod (fP) these values are multiplicative factors of DRmax (maximum
+    ! developmental
+    ! rate), each ranging between 0 (no development) and 1 (unrestricted
+    ! development).
 
-    ! Calculation of developmental function values: vernalization (fV),temperature (fT) and photoperiod (fP) 
-    ! these values are multiplicative factors of DRmax (maximum developmental rate)
-    ! each ranging between 0 (no development) and 1 (unrestricted development)
-
-    ! Summation of vernalization days (VD), not before sowing and only if avg T is within min and max cardinal T
-    if ( ( avtemp .gt. tmin_v ) .and. ( avtemp .lt. tmax_v ) .and. sown ) then
-      fV = vernalization( doptmin_v , dmaxmin_v , dttmin_v )
-    endif
-
-    ! Only calculate temperature coefficient if avtemp lies within (tmin,tmax) range
+    ! Summation of vernalization days (VD), not before sowing and only if
+    ! average temperature is within min and max cardinal temperatures..
+    if ( ( avtemp .gt. tmin_v ) .and. ( avtemp .lt. tmax_v ) .and. sown .and. .not. emerged ) then
+       fV = vernalization( doptmin_v , dmaxmin_v , dttmin_v )
+    endif     
+    
+    ! Only calculate temperature coefficient if avtemp lies within (tmin,tmax)
+    ! range.
     if ( (avtemp .gt. tmin ) .and. ( avtemp .lt. tmax ) ) then
       fT = temperature_impact( doptmin , dmaxmin , dttmin )
     else
-      fT = 0.0
+      fT = 0d0
     endif
 
-    fP = photoperiod_impact( PHCR , PHSC ) ! calculation of photoperiod coefficient
+    
+    
+    fP = photoperiod_impact( PHCR , PHSC ) ! calculation of photoperiod coefficient    
 
-    if ( emerged .and. ( DS .lt. 2.0 ) ) then   ! sum up daily DR values between emergence and maturity (DS=2)
+    if ( emerged .and. ( DS .lt. 2d0 ) ) then   ! sum up daily DR values between emergence and maturity (DS=2)
 
-       if ( DS .lt. 1.0 ) then  ! in the vegetative phase (before flowering):
+       if ( DS .lt. 1d0 ) then  ! in the vegetative phase (before flowering):
 
           DR = DR_pre * fT * fP   ! DR is affected by temperature, photoperiod...
 
-          if ( vernal_calcs ) DR = DR * fV ! ...and vernalization (for winter cereals)
-          DS = DS + ( DR + days_in_step ) ! developmental stage (DS), calculated as the sum of daily developmental rates
+          if ( vernal_calcs ) DR = DR * fV ! ...and vernalization (for winter cereals)          
+
+          DS = DS + DR    ! developmental stage (DS), calculated as the sum of daily developmental rates
 
        else    ! in the reproductive phase (after flowering):
 
           DR = DR_post * fT   ! DR is affected only by temperature
-          DS = DS + ( DR + days_in_step )
+
+          DS = DS + DR
 
        endif
 
     endif
-  
+        
   end subroutine development_stage
   
   !
@@ -899,8 +918,8 @@ contains
     ! winter crops
     if (sow_day > harvest_day) sow_sanity = .true. 
     if (plough_day > harvest_day) plough_sanity = .true.
-    if (harvest_day < plough_day .and. nint(doy) < plough_day) harvest_sanity = .true.
-
+    if (harvest_day < plough_day .and. nint(doy) < plough_day) harvest_sanity = .true.   
+    
     if ( .not. sown ) then ! fresh field...
 
       if ( plough_sanity .and. .not.ploughed .and. nint(doy) >= plough_day ) then
@@ -908,7 +927,7 @@ contains
         call plough 
 
       elseif ( sow_sanity .and. nint(doy) >= sow_day ) then
-
+                 
         ! ensure that the field has indeed been ploughed
         if (.not.ploughed) then 
             call plough
@@ -916,7 +935,7 @@ contains
 
         ! the field needs sowing..
         sown = .true.
-
+                
         ! this switch controls whether the labile C within the seed is used for growth
         use_seed_labile = .true.
         stock_labile = stock_seed_labile
@@ -924,15 +943,15 @@ contains
       endif ! plough or sow?
 
     else
-
+      
       ! crop in field... calculate when crop emerges
       if ( .not. emerged ) then
 
          ! estimate emergence date based on the accumulated phenological heat units (PHU)
          ! where PHU is the (positive) heat over tmin..
-         tmp = max( avtemp - tmin , 0.0 ) * days_in_step
-         PHU = PHU + tmp
-
+         tmp = max( avtemp - tmin_v , 0.0 ) * days_in_step
+         PHU = PHU + tmp         
+         
          ! set the development stage and emergence..
          if ( PHU >= PHUem ) then
            emerged = .true.
@@ -941,7 +960,7 @@ contains
            emerged = .false.
            DS = -1.0
          endif
-
+                  
       endif ! emerged or not
 
       ! note that in this case harvest day has been fixed relative to the sow day
@@ -949,7 +968,7 @@ contains
          call harvest
       endif
 
-    endif ! sown or not
+   endif ! sown or not
 
   end subroutine management_dates
 
@@ -1048,7 +1067,7 @@ contains
     ! arguments..
     double precision,intent(in) :: PH_crit, & ! critical photoperiod below which no development occurs
                                    PH_sens    ! photoperiod sensitivity
-
+    
     photoperiod_impact = max(0d0, 1d0 - exp ( - PH_Sens * ( daylength - PH_crit ) ))
 
   end function photoperiod_impact
