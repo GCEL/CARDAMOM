@@ -11,13 +11,13 @@ contains
 !
 !---------------------------------------------------------------------------------------------------------
 !  
-  subroutine read_veg_parameters(pars, num_pars, sow_day, harvest_day, plough_day)
+  subroutine read_veg_parameters(pars, num_pars)
 
     use CARBON_MODEL_CROP_MOD
 
     implicit none
 
-    integer, intent(in) :: num_pars, sow_day, harvest_day, plough_day
+    integer, intent(in) :: num_pars
     double precision, dimension(:), intent(inout) :: pars
     
     
@@ -90,7 +90,7 @@ contains
     if (.not. allocated (met_data)) allocate (met_data (6, num_days)) ! for output LAI
     
     ! MET DRIVER DIRECTORY
-    input_met = ('src/INPUTS/ES_met_2017_2018_v2.csv')
+    input_met = ('src/INPUTS/ES_met_2017_2018_v3.csv')
           
     open (unit= met_file, file=trim(input_met), status='old')   ! Local Met
 
@@ -111,7 +111,7 @@ contains
 !---------------------------------------------------------------------------------------------------------
 !  
   
- subroutine output_data(FLUXES,POOLS, pars)
+ subroutine output_data(FLUXES,POOLS, pars, lai)
 
     use DALEC_CROP_MET_VARIABLES
 
@@ -120,8 +120,8 @@ contains
     ! Arguments   
     double precision, dimension(:,:), intent(in) :: POOLS ! vector of ecosystem pools
     double precision, dimension(:,:), intent(in) :: FLUXES  ! vector of ecosystem fluxes
-    double precision, dimension(:), intent(in) :: pars  ! vector of pars
-        
+    double precision, dimension(:), intent(in) :: pars, lai  ! vector of pars
+    
     ! Local
     integer                          :: daily_flux_file=901,  &
                                         daily_pools_file=902, &
@@ -146,10 +146,12 @@ contains
     ! All the 8 pools could be added here
     ! write POOLS ------------------------
     open(unit=daily_pools_file, file = (trim(output_dir)//'POOLS.csv'), status="unknown")
-    write(daily_pools_file,'(5(A10,","))') "LAI","stock_foliage","stock_stem","stock_root", "stock_storage"
-    write(daily_pools_file,'(5(F16.4,","))') (POOLS(p,2)/pars(17), POOLS(p,2), POOLS(p,4), POOLS(p,3), POOLS(p,9),  p = 1,730)
+    write(daily_pools_file,'(4(A10,","))') "stock_foliage","stock_stem","stock_root", "stock_storage" !NOT CORRECT TITLES AT MOMENT
+    write(daily_pools_file,'(4(F16.4,","))')  (POOLS(p,2), POOLS(p,4), POOLS(p,3), POOLS(p,9),  p = 1,730)
 
-    
+!!$    open(909, file = (trim(output_dir)//'LAI.csv'), status="unknown")
+!!$    write(909,'(1(F16.4))') (LAI(p),  p = 1,730)
+!!$    
   end subroutine output_data
 !
 !---------------------------------------------------------------------------------------------------------

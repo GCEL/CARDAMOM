@@ -1,7 +1,7 @@
 0.00179,decomposition rate (frac / hr)
-0.44,fraction of GPP allocated to autotrophic carbon pool
-0.04,development rate coefficient DS (0->1)
-0.034,development rate coefficient DS (1->2)
+0.494,fraction of GPP allocated to autotrophic carbon pool
+0.272,development rate coefficient DS (0->1)
+0.499,development rate coefficient DS (1->2)
 0.00132,turnover_rate of foliage (frac/hr)
 0.00135,turnover rate of stem (frac/hr)
 0.0018,maximum rate of foliar turnover due to self shading
@@ -14,22 +14,22 @@
 143,phenological heat units needed for emergence
 237,harvest day (doy)
 238,plough day (doy)
-24.13,leaf mass area (gC.m-2)
-0,labile
-0,foliar
-0,roots
-0,stem
+45.3,leaf mass area (gC.m-2)
+5.1,labile
+4.5,foliar
+1.55,roots
+1.34,stem
 23.4,litter
 1150,som
 4.91,autotrophic
 0,storage
-0,min t development
-35,max t development
-24,opt t development
--1.3,min t vernalisation
-15.7,max t vernalisation
-4.9,opt t vernalisation
-8.25,critical photoperiod
-0.25,photoperiod sensitivity
+4.15,min t development
+26.8,max t development
+13.4,opt t development
+-0.288,min t vernalisation
+16.5,max t vernalisation
+6.16,opt t vernalisation
+9.36,critical photoperiod
+0.269,photoperiod sensitivity
 0.00187,turnover rate labile
 0.0274,turnover rate autotrophic

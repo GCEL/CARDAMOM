@@ -4,7 +4,7 @@ module CARBON_MODEL_CROP_MOD
 implicit none
 
 ! make all private
-private
+! private
 
 ! explicit publics
 public :: CARBON_MODEL_CROP    &
@@ -27,7 +27,7 @@ double precision, parameter :: deg_to_rad  = pi/180d0
 integer ::   plough_day, & ! day-of-year when field is ploughed  
                 sow_day, & ! day-of-year when field is sown      
             harvest_day, & ! day-of-year when field is harvested 
-              stmob = 0, & ! remoblise stem C to labile (1 = on)
+                  stmob, & ! remoblise stem C to labile (1 = on)
  turnover_labile_switch    ! begin turnover of labile C
 
 logical :: vernal_calcs, &  ! do vernalisation calculations?
@@ -84,16 +84,16 @@ double precision ::           ts_length, & ! time step length in hours
                                RDRSHMAX, & ! maximum rate of self shading turnover
                                    PHCR, & ! critical value of photoperiod for development
                                    PHSC, & ! photoperiod sensitivity
-                             raso = 0.0, & ! rolling average for alloc to storage organ
-                         max_raso = 0.0, & ! maximum value for rolling average alloc to storage organ
+                                   raso, & ! rolling average for alloc to storage organ
+                               max_raso, & ! maximum value for rolling average alloc to storage organ
                                   BM_EX, & ! 
                                      HI, & !
                                   yield, & ! crop yield (gC.m-2)
                      alloc_to_resp_auto, & ! amount of carbon to allocate to autotrophic respiration pool
                     turnover_rate_roots, & ! turnover over rate of roots interpolated each time step
                                 gso_max, & !
-                     max_raso_old = 0.0, & !
-                        raso_old  = 0.0, & !
+                           max_raso_old, & !
+                              raso_old,  & !
             resp_cost_labile_to_foliage, & ! respiratory cost of moving carbon..from labile to foliage pools
             resp_cost_foliage_to_labile, & ! ..from foliage to labile pools
                               resp_rate, & ! rate of respiration at given temperature
@@ -122,8 +122,7 @@ double precision ::           ts_length, & ! time step length in hours
                                   RDRDV, & !
                                     RDR, & !
                               daylength, & !
-                           leaf_CN_snap, &
-                           days_in_step
+                           leaf_CN_snap
 
 
   ! defines Q10 = 2 in exponential temperature response for heterotrophic respiration
@@ -181,9 +180,9 @@ contains
 
     double precision, intent(out)  :: leaf_N(nodays) ! vector of ecosystem fluxes
  
-    !f2py intent(in) :: start, finish, deltat, lat, met, pars, nodays, nopars, nomet, nopools, nofluxes
+    !f2py intent(in)  :: start, finish, met, deltat, pars, lat, nopars, nomet, nofluxes, nopools, nodays
 
-    !f2py intent(out) :: LAI, GPP, NEE, POOLS, FLUXES, leaf_N
+    !f2py intent(out) :: lai, GPP, NEE, POOLS, FLUXES, leaf_N
 
     double precision :: airt_weighting(3) &
                        ,gpppars(12)            & ! ACM inputs (LAI+met)
@@ -276,25 +275,39 @@ contains
     ! p(34) ! turnover rate of labile C
     ! p(35) ! turnover rate of autotrophic C
 
-    ! load some values
+    ! load some values ! AR edits 
     gpppars(7)  = lat
-    gpppars(9)  = -2.060814 ! leafWP-soilWP
-    gpppars(10) = 1.0       ! totaly hydraulic resistance
+    !gpppars(9)  = -2.060814 ! leafWP-soilWP
+    gpppars(9)  = -2.0 ! leafWP-soilWP
+    !gpppars(10) = 1.0       ! totaly hydraulic resistance
+    gpppars(10) = 0.2       ! totaly hydraulic resistance
     gpppars(11) = pi
 
-    ! assign acm parameters: cropland-specific 
-    constants(1)  = 10.38 
-    constants(2)  = 0.04 
-    constants(3)  = 2.70e-4 
-    constants(4)  = 83.18 
-    constants(5)  = 0.03
-    constants(6)  = 4.54  
-    constants(7)  = 3.86 
-    constants(8)  = 4.10e-3
-    constants(9)  = 0.38  
-    constants(10) = 2.72e-8
+    ! AR
+!!$    ! OLD: assign acm parameters: cropland-specific 
+!!$    constants(1)  = 10.38 
+!!$    constants(2)  = 0.04 
+!!$    constants(3)  = 2.70e-4 
+!!$    constants(4)  = 83.18 
+!!$    constants(5)  = 0.03
+!!$    constants(6)  = 4.54  
+!!$    constants(7)  = 3.86 
+!!$    constants(8)  = 4.10e-3
+!!$    constants(9)  = 0.38  
+!!$    constants(10) = 2.72e-8
 
-    
+    constants(1)  = 11.408
+    constants(2)  = 0.00013475
+    constants(3)  = 2.3914E-07 
+    constants(4)  = 357.09
+    constants(5)  = 0.053692
+    constants(6)  = 9.7655  
+    constants(7)  = 2.9782 
+    constants(8)  = 6.702E-05
+    constants(9)  = 0.46821
+    constants(10) = 9.0535E-07
+
+
     ! First allocate arrays [DS_shoot,DS_root, DS_LRLV(loss rate leaves), DS_LRRT(loss rate roots)]  
     if (.not. allocated(DS_shoot)) allocate( DS_shoot(10) , fol_frac(10) , stem_frac(10)  )  ! Shoot array
     if (.not. allocated(DS_root)) allocate( DS_root(5) , root_frac(5) ) ! Root array
@@ -302,7 +315,7 @@ contains
     if (.not. allocated(DS_LRRT)) allocate( DS_LRRT(5) , LRRT(5) ) ! Loss rate roots
     if (.not. allocated(DS_crop_N)) allocate( DS_crop_N(6) , leaf_CN(6) ) ! leaf C:N ratio
 
-    stock_seed_labile = 9.0
+    stock_seed_labile = 9d0
     
     DS_shoot  = (/ 0.0,0.33,0.43,0.53,0.62,0.77,0.95,1.14,1.38,2.1 /)
     fol_frac  = (/ 0.9,0.85,0.83,0.75,0.56,0.2,0.09,0.05,0.0,0.0 /)
@@ -314,8 +327,8 @@ contains
     DS_root   = (/ 0.0,0.33,0.53,1.0,2.1 /)   
     root_frac = (/ 0.5,0.5,0.25,0.0,0.0 /)
 
-    DS_crop_N = (/ 0.0, 0.47, 0.63,  1.015, 1.815, 2.1 /)   
-    leaf_CN   = (/ 0.0, 8.13, 13.76, 14.51, 22.71, 8.13 /)
+    DS_crop_N = (/ 0.0,0.47,0.63,1.015,1.815,2.1 /)   
+    leaf_CN   = (/ 0.0,8.13,13.76,14.51,22.71,8.13 /)
 
     DS_LRLV   = (/ 0.0,1.0,1.3,1.8,2.5 /)
     LRLV      = (/ 0.0,0.0,0.025,0.025,0.025 /)
@@ -331,9 +344,8 @@ contains
     
     ! temporal resolution of ins/outs
     ! steps_in_day = 1d0 ; step_of_day = 1d0
-    steps_in_day = 1 / (sum(deltat)/nodays) ! number of steps in a day 
-    step_of_day  = 1 / (sum(deltat)/nodays) ! current step of the day 
-    days_in_step = sum(deltat)/nodays
+    steps_in_day = 1 / (sum(deltat)/nodays) ! number of steps in a day 
+    step_of_day  = steps_in_day             ! current step of the day 
 
     ! parameters 
     decomposition_rate                = pars(1)  ! decomposition rate (frac / hr)
@@ -349,16 +361,17 @@ contains
     resp_cost_labile_trans            = pars(13) ! labile lost to respiration per gC labile to GPP
     PHUem                             = pars(14) ! phenological heat units required for emergence
     LMA                               = pars(17) ! leaf mass area (gC.m-2)
-    tmin                              = pars(26) ! min temperature for development
-    tmax                              = pars(27) ! max temperature for development
-    topt                              = pars(28) ! optimum temperature for development
-    tmin_v                            = pars(29) ! min temperature for vernalisation
-    tmax_v                            = pars(30) ! max temperature for vernalisation
-    topt_v                            = pars(31) ! optimim temperature for vernalisation
+!!$    tmin                              = pars(26) ! min temperature for development
+!!$    tmax                              = pars(27) ! max temperature for development
+!!$    topt                              = pars(28) ! optimum temperature for development
+!!$    tmin_v                            = pars(29) ! min temperature for vernalisation
+!!$    tmax_v                            = pars(30) ! max temperature for vernalisation
+!!$    topt_v                            = pars(31) ! optimim temperature for vernalisation
     PHCR                              = pars(32) ! critical value of photoperiod for development
     PHSC                              = pars(33) ! photoperiod sensitivity
     turnover_rate_labile              = pars(34) ! turnover rate labile C
     turnover_rate_resp_auto           = pars(35) ! turnover rate of autotrophic carbon for respiration
+
     plough_day                        = nint(pars(16)) ! nint(mod(pars(16),365.25)) ! plough day (doy)
     sow_day                           = nint(pars(12)) ! sow day (doy)
     harvest_day                       = nint(pars(15)) ! nint(mod(pars(15),365.25)) ! harvest day (doy)
@@ -388,31 +401,34 @@ contains
         DR = 0.0
         raso = 0.0
         RDRDV = 0.0 
+        leaf_CN_snap = 0.0
 
-        ! assigning initial conditions
-        POOLS(1,1) = pars(18)
-        POOLS(1,2) = pars(19)
-        POOLS(1,3) = pars(20)
-        POOLS(1,4) = pars(21)
+        
+
+        ! assigning initial conditions pools at first time step
+        POOLS(1,1) = 0.0 !pars(18)
+        POOLS(1,2) = 0.0 !pars(19)
+        POOLS(1,3) = 0.0 !pars(20)
+        POOLS(1,4) = 0.0 !pars(21)
         POOLS(1,5) = pars(22)
         POOLS(1,6) = pars(23)
         POOLS(1,7) = pars(24) 
-        POOLS(1,8) = pars(25)
+        POOLS(1,8) = 0.0 !pars(25)
  
         stock_labile          = pars(18) ! labile C
-        stock_foliage         = pars(19) ! foliar C
-        stock_roots           = pars(20) ! root C
-        stock_stem            = pars(21) ! stem / wood C
+        stock_foliage         = 0.0 !pars(19) ! foliar C
+        stock_roots           = 0.0 !pars(20) ! root C
+        stock_stem            = 0.0 !pars(21) ! stem / wood C
         stock_litter          = pars(22) ! litter C
         stock_soilOrgMatter   = pars(23) ! som C
         stock_resp_auto       = pars(24) ! autotrophic resp pool
-        stock_storage_organ   = pars(25) ! storage organ
+        stock_storage_organ   = 0.0 !pars(25) ! storage organ
 
         ! Load developmental PARS
-        tmin  = pars(26)! min temperature for development
-        tmax  = pars(27)! max temperature for development
-        topt  = pars(28)! optimum temperature for development
-        tmin_v= pars(29)! min temperature for vernalisation
+        tmin   = pars(26)! min temperature for development
+        tmax   = pars(27)! max temperature for development
+        topt   = pars(28)! optimum temperature for development
+        tmin_v = pars(29)! min temperature for vernalisation
         tmax_v = pars(30)! max temperature for vernalisation
         topt_v = pars(31)! optimim temperature for vernalisation
         
@@ -425,12 +441,12 @@ contains
     do n = start, finish
        
       ! Leaf N cacluation 
-      if ( (DS .gt. 0.0) .and. (DS .le. 1.5) ) then 
-        leaf_CN_snap = interpolate( DS , DS_crop_N , leaf_CN , size(DS_crop_N) )
-        leaf_N(n)  = (leaf_CN_snap  / POOLS(n,2)) ** (-1)
-      else if (DS .gt. 1.5) then                
-        leaf_N(n) = leaf_N(n-1)
-      endif
+      !if ( (DS .gt. 0d0) .and. (DS .le. 1.5) ) then 
+      !  leaf_CN_snap = interpolate( DS , DS_crop_N , leaf_CN , size(DS_crop_N) )
+      !  leaf_N(n)  = (leaf_CN_snap  / POOLS(n,2)) ** (-1)
+      !else if (DS .gt. 1.5) then                
+      !  leaf_N(n) = leaf_N(n-1)
+      !endif
       
       ! calculate LAI value
       lai(n)    = POOLS(n,2) / LMA
@@ -443,8 +459,8 @@ contains
       gpppars(4) = leaf_N(n)                         ! leaf g.N.m-2
       gpppars(5) = met(5,n)                          ! co2
       gpppars(6) = ceiling(met(6,n)-(deltat(n)*0.5)) ! doy
-      gpppars(8) = met(4,n)                          ! radiation
-      
+      gpppars(8) = met(4,n)                          ! radiation      
+           
       ! allocate doy of year
       doy = met(6,n)
 
@@ -452,9 +468,9 @@ contains
       if (lai(n) > 1e-6) then
           gpp_acm = acm(gpppars,constants)
       else
-          gpp_acm = 0.0
+          gpp_acm = 0d0
       end if
-
+     
       ! pass relevant variables into crop module memory
       avtemp = 0.5 * ( met(3,n) + met(2,n) )
 
@@ -467,13 +483,13 @@ contains
       mean_alloc_to_storage_organ     = 0.0
 
       ! determine development stage (DS) 
-      call development_stage()                
+      call development_stage(deltat(n))
       ! determine the carbon partitioning based on development stage
-      call carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac)
+      call carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac,size(DS_shoot),size(DS_root))
       ! begin carbon allocation for crops
       call calc_pools_crops(DS_LRRT,LRRT)
       ! conduct management updates at the end of the day
-      call management_dates(stock_seed_labile,steps_in_day)
+      call management_dates(stock_seed_labile,deltat(n))
 
       ! calculate the NEE 
       NEE(n) = nee_dalec
@@ -481,7 +497,7 @@ contains
       GPP(n) = gpp_acm
 
       ! GPP (gC.m-2.day-1)
-      FLUXES(n,1) = gpp_acm
+      FLUXES(n,1) = GPP(n)
       ! temprate (i.e. temperature modified rate of metabolic activity))
       FLUXES(n,2) = resp_rate
       ! autotrophic respiration (gC.m-2.day-1)
@@ -514,8 +530,6 @@ contains
       FLUXES(n,15) = decomposition * steps_in_day
       ! alloc to autotrophic pool
       FLUXES(n,16) = frac_GPP_resp_auto * GPP(n)
-
-      ! write(*,*) steps_in_da
 
 
       ! labile pool
@@ -550,7 +564,7 @@ contains
     implicit none
 
     ! declare input variables
-    double precision, intent(in) :: drivers(12) & ! acm input requirements
+    double precision, intent(in) :: drivers(11) & ! acm input requirements
                                    ,constants(10) ! ACM parameters
 
     ! declare local variables
@@ -559,7 +573,7 @@ contains
              ,mint,maxt,radiation,co2,lat &
              ,deltaWP,Rtot,NUE,temp_exponent,dayl_coef &
              ,dayl_const,hydraulic_exponent,hydraulic_temp_coef &
-             ,co2_comp_point,co2_half_sat,lai_coef,lai_const
+             ,co2_comp_point,co2_half_sat,lai_coef,lai_const, cps1, cps2
 
     ! initial values
     gc=0.0 ; pp=0.0 ; qq=0.0 ; ci=0.0 ; e0=0.0 ; cps=0.0 ; dec=0.0 ; nit=1.
@@ -588,37 +602,48 @@ contains
     hydraulic_exponent = constants(10)
 
     ! determine temperature range 
-    trange=0.5*(maxt-mint)
+    trange=0.5*(maxt-mint) !CHECK
+
     ! daily canopy conductance 
-    gc = abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange)) ! default
+    gc = abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange)) !CHECK ! default
+    
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited
-    ! photosynthesis (gC.m-2.day-1)
-    pn = lai_local*nit*NUE*exp(temp_exponent*maxt) ! default
-    ! pp and qq represent limitation by diffusion and metabolites respecitively
-    pp = pn/gc 
-    qq = co2_comp_point-co2_half_sat
+    ! photosynthesis (gC.m-2.day-1) ! THIS PART IS DIFFERENT FROM ACM IN CARDAMOM
+    pp = lai_local / gc * NUE * exp(temp_exponent*maxt) !CHECK   
+    qq = co2_comp_point-co2_half_sat !CHECK    
     ! calculate internal CO2 concentration (ppm)
-    ci = 0.5*(co2+qq-pp+((co2+qq-pp)**2-4.0*(co2*qq-pp*co2_comp_point))**0.5)
+    ci = 0.5*(co2+qq-pp+((co2+qq-pp)**2-4.0*(co2*qq-pp*co2_comp_point))**0.5) !CHECK
+    
     ! limit maximum quantium efficiency by leaf area, hyperbola
-    e0 = lai_coef*lai_local**2/(lai_local**2+lai_const)
+    e0 = lai_coef*lai_local**2/(lai_local**2+lai_const) !CHECK
+    
+    cps1 = (e0* radiation*gc*(co2-ci))
+    cps2 =(e0* radiation+gc*(co2-ci)) 
+
+    ! this prevents a floating invalid
+    if ((cps1 .eq. 0.0) .and. (cps2 .eq. 0.0)) then 
+       cps = 0.0
+    else
+       ! calculate combined light and CO2 limited photosynthesis
+       cps=(cps1/cps2)
+    end if
+    
     ! calculate day length (hours)
     dec = - asin( sin( 23.45 * deg_to_rad ) * cos( 2.0 * pi * ( doy + 10.0 ) / 365.0 ) )
     sinld = sin( lat*deg_to_rad ) * sin( dec )
     cosld = cos( lat*deg_to_rad ) * cos( dec )
     aob = max(-1.0,min(1.0,sinld / cosld))
     daylength = 12.0 * ( 1.0 + 2.0 * asin( aob ) / pi )
-    ! calculate CO2 limited rate of photosynthesis
-    pd = gc*(co2-ci)
-    ! calculate combined light and CO2 limited photosynthesis
-    cps = e0*radiation*pd/(e0*radiation+pd)
-    ! correct for day length variation
-    acm = cps*(dayl_coef*daylength+dayl_const)
-
+        
+    ! correct for day length variation (CARDAMOM) !WE MAY NEED TO DOUBLE CHECK THIS PART WITH Williams et al. (1997)
+    acm = cps*(dayl_coef+daylength*dayl_const)
+    
     ! don't forget to return
     return
 
   end function acm
   !
+
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine calc_pools_crops(DS_LRRT,LRRT)
@@ -634,7 +659,7 @@ contains
                                                         LRRT    !
 
     ! turnover rate of fine roots is now equal to the loss rate of roots (Penning de Vries, 1989)
-    turnover_rate_roots = interpolate( DS , DS_LRRT , LRRT , 5 ) / 24.0
+    turnover_rate_roots = interpolate( DS , DS_LRRT , LRRT , 5 ) !/ 24.0
 
     ! if sown turn on labile / seed turnover for growth
     if ( sown ) then
@@ -646,15 +671,17 @@ contains
     endif
 
     ! Initialise..
-    resp_cost_foliage_to_labile = 0.0
+    resp_cost_foliage_to_labile = 0.0  ; yield = 0.0
 
     ! respiratory cost of C transfer from labile pool to short-term pool (NPP)
     resp_cost_labile_to_foliage = turnover_rate_labile * stock_labile * resp_cost_labile_trans * resp_rate &
                                    * ts_length * real(turnover_labile_switch)
+    ! resp_cost_labile_to_foliage = stock_labile * min(1.0,resp_cost_labile_to_foliage)
 
     ! allocation flux from labile C pool to NPP
     alloc_from_labile = turnover_rate_labile * stock_labile * ( 1.0 - resp_cost_labile_trans ) * resp_rate &
                                   * ts_length * real(turnover_labile_switch)
+    ! alloc_from_labile = stock_labile * min(1.0,alloc_from_labile)
 
     ! When GPP is higher than seed C content, remaining seed carbon enters litter
     ! C pool, as seedlings do not fully exhaust their seed (P. de Vries p 48)
@@ -719,7 +746,7 @@ contains
     if ( DS < 1.0 ) then
        RDRDV = 0.0
     else
-       RDRDV = turnover_rate_foliage * ( 1 / ( ( max( 2.0 - DS , 0.1 ) ) * 8.0 ) ) ** 2
+       RDRDV = turnover_rate_foliage * ( 1.0 / ( ( max( 2.0 - DS , 0.1 ) ) * 8.0 ) ) ** 2
     ENDIF
 
     ! relative leaf death rate is the maximum value of the arguments RDRSH and
@@ -727,6 +754,9 @@ contains
     RDR = max( RDRSH , RDRDV )
 
     ! remobilization of foliar C and allocation to dead leaves pool
+    ! litterfall_foliage = stock_foliage * min(1d0,ts_length * RDR)
+    ! litterfall_stem    = stock_stem    * min(1d0,ts_length * DR * turnover_rate_stem * dble(stmob)) ! remobstem
+    ! litterfall_roots   = stock_roots   * min(1d0,ts_length * turnover_rate_roots)
     litterfall_foliage = stock_foliage * ts_length * RDR
     litterfall_stem    = stock_stem    * ts_length * DR * turnover_rate_stem * real(stmob) ! remobstem
     litterfall_roots   = stock_roots   * ts_length * turnover_rate_roots
@@ -769,7 +799,7 @@ contains
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
-  subroutine carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac)
+  subroutine carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac,DS_shoot_nvals,DS_root_nvals)
 
     ! Determines carbon allocation fractions as a function !
     ! of developmental stage (DS).  Allocation fractions   !
@@ -777,44 +807,55 @@ contains
 
     implicit none
 
-    double precision, dimension(:), intent(inout) ::   DS_shoot, & !
-                                                        DS_root, & !
-                                                       fol_frac, & !
-                                                      stem_frac, & !
-                                                      root_frac    !
+    integer :: DS_shoot_nvals, DS_root_nvals 
 
+    double precision,dimension(DS_shoot_nvals), intent(in) ::   DS_shoot, & !
+                                                       fol_frac, & !
+                                                       stem_frac   !
+
+    double precision,dimension(DS_root_nvals), intent(in) ::   DS_root, & !
+                                                       root_frac !
+                                                                          
     ! local variables..
-    integer                       :: organ
-    double precision,dimension(:),allocatable :: frac_shoot, frac_root
+    integer                                   :: organ
+    double precision,dimension(DS_shoot_nvals) :: frac_shoot
+    double precision,dimension(DS_root_nvals) :: frac_root
 
     if ( sown ) then ! after sowing
 
-       allocate( frac_shoot(size(DS_shoot)) , frac_root(size(DS_root)) )
+       !allocate( frac_shoot(size(DS_shoot)) , frac_root(size(DS_root)) )
 
        ! loop over three crop "organs": 1) foliage 2) stems 3) root
        ! not necessary for storage organs, as all remaining C is allocated to
-       ! these use different input for foliage and stem fractions, as they are
-       ! relative to the total shoot (or aboveground) allocation, root is relative to
-       ! total plant (above- and belowground) allocation..
+       ! these
+
+       ! use different input for foliage and stem fractions, as they are
+       ! relative to 
+       ! the total shoot (or aboveground) allocation, root is relative to
+       ! total plant 
+       ! (above- and belowground) allocation..
 
        ! leaf development stages and corresponding fractions..
        frac_shoot = fol_frac
-       ! interpolate between PdV allocation values with reference to developmental stage 
-       fol_frac_intpol = interpolate( DS , DS_shoot , frac_shoot , size(DS_shoot) )
-       ! stem DS and fracs
+       ! interpolate between PdV allocation values with reference to 
+       ! developmental stage (DS)..
+       fol_frac_intpol = interpolate( DS , DS_shoot , frac_shoot , size(DS_shoot) )      
+       
+       ! stem DS and fracs..
        frac_shoot = stem_frac
        stem_frac_intpol = interpolate( DS , DS_shoot , frac_shoot , size(DS_shoot) )
+
        ! root DS and fracs..
        frac_root = root_frac
        root_frac_intpol = interpolate( DS , DS_root , frac_root , size(DS_root) )
 
-    endif
+    endif ! after crop has been sown
 
   end subroutine carbon_alloc_fractions
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
-  subroutine development_stage()
+  subroutine development_stage(days_in_step)
 
     ! Based on modified Wang & Engel model (Streck et al., 2003), !
     ! but with only 2 sub-phases, vegetative and reproductive     !
@@ -822,7 +863,8 @@ contains
 
     implicit none
 
-    
+    ! agruments
+    double precision :: days_in_step    
     
     ! local variables..
     double precision ::  doptmin, & ! Difference between optimum and minimum temperature
@@ -832,7 +874,6 @@ contains
                        dmaxmin_v, & ! Difference between maximum and minimum vernalization temperatures
                        dttmin_v     ! Difference between daily average and minimum vernalization temperatures
 
-    doptmin   = topt   - tmin   ! difference between optimal and minimum cardinal temperatures
     doptmin   = topt   - tmin   ! difference between optimal and minimum cardinal temperatures
     dmaxmin   = tmax   - tmin   ! difference between maximum and minimum cardinal temperatures
     dttmin    = avtemp - tmin   ! difference between daily average and minimum cardinal temperatures
@@ -850,7 +891,7 @@ contains
     ! Summation of vernalization days (VD), not before sowing and only if
     ! average temperature is within min and max cardinal temperatures..
     if ( ( avtemp .gt. tmin_v ) .and. ( avtemp .lt. tmax_v ) .and. sown .and. .not. emerged ) then
-       fV = vernalization( doptmin_v , dmaxmin_v , dttmin_v )
+       fV = vernalization( doptmin_v , dmaxmin_v , dttmin_v, days_in_step)
     endif     
     
     ! Only calculate temperature coefficient if avtemp lies within (tmin,tmax)
@@ -858,40 +899,38 @@ contains
     if ( (avtemp .gt. tmin ) .and. ( avtemp .lt. tmax ) ) then
       fT = temperature_impact( doptmin , dmaxmin , dttmin )
     else
-      fT = 0d0
+      fT = 0.0
     endif
 
     
     
     fP = photoperiod_impact( PHCR , PHSC ) ! calculation of photoperiod coefficient    
 
-    if ( emerged .and. ( DS .lt. 2d0 ) ) then   ! sum up daily DR values between emergence and maturity (DS=2)
+    if ( emerged .and. ( DS .lt. 2.0 ) ) then   ! sum up daily DR values between emergence and maturity (DS=2)
 
-       if ( DS .lt. 1d0 ) then  ! in the vegetative phase (before flowering):
+       if ( DS .lt. 1.0 ) then  ! in the vegetative phase (before flowering):
 
           DR = DR_pre * fT * fP   ! DR is affected by temperature, photoperiod...
 
-          if ( vernal_calcs ) DR = DR * fV ! ...and vernalization (for winter cereals)          
-
-          DS = DS + DR    ! developmental stage (DS), calculated as the sum of daily developmental rates
+          if ( vernal_calcs ) DR = DR * fV ! ...and vernalization (for winter cereals)
+          DS = DS + (DR * days_in_step)  ! developmental stage (DS), calculated as the sum of daily developmental rates
 
        else    ! in the reproductive phase (after flowering):
 
           DR = DR_post * fT   ! DR is affected only by temperature
-
-          DS = DS + DR
+          DS = DS + (DR * days_in_step)
 
        endif
 
     endif
-        
+  
   end subroutine development_stage
   
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   
-  subroutine management_dates (stock_seed_labile,steps_in_day)
+  subroutine management_dates (stock_seed_labile,days_in_step)
 
     ! use CARBON_MODEL_CROP_MOD
 
@@ -903,7 +942,7 @@ contains
     implicit none
 
     ! arguments
-    double precision, intent(in) :: stock_seed_labile, steps_in_day
+    double precision, intent(in) :: stock_seed_labile, days_in_step
     ! local variables
     double precision :: tmp
     logical :: plough_sanity, sow_sanity, harvest_sanity
@@ -929,9 +968,8 @@ contains
       elseif ( sow_sanity .and. nint(doy) >= sow_day ) then
                  
         ! ensure that the field has indeed been ploughed
-        if (.not.ploughed) then 
-            call plough
-        endif
+        if (.not.ploughed) call plough
+
 
         ! the field needs sowing..
         sown = .true.
@@ -1018,39 +1056,12 @@ contains
     ! roots stay in ground and slowly decompose (until/unless the field is ploughed)
 
     ! reset logical variables..
-    sown    = .False.
-    emerged = .False.
-    ploughed = .False.
-    fV = 0.0 ; fT = 0.0 ; fP = 0.0
-    VD = 0.0 ; DS = -9999
+    sown    = .false.
+    emerged = .false.
+    ploughed = .false.
+    DS = -9999 ; fV = 0.0 ; fT = 0.0 ; fP = 0.0 ; VD = 0.0
 
   end subroutine harvest
-
-  !
-  !--------------------------------------------------------------------------------------------------------------------------------!
-  !
-
-  ! double precision function calculate_daylength_hours(lat,doy_in)
-
-  !   use CARBON_MODEL_MOD, only: dble_zero, dble_one
-
-  !     ! this function uses latitude (degrees) and julian day of year to calculate day length in hours
-
-  !     ! arguments
-  !     double precision :: doy_in, lat
-
-  !     ! local variables
-  !     double precision :: dec, sinld, cosld, aob
-
-  !     dec = - asin( sin( 23.45 * deg_to_rad ) * cos( 2.0 * pi * ( doy + 10.0 ) / 365.0 ) )
-  !     sinld = sin( lat*deg_to_rad ) * sin( dec )
-  !     cosld = cos( lat*deg_to_rad ) * cos( dec )
-  !     aob = max(-dble_one,min(dble_one,sinld / cosld))
-  !     calculate_daylength_hours = 12.0 * ( 1.0 + 2.0 * asin( aob ) / pi )
-
-  !     return
-
-  ! end function calculate_daylength_hours
 
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
@@ -1068,13 +1079,13 @@ contains
     double precision,intent(in) :: PH_crit, & ! critical photoperiod below which no development occurs
                                    PH_sens    ! photoperiod sensitivity
     
-    photoperiod_impact = max(0d0, 1d0 - exp ( - PH_Sens * ( daylength - PH_crit ) ))
+    photoperiod_impact = max(0.0, 1.0 - exp ( - PH_Sens * ( daylength - PH_crit ) ))
 
   end function photoperiod_impact
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
-  subroutine plough()
+  subroutine plough
 
     implicit none
 
@@ -1120,7 +1131,7 @@ contains
   !
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
-  double precision function vernalization( doptmin_v , dmaxmin_v , dttmin_v )
+  double precision function vernalization( doptmin_v , dmaxmin_v , dttmin_v, days_in_step )
 
     ! Function to determine the coefficent for vernalization !
     ! impact on developmental rate. See Streck et al., 2003. !
@@ -1128,7 +1139,7 @@ contains
     implicit none
 
     ! arguments..
-    double precision,intent(in) :: dmaxmin_v , doptmin_v , dttmin_v ! temperature differences
+    double precision,intent(in) :: dmaxmin_v , doptmin_v , dttmin_v, days_in_step ! temperature differences
 
     ! local variables..
     double precision :: a , dnr , fvn , nmr
@@ -1137,7 +1148,7 @@ contains
     nmr = 2.0 * ( ( dttmin_v ) ** a ) * ( doptmin_v ** a ) - ( ( dttmin_v ) ** (2.0 * a ) )
     dnr = doptmin_v ** ( 2.0 * a )
     fvn = nmr / dnr
-    VD = VD + (fvn + days_in_step)
+    VD = VD + (fvn * days_in_step)
     ! final output value : 
     vernalization = max( 0d0 , min( 1d0 , ( VD ** 5.0 ) / ( ( VDh ** 5.0 ) + (VD ** 5.0 ) ) ) )
 

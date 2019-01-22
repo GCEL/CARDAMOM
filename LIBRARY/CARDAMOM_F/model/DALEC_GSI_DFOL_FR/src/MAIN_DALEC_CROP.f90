@@ -78,22 +78,20 @@ program MAIN_DALEC
 
   ! Read veg parameter data from *csv file (this part could be hard coded)
   ! Actually if you go to DALEC_CROP_IO.f90 you will see that I am using some hard-coded parameters, but we could update these with the ones from your optimisation.
-  call read_veg_parameters(pars, num_pars, sow_day, harvest_day, plough_day)
+  call read_veg_parameters(pars, num_pars)
 
   ! Read met data *csv into met_data array (doy,min_t,max_t,rad)
   call read_met_data(num_days)
 
   ! set up data for CARBON_MODEL_CROP
   ! Allocate LAI array
-  if ( .not. allocated( lai ) )  allocate ( lai( num_days ) ) ! Allocate LAI
-  ! Allocate GPP array
-  if ( .not. allocated( GPP ) )  allocate ( GPP( num_days ) ) ! Allocate LAI 
+  if ( .not. allocated( lai ) )  allocate ( lai( num_days ) ) 
+  if ( .not. allocated( GPP ) )  allocate ( GPP( num_days ) ) 
   ! Allocate NEE array
-  if ( .not. allocated( NEE ) )  allocate ( NEE( num_days ) ) ! Allocate LAI
+  if ( .not. allocated( NEE ) )  allocate ( NEE( num_days ) ) 
   ! Allocate deltat array
-  if ( .not. allocated( deltat ) )  allocate ( deltat( num_days ) ) ! Allocate LAI
-  ! Allocate leaf_N array
-  if ( .not. allocated( leaf_N ) )  allocate ( leaf_N( num_days ) ) ! Allocate LAI
+  if ( .not. allocated( deltat ) )  allocate ( deltat( num_days ) )
+  if ( .not. allocated( leaf_N ) )  allocate ( leaf_N( num_days ))
 
 
   ! Allocate pools and fluxes
@@ -114,7 +112,7 @@ program MAIN_DALEC
   call CARBON_MODEL_CROP(start,finish,met_data,pars,deltat,num_days,lat,lai,NEE,FLUXES,POOLS,GPP, &
        leaf_N, num_pars,num_met,num_pools,num_fluxes)
 
-  call output_data(FLUXES,POOLS, pars)
+  call output_data(FLUXES, POOLS, pars, lai)
 
 
 end program MAIN_DALEC
