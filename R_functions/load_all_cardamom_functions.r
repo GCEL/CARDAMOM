@@ -8,7 +8,7 @@ load_r_libraries<-function(){
     require(rgdal)
     require(raster)
     require(rhdf5)
-    require(sp) 
+    require(sp)
     require(zoo)
     require(apcluster)
     require(compiler)
@@ -24,7 +24,7 @@ load_r_libraries<-function(){
 load_r_libraries()
 
 # get the complete list
-list_o_functions=list.files("./R_functions/", full.names=T)
+list_o_functions=list.files(paste(source_directory,"R_functions/",sep=""), full.names=T)
 #print(list_o_functions)
 # remove this file to avoid repetition
 loser_list=grepl("load_all_cardamom_functions.r",list_o_functions)
@@ -50,6 +50,14 @@ list_o_functions=list_o_functions[loser_list]
 loser_list=grepl(".sh",list_o_functions)
 loser_list=which(loser_list == FALSE)
 list_o_functions=list_o_functions[loser_list]
+# avoid .csv
+loser_list=grepl(".csv",list_o_functions)
+loser_list=which(loser_list == FALSE)
+list_o_functions=list_o_functions[loser_list]
+# avoid global_map directory
+loser_list=grepl("global_map",list_o_functions)
+loser_list=which(loser_list == FALSE)
+list_o_functions=list_o_functions[loser_list]
 # only .r
 loser_list=grepl(".r",list_o_functions)
 list_o_functions=list_o_functions[loser_list]
@@ -58,4 +66,3 @@ for (i in seq(1, length(list_o_functions))) {
 #    print(paste("...loading R script = ",list_o_functions[i],sep=""))
     source(list_o_functions[i])
 }
-
