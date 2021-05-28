@@ -220,13 +220,20 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
       # Loop through years
       for (yrr in seq(1,length(years_to_load))){
 
-          # Create file name
-          input_file_2 = paste(path_to_forestry,"GFW_forest_loss_",years_to_load[yrr],".nc",sep="")
+          # Create file name # two possible versions of  naming syntax
+          input_file_2a = paste(path_to_forestry,"GFW_forest_loss_",years_to_load[yrr],".nc",sep="")
+          input_file_2b = paste(path_to_forestry,"tree_cover_loss_fraction",years_to_load[yrr],"(.)*.nc",sep="")
           # Check it exists
-          if (file.exists(input_file_2)) {
+          if (any(file.exists(input_file_2a),file.exists(input_file_2b))) {
 
               # Open the current file
-              data2 = nc_open(input_file_2)
+              if (file.exists(input_file_2a)){
+                  data2 = nc_open(input_file_2a)
+                  loss_variable = "forest_loss"
+              } else{
+                  data_2 = nc_open(input_file_2b)
+                  loss_variable = "tree_cover_loss"
+              }
 
               # Determine  lat / long bounds
               if (length(dim(latlon_in)) > 1) {
@@ -256,16 +263,16 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
                   lat_done = TRUE
               } # lat_done
 
-          # read year of forest loss informatin
-          loss_fraction_tmp = ncvar_get(data2, "forest_loss")
-          loss_fraction_tmp = loss_fraction_tmp[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
-          loss_fraction_tmp[which(as.vector(is.na(loss_fraction_tmp)))] = 0
-          loss_fraction = array(loss_fraction, dim=dims)
-          # place new clearance information into the output array
-          loss_fraction[,,yrr] = loss_fraction_tmp
+              # read year of forest loss informatin
+              loss_fraction_tmp = ncvar_get(data2, loss_variable)
+              loss_fraction_tmp = loss_fraction_tmp[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+              loss_fraction_tmp[which(as.vector(is.na(loss_fraction_tmp)))] = 0
+              loss_fraction = array(loss_fraction, dim=dims)
+              # place new clearance information into the output array
+              loss_fraction[,,yrr] = loss_fraction_tmp
 
-          # tidy up
-          nc_close(data2)
+              # tidy up
+              nc_close(data2)
 
           } # File exists
       } # looping years
