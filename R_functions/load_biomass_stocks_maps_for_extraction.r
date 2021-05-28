@@ -534,6 +534,108 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
                        biomass_gCm2 = -9999, biomass_uncertainty_gCm2 = -9999))
        } # done_lat
 
+    } else if (Cwood_stock_source == "ESA-CCI") {
+
+       # let the user know this might take some time
+       print("Loading processed ESA-CCI biomass layers for subsequent sub-setting ...")
+
+       # Create the full file paths to both 2010 and 2017 AGB estimates
+       input_file = paste(path_to_Cwood,"AGBiomass_stocks_2017_with_lat_long(.)*.nc",sep="")
+       input_file = append(input_file,paste(path_to_Cwood,"AGBiomass_stocks_2018_with_lat_long(.)*.nc",sep=""))
+       years_with_obs = c(2017,2018)
+
+       # Loop through each year and extract if appropriate
+       done_lat = FALSE
+       for (t in seq(1, length(years_with_obs))) {
+
+            # determine whether the first year is within the analysis period
+            if (years_with_obs[t] >= as.numeric(start) & years_with_obs[t] <= as.numeric(finish)) {
+
+                # Open the first file
+                data1 = nc_open(input_file[t])
+                # If the first file to be read extract the lat / long information
+                if (done_lat == FALSE) {
+                    # Set flag to TRUE, impacts what will be returned from this function
+                    done_lat = TRUE
+                    # Read in lat / long information
+                    lat = ncvar_get(data1, "latitude") ; long = ncvar_get(data1, "longitude")
+
+                    # Determine our target area
+                    max_lat = max(latlon_in[,1])+1.0 ; max_long = max(latlon_in[,2])+1.0
+                    min_lat = min(latlon_in[,1])-1.0 ; min_long = min(latlon_in[,2])-1.0
+                    keep_lat_min = min(which(lat[1,] > min_lat)) ; keep_lat_max = max(which(lat[1,] < max_lat))
+                    keep_long_min = min(which(long[,1] > min_long)) ; keep_long_max = max(which(long[,1] < max_long))
+                    lat = lat[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+                    long = long[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+                } # extract lat / long...just the once
+
+                # Read above ground biomass estimate and uncertainty
+                biomass = ncvar_get(data1, "AGBiomass")
+                biomass_uncertainty = ncvar_get(data1, "AGBiomass_Uncertainty")
+                # Close files and tidy up
+                nc_close(data1) ; gc(reset=TRUE,verbose=FALSE)
+
+                # Remove data outside of target area
+                biomass = biomass[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+                biomass_uncertainty = biomass_uncertainty[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+                # Remove missing data flags or un-realistic values
+                biomass[which(as.vector(biomass) < 0)] = NA
+                biomass_uncertainty[which(as.vector(biomass_uncertainty) < 0)] = NA
+
+                # Determine when in the analysis time series the observations should go
+                # NOTE: We assume the biomass estimate is placed at the beginning of the year
+
+                # What year of the analysis does the data fall?
+                obs_step = which(run_day_selector >= floor(which(analysis_years == years_with_obs[t]) * 365.25))[1]
+                obs_step = obs_step - (steps_per_year-1)
+
+                # Combine with the other time step
+                if (exists("place_obs_in_step")) {
+                    # Output variables already exits to append them
+                    place_obs_in_step = append(place_obs_in_step, obs_step)
+                    biomass_gCm2 = append(biomass_gCm2, as.vector(biomass)) ; rm(biomass)
+                    biomass_uncertainty_gCm2 = append(biomass_uncertainty_gCm2, as.vector(biomass_uncertainty)) ; rm(biomass_uncertainty)
+                } else {
+                    # Output variables do not already exist, assign them
+                    place_obs_in_step = obs_step ; rm(obs_step)
+                    biomass_gCm2 = as.vector(biomass) ; rm(biomass)
+                    biomass_uncertainty_gCm2 = as.vector(biomass_uncertainty) ; rm(biomass_uncertainty)
+                } # obs_step exists
+
+            } # Is dataset within the analysis time period?
+
+       } # looping available years
+
+       # Convert MgC/ha -> Mg/ha needed for Saatchi et al (2011)
+       biomass_gCm2 = biomass_gCm2 * 2.083333
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 * 2.083333
+       # Use allometry to estimate below ground biomass stock and
+       # combined with the above ground (Mg/ha) to give a total woody biomass estimate
+       # Saatchi et al., (2011), PNAS, 108, 9899-9904, https://www.pnas.org/content/108/24/9899
+       biomass_gCm2 = biomass_gCm2 + (0.489 * biomass_gCm2 ** 0.89)
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 + (0.489 * biomass_uncertainty_gCm2 ** 0.89)
+       # Convert units of biomass and its uncertainty from MgCha -> gC/m2
+       biomass_gCm2 = biomass_gCm2 * 1e2 * 0.48
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 * 1e2 * 0.48
+
+       # Re-construct arrays for output
+       idim = dim(lat)[1] ; jdim = dim(long)[2] ; tdim = length(biomass_gCm2) / (idim * jdim)
+       biomass_gCm2 = array(biomass_gCm2, dim=c(idim,jdim,tdim))
+       biomass_uncertainty_gCm2 = array(biomass_uncertainty_gCm2, dim=c(idim,jdim,tdim))
+
+       # clean up variables
+       gc(reset=TRUE,verbose=FALSE)
+
+       if (done_lat) {
+           # Output variables
+           return(list(place_obs_in_step = place_obs_in_step, lat = lat, long = long,
+                       biomass_gCm2 = biomass_gCm2, biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2))
+       } else {
+           # Output dummy variables
+           return(list(place_obs_in_step = -9999, lat = -9999, long = -9999,
+                       biomass_gCm2 = -9999, biomass_uncertainty_gCm2 = -9999))
+       } # done_lat
+
     } else if (Cwood_stock_source == "UoL_stable_forest") {
 
         # this is a very bespoke modification so leave it here to avoid getting lost

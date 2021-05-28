@@ -108,7 +108,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                   }
               }
               # open processed modis files
-              input_file_1 = paste(path_to_burnt_area,"/MCD64A1_",years_to_do[yr],".nc",sep="")
+              input_file_1 = paste(path_to_burnt_area,"/MCD64A1_",years_to_do[yr],"(.)*.nc",sep="")
 
               # check to see if file exists if it does then we read it in, if not then we assume its a year we don't have data for and move on
               if (file.exists(input_file_1) == TRUE) {

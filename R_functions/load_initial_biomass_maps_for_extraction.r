@@ -198,7 +198,73 @@ load_initial_biomass_maps_for_extraction<-function(latlon_in,Cwood_initial_sourc
          return(list(lat = lat, long = long,
                      biomass_gCm2 = biomass_gCm2, biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2))
 
-    } else if (Cwood_initial_source == "UoL_stable_forest") {
+    } else if (Cwood_initial_source == "ESA-CCI") {
+
+       # let the user know this might take some time
+       print("Loading processed GlobBIOMASS for subsequent sub-setting ...")
+
+       # Create the full file paths to both 2010 and 2017 AGB estimates
+       # Units MgC/ha conversion to gC/m2 will occur later
+       input_file = paste(path_to_Cwood_initial,"AGBiomass_stocks_2010_with_lat_long(.)*.nc",sep="")
+       input_file = append(input_file,paste(path_to_Cwood_initial,"AGBiomass_stocks_2017_with_lat_long(.)*.nc",sep=""))
+       years_with_obs = c(2017,2018)
+
+       # Determine which year is closest to the start point
+       t = years_with_obs - as.numeric(start)
+       t = which(t == min(t))[1]
+
+       # Open the first file
+       data1 = nc_open(input_file[t])
+
+       # Read in lat / long information
+       lat = ncvar_get(data1, "latitude") ; long = ncvar_get(data1, "longitude")
+
+       # Determine our target area
+       max_lat = max(latlon_in[,1])+1.0 ; max_long = max(latlon_in[,2])+1.0
+       min_lat = min(latlon_in[,1])-1.0 ; min_long = min(latlon_in[,2])-1.0
+       keep_lat_min = min(which(lat[1,] > min_lat)) ; keep_lat_max = max(which(lat[1,] < max_lat))
+       keep_long_min = min(which(long[,1] > min_long)) ; keep_long_max = max(which(long[,1] < max_long))
+       lat = lat[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+       long = long[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+
+       # Read above ground biomass estimate and uncertainty
+       biomass_gCm2 = ncvar_get(data1, "AGBiomass")
+       biomass_uncertainty_gCm2 = ncvar_get(data1, "AGBiomass_Uncertainty")
+       # Close files and tidy up
+       nc_close(data1) ; gc(reset=TRUE,verbose=FALSE)
+
+       # Remove data outside of target area
+       biomass_gCm2 = biomass_gCm2[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2[keep_long_min:keep_long_max,keep_lat_min:keep_lat_max]
+       # Remove missing data flags or un-realistic values
+       biomass_gCm2[which(as.vector(biomass_gCm2) < 0)] = NA
+       biomass_uncertainty_gCm2[which(as.vector(biomass_uncertainty_gCm2) < 0)] = NA
+
+       # Convert to MgC/ha -> Mg/ha needed for Saatchi et al (2011)
+       biomass_gCm2 = biomass_gCm2 * 2.083333
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 * 2.083333
+       # Use allometry to estimate below ground biomass stock and
+       # combined with the above ground (Mg/ha) to give a total woody biomass estimate
+       # Saatchi et al., (2011), PNAS, 108, 9899-9904, https://www.pnas.org/content/108/24/9899
+       biomass_gCm2 = biomass_gCm2 + (0.489 * biomass_gCm2 ** 0.89)
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 + (0.489 * biomass_uncertainty_gCm2 ** 0.89)
+       # Convert units of biomass and its uncertainty from MgCha -> gC/m2
+       biomass_gCm2 = biomass_gCm2 * 1e2 * 0.48
+       biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 * 1e2 * 0.48
+
+       # Re-construct arrays for output
+       idim = dim(lat)[1] ; jdim = dim(long)[2] ; tdim = length(biomass_gCm2) / (idim * jdim)
+       biomass_gCm2 = array(biomass_gCm2, dim=c(idim,jdim,tdim))
+       biomass_uncertainty_gCm2 = array(biomass_uncertainty_gCm2, dim=c(idim,jdim,tdim))
+
+       # clean up variables
+       gc(reset=TRUE,verbose=FALSE)
+
+       # Output variables
+       return(list(lat = lat, long = long,
+                   biomass_gCm2 = biomass_gCm2, biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2))
+
+  } else if (Cwood_initial_source == "UoL_stable_forest") {
 
         # this is a very bespoke modification so leave it here to avoid getting lost
         print("Loading UoL Stable Forests AGB...")

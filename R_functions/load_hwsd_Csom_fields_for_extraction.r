@@ -23,6 +23,57 @@ load_hwsd_Csom_fields_for_extraction<-function(latlon_in,Csom_source) {
         Csom = array(as.vector(unlist(Csom)), dim=c(xdim,ydim))
         Csom_unc = array(as.vector(unlist(Csom_unc)), dim=c(xdim,ydim))
 
+
+        return(list(Csom = Csom, Csom_unc = Csom_unc, lat = lat,long = long))
+
+    } else if(Csom_source == "SoilGrids2") {
+
+        # file names - note that 0-30cm and 30-100cm in different files
+        soc_file1=paste(path_to_Csom,"/SOC_000-030cm_mean(.)*.nc",sep="")
+      	soc1=nc_open(soc_file_1)
+        soc_file2=paste(path_to_Csom,"/SOC_030-100cm_mean(.)*.nc",sep="")
+      	soc2=nc_open(soc_file_2)
+
+      	# extract location variables
+      	lat=ncvar_get(soc1, "latitude") ; long=ncvar_get(soc1, "longitude")
+      	# read the SOC from the two files
+        Csom1=ncvar_get(soc1, "SOC")
+        Csom2=ncvar_get(soc2, "SOC")
+
+      	if (length(dim(latlon_in)) > 1) {
+      	    max_lat=max(latlon_in[,1])+0.5 ; max_long=max(latlon_in[,2])+0.5
+      	    min_lat=min(latlon_in[,1])-0.5 ; min_long=min(latlon_in[,2])-0.5
+      	} else {
+      	    max_lat=max(latlon_in[1])+0.5 ; max_long=max(latlon_in[2])+0.5
+      	    min_lat=min(latlon_in[1])-0.5 ; min_long=min(latlon_in[2])-0.5
+      	}
+      	keep_lat=which(lat[1,] > min_lat & lat[1,] < max_lat)
+      	keep_long=which(long[,1] > min_long & long[,1] < max_long)
+        Csom1=Csom1[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+        Csom2=Csom2[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+        Csom = Csom1 + Csom2
+        lat=lat[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+      	long=long[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+
+        # repeat for uncertainty (uncertainty added)
+        # file names - note that 0-30cm and 30-100cm in different files
+        unc_file1=paste(path_to_Csom,"/SOC_000-030cm_uncertainty(.)*.nc",sep="")
+      	unc1=nc_open(unc_file_1)
+        unc_file2=paste(path_to_Csom,"/SOC_030-100cm_uncertainty(.)*.nc",sep="")
+      	unc2=nc_open(unc_file_2)
+
+      	# read the SOC from the two files
+        Cunc1=ncvar_get(unc1, "SOC_uncertainty")
+        Cunc2=ncvar_get(unc2, "SOC_uncertainty")
+        Cunc1=Cunc1[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+        Cunc2=Cunc2[min(keep_long):max(keep_long),min(keep_lat):max(keep_lat)]
+        Csom_unc = Cunc1 + Cunc2
+      	# close files after use
+      	nc_close(soc1)
+        nc_close(soc2)
+      	nc_close(unc1)
+        nc_close(unc2)
+
         return(list(Csom = Csom, Csom_unc = Csom_unc, lat = lat,long = long))
 
     } else if (Csom_source == "HWSD") {
@@ -63,6 +114,7 @@ load_hwsd_Csom_fields_for_extraction<-function(latlon_in,Csom_source) {
 } else {
 	# output variables
 	return(list(Csom=-9999, Csom_unc = -9999, lat=-9999,long=-9999))
+
     }
 
 } # function end
