@@ -2,6 +2,17 @@
 module model_likelihood_module
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -734,142 +745,80 @@ module model_likelihood_module
     temp_response = exp(pars(10)*meantemp)
     avN = 10d0**pars(11)
 
-    ! The half saturation parameter for logistic response function
-    ! for CMI (p33) should not be larger than CGI (p34).
-    ! Similarly the max gradient of change for CGI (p32) cannot be smaller than CMI (p31)
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(33) > pars(34) .or. pars(31) > pars(32))) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
-!    end if
-
-    ! Michaelis Menten half saturation coefficients for CGI and CMI
-    ! We assume that CGI is more sensitive than CMI
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(31) > pars(32)) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
-!    end if
-
-    ! Considering the absolute amount of water supply available per unit leaf area (mmolH2O/m2leaf/s)
-    ! We assume that CGI should be effectively zero while CMI should at least be in the bottom half
-!    tmp = logistic_func(0d0,pars(31),pars(33),0d0,1d0)  ! CMI component
-!    tmp1 = logistic_func(0d0,pars(32),pars(34),0d0,1d0) ! CGI component
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 0.01d0 .or. tmp1 > 0.01d0)) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
-!    end if
-
-    ! Considering the absolute amount of water supply available per unit leaf area (mmolH2O/m2leaf/s)
-    ! We assume that the point of maximum rate of change for CMI's water response
-    ! should be at a lower value of supply than CGI
-!    tmp = logistic_func(1d0,pars(31),pars(33),0d0,1d0)  ! CMI component
-!    tmp1 = logistic_func(1d0,pars(32),pars(34),0d0,1d0) ! CGI component
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp1 > tmp)) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
-!    end if
-
-    ! We assume that water limitation should come to growth first
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(31) > pars(32)) then
+    ! We assume that growth (p30) should fully shut down before photosynthesis (p32)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(32) > pars(30)) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
     endif
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(33) > pars(34)) then
+    ! rSWP at which growth is fully shut down (p30) must be smaller than start to shut down (p31)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(30) > pars(31)) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
     endif
-    ! We assume that growth should fully shut down before photosynthesis
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(44) > pars(32)) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
-    endif
-    ! Finally we assume that p31 > p33 and p32 > p34 must be true
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(31) > pars(33)) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
-    endif
-    ! Finally we assume that p31 > p33 and p32 > p34 must be true
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(32) > pars(34)) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
-    endif
-    ! SWP is weighted in two different approaches for assessing CGI and CMI.
+
+    ! SWP is weighted in two different approaches for assessing CGI.
     ! The concept is that on growth the plant assesses the whole root profile, weighted by root access.
     ! Plant canopy mortality is concerned with maintaining turgur pressure alone (assuming a positive NCCE).
     ! So for canopy mortality SWP is weighted by water extraction.
-    ! Therefore, both CGI and CMI SWP restrictions should be near 0 at minLWP as no water flows.
-!    tmp = logistic_func(pars(32),pars(31),pars(33),0d0,1d0)
+    ! Therefore, CGI SWP restrictions should be near 0 at minLWP as no water flows.
 !    tmp = logistic_func(minlwp_default,pars(31),pars(33),0d0,1d0)
-!    tmp1 = 0d0 !logistic_func(minlwp_default,pars(32),pars(34),0d0,1d0)
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 0.05d0 .or. tmp1 > 0.05d0)) then
 !    if ((EDC1 == 1 .or. DIAG == 1) .and. tmp > 0.05d0) then
 !         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
 !    end if
-
-    ! Both CMI and CGI components of the wSWP restriction should be near 1 at field capacity (0.001 MPa)
+    ! CGI components of the wSWP restriction should be near 1 at field capacity (0.001 MPa)
 !    tmp = logistic_func(-0.001d0,pars(31),pars(33),0d0,1d0)
-!!    tmp1 = 1d0!logistic_func(-0.001d0,pars(32),pars(34),0d0,1d0)
-!!    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp < 0.99d0 .or. tmp1 < 0.99d0)) then
 !    if ((EDC1 == 1 .or. DIAG == 1) .and. tmp < 0.99d0) then
 !         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
 !    end if
 
-!    ! The half saturation parameter for logistic response function
-!    ! for CGI (p34) cannot be smaller than the minlwp (currently hardcoded) - no water flow no growth
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(34) < -1.808224d+00)) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
-!    end if
-    ! The minimum temperature for canopy mortality index (p3) should not be warmer
-    ! than minimum temperature for canopy growth index (p14)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(3) > pars(14))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
+    ! The optimum temperature for canopy growth index (p15) can not be warmer than the
+    ! maximum temperature for canopy growth index (p16).
+    ! Similarly, minimum temperature (p14) cannot be warmer than optimum
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) > pars(16) .or. pars(14) > pars(15))) then
+         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
+    end if
+    ! The optimum temperature for canopy mortality index (p27) can not be warmer than the
+    ! maximum temperature for canopy mortality index (p33).
+    ! Similarly, minimum temperature (p25) cannot be warmer than optimum
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(27) > pars(33) .or. pars(25) > pars(27))) then
+         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
+    end if
+    ! The min temperature for canopy growth index (p14) cannot be smaller than canopy mortality index (p27).
+    ! Likewise, the maximum temperature for canopy growth index (p16) cannot be higher  than canopy mortality (p33).
+    ! Finally the kurtosis for CGI (p24) cannot be smaller than CMI (p34)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(34) > pars(24)) then
+         EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
     end if
 
-    ! The optimum temperature for canopy mortality index (p15) can not be warmer than the
-    ! maximum temperature for canopy mortality index (p24)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) > pars(24))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
-    end if
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) > pars(25))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
-    end if
-
-    ! Canopy growth should stop before peak mortality.
-    ! Therefore, the CMI temperature max (p24) should not be less than the CGI temperature max (p25)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(24) < pars(25))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
-    end if
-
-    ! The kurtosis CGI temperature response (p30) should be larger than CMI (p26),
-    ! as the resilience of tissues should be greater than the resilience of growth capacity
-    ! NOT strictly true as the growth curve could be within the mortality one at all times depending on min / opt / max
-    ! but p30 should not be much smaller than p26...
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(30) < pars(26))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
-    end if
     ! CGI is expected to be near zero at 0C. However, because this is statistical form it is
     ! possible for combinations of parameters to be misleading as to their actual response.
     ! Therefore, we explicitly test for near zero growth allowed at 0C while giving the min temperature parameters
-    ! greater freedom to move. We also assume that at 0C the CMI component should be greater than CGI component (note CMI = 1-tmp2 * ).
-    ! Unless both are at zero
-    tmp1 = opt_max_scaling( pars(25), pars(14) , pars(15) , pars(30) , 0d0 )
-    tmp2 = opt_max_scaling( pars(24), pars(3)  , pars(15) , pars(26) , 0d0 )
+    ! greater freedom to move.
+    tmp1 = opt_max_scaling( pars(16), pars(14) , pars(15) , pars(24) , 0d0 )
 !    tmp2 = opt_max_scaling( max_val, min_val , optimum , kurtosis , current )
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp1 > 0.05d0 .or. (tmp1 > 0d0 .and. tmp2 < tmp1))) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
+    if ((EDC1 == 1 .or. DIAG == 1) .and. tmp1 > 0.05d0) then
+        EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     end if
 
-    ! Straight forward GSI parameter bounds
-    ! Temperature
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) < pars(14))) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
-!    end if
 !    ! Photoperiod
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(24) < pars(16))) then
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(34) < pars(33))) then
 !         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
 !    end if
-!    ! VPD or wSWP
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(26) < pars(25))) then
-!         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
-!    end if
-
-!    ! Photoperiod minimum cannot be substantiall less than the observed minimum day length
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(16) < minval(DATAin%MET(11,:))-14400d0)) then
+!    ! Photoperiod minimum cannot be substantially less than the observed minimum day length
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(33) < minval(DATAin%MET(11,:))-14400d0)) then
 !         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
 !    end if
 !    ! Photoperiod maximum cannot be greater than the observed maximum day length
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(24) > maxval(DATAin%MET(11,:)))) then
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(34) > maxval(DATAin%MET(11,:)))) then
 !         EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
+!    end if
+
+!    ! CGI is expected to be near zero at 0C. However, because this is statistical form it is
+!    ! possible for combinations of parameters to be misleading as to their actual response.
+!    ! Therefore, we explicitly test for near zero growth allowed at 0C while giving the min temperature parameters
+!    ! greater freedom to move.
+!    tmp1 = opt_max_scaling( pars(25), pars(14) , pars(15) , pars(30) , 0d0 )
+!!    tmp2 = opt_max_scaling( max_val, min_val , optimum , kurtosis , current )
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. tmp1 > 0.05d0) then
+!        EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
 !    end if
 
     ! VPD at which stress in at maximum should be no larger than max(VPDlag21) + 1500 Pa from
@@ -966,7 +915,7 @@ module model_likelihood_module
     use CARBON_MODEL_MOD, only: Rg_from_labile, Rm_from_labile,&
                                 Resp_leaf, Resp_wood_root,     &
                                 Rm_leaf, Rm_wood_root,         &
-                                wSWP_time, CMI,            &
+                                wSWP_time,                 &
                                 harvest_residue_to_litter, &
                                 harvest_residue_to_som,    &
                                 harvest_residue_to_litwood,&
@@ -1023,7 +972,7 @@ module model_likelihood_module
                         hold, infi, Rs, dble_nodays, &
                         mean_step_size
     double precision, allocatable, dimension(:) :: mean_annual_pools
-    double precision, dimension(nodays) :: mean_ratio, resid_fol, resid_lab, biomass_root
+    double precision, dimension(nodays) :: lab_ratio, mean_ratio, resid_fol, resid_lab, biomass_root
     double precision, dimension(nopools) :: jan_mean_pools, jan_first_pools
     integer, dimension(nodays) :: hak ! variable to determine number of NaN in foliar residence time calculation
     double precision :: SSwood, SSlitwood, SSsom &
@@ -1250,11 +1199,13 @@ module model_likelihood_module
     ! branches accumulate labile C prior to bud burst from other areas.
     ! Wurth et al (2005) Oecologia, Clab 8 % of living biomass (DM) in tropical forest
     ! Richardson et al (2013), New Phytologist, Clab 2.24 +/- 0.44 % in temperate (max = 4.2 %)
+    ! Estimate the labile ratio, also used below
+    lab_ratio = M_POOLS(:,1) / (M_POOLS(:,3) + M_POOLS(:,4))
     if (EDC2 == 1 .or. DIAG == 1) then
         if ((mean_pools(1) / (mean_pools(3) + mean_pools(4))) > 0.125d0) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
         endif
-        if (maxval(M_POOLS(:,1) / (M_POOLS(:,3) + M_POOLS(:,4))) > 0.25d0) then
+        if (maxval(lab_ratio) > 0.25d0) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
         endif
     endif ! EDC2 == 1 .or. DIAG == 1
@@ -1543,7 +1494,7 @@ module model_likelihood_module
         ! Labile
 !        Rs = in_out_lab * (jan_mean_pools(1) / jan_first_pools(1))
 !        if (abs(Rs-in_out_lab) > 0.1d0 .or. abs(log(in_out_lab)) > EQF10) then
-        if (abs(log(in_out_lab_yr1) - log(in_out_lab_yr2)) > etol .or. &
+        if ((abs(log(in_out_lab_yr1)) - abs(log(in_out_lab_yr2))) > etol*0.5d0 .or. &
             abs(log(in_lab/out_lab)) > EQF2) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(25) = 0
         end if
@@ -1551,7 +1502,7 @@ module model_likelihood_module
         ! Foliage
 !        Rs = in_out_fol * (jan_mean_pools(2) / jan_first_pools(2))
 !        if (abs(Rs-in_out_fol) > 0.1d0 .or. abs(log(in_out_fol)) > EQF10) then
-        if (abs(log(in_out_fol_yr1) - log(in_out_fol_yr2)) > etol .or. &
+        if ((abs(log(in_out_fol_yr1)) - abs(log(in_out_fol_yr2))) > etol*0.5d0 .or. &
             abs(log(in_fol/out_fol)) > EQF2 .or. in_out_fol_yr1 /= in_out_fol_yr1) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(26) = 0
         end if
@@ -1559,7 +1510,7 @@ module model_likelihood_module
         ! Fine roots
 !        Rs = in_out_root * (jan_mean_pools(3) / jan_first_pools(3))
 !        if (abs(Rs-in_out_root) > 0.1d0 .or. abs(log(in_out_root)) > EQF10) then
-        if (abs(log(in_out_root_yr1) - log(in_out_root_yr2)) > etol .or. &
+        if ((abs(log(in_out_root_yr1)) - abs(log(in_out_root_yr2))) > etol*0.5d0 .or. &
             abs(log(in_root/out_root)) > EQF2) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(27) = 0
         end if
@@ -1567,7 +1518,7 @@ module model_likelihood_module
         ! Wood
 !        Rs = in_out_wood * (jan_mean_pools(4) / jan_first_pools(4))
 !        if (abs(Rs-in_out_wood) > 0.1d0 .or. abs(log(in_out_wood)) > EQF10) then
-        if (abs(log(in_out_wood_yr1) - log(in_out_wood_yr2)) > etol .or. &
+        if ((abs(log(in_out_wood_yr1)) - abs(log(in_out_wood_yr2))) > etol .or. &
             abs(log(in_wood/out_wood)) > EQF5) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(28) = 0
         end if
@@ -1575,7 +1526,7 @@ module model_likelihood_module
         ! Foliage and root litter
 !        Rs = in_out_lit * (jan_mean_pools(5) / jan_first_pools(5))
 !        if (abs(Rs-in_out_lit) > 0.1d0 .or. abs(log(in_out_lit)) > EQF10) then
-        if (abs(log(in_out_lit_yr1) - log(in_out_lit_yr2)) > etol .or. &
+        if ((abs(log(in_out_lit_yr1)) - abs(log(in_out_lit_yr2))) > etol .or. &
             abs(log(in_lit/out_lit)) > EQF5) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(29) = 0
         end if
@@ -1583,7 +1534,7 @@ module model_likelihood_module
         ! Soil organic matter
 !        Rs = in_out_som * (jan_mean_pools(6) / jan_first_pools(6))
 !        if (abs(Rs-in_out_som) > 0.1d0 .or. abs(log(in_out_som)) > EQF10) then
-        if (abs(log(in_out_som_yr1) - log(in_out_som_yr2)) > etol .or. &
+        if ((abs(log(in_out_som_yr1)) - abs(log(in_out_som_yr2))) > etol .or. &
             abs(log(in_som/out_som)) > EQF5) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(30) = 0
         end if
@@ -1591,7 +1542,7 @@ module model_likelihood_module
         ! Coarse+fine woody debris
 !        Rs = in_out_litwood * (jan_mean_pools(7) / jan_first_pools(7))
 !        if (abs(Rs-in_out_litwood) > 0.1d0 .or. abs(log(in_out_litwood)) > EQF10) then
-        if (abs(log(in_out_litwood_yr1) - log(in_out_litwood_yr2)) > etol .or. &
+        if ((abs(log(in_out_litwood_yr1)) - abs(log(in_out_litwood_yr2))) > etol .or. &
             abs(log(in_litwood/out_litwood)) > EQF5) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(31) = 0
         end if
@@ -1635,30 +1586,27 @@ module model_likelihood_module
 
     endif ! doing the big arrays then?
 
-    ! Both CMI and CGI should have maximum values > 0.5 and minimum values < 0.5
+    ! CGI should have maximum values > 0.5 and minimum values < 0.5
     ! Check the first half of the analysis
 !    io_start = 1 ; io_finish = floor((real(nodays)/2.0))
 !    if ((EDC2 == 1 .or. DIAG == 1) .and. (minval(M_FLUXES(io_start:io_finish,18)) > 0.5d0 .or. &
 !                                          maxval(M_FLUXES(io_start:io_finish,18)) < 0.5d0)) then
 !        EDC2 = 0d0 ; EDCD%PASSFAIL(34) = 0
 !    endif
-!    if ((EDC2 == 1 .or. DIAG == 1) .and. (minval(CMI(io_start:io_finish)) > 0.5d0 .or. &
-!                                          maxval(CMI(io_start:io_finish)) < 0.5d0)) then
-!        EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
-!    endif
 !    ! And then the second half
 !    if ((EDC2 == 1 .or. DIAG == 1) .and. (minval(M_FLUXES(io_finish:nodays,18)) > 0.5d0 .or. &
 !                                          maxval(M_FLUXES(io_finish:nodays,18)) < 0.5d0)) then
 !        EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
 !    endif
-!    if ((EDC2 == 1 .or. DIAG == 1) .and. (minval(CMI(io_finish:nodays)) > 0.5d0 .or. &
-!                                          maxval(CMI(io_finish:nodays)) < 0.5d0)) then
-!        EDC2 = 0d0 ; EDCD%PASSFAIL(37) = 0
-!    endif
 
     !
     ! EDCs done, below are additional fault detection conditions
     !
+
+    ! The maximum value for GPP must be greater than 0, 0.001 to guard against precision values
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_GPP) < 0.001d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(54) = 0
+    end if
 
     ! additional faults can be stored in locations > 55 of the PASSFAIL array
 

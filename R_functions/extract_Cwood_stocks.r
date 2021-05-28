@@ -1,4 +1,10 @@
 
+###
+## Function extracts location specific information on the timeseries of wood stock information
+## drawn from an already loaded gridded dataset
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_Cwood_stocks<- function(timestep_days,spatial_type,resolution,grid_type,latlon_in,Cwood_stock_all) {
 
@@ -15,7 +21,7 @@ extract_Cwood_stocks<- function(timestep_days,spatial_type,resolution,grid_type,
        product_res = product_res * 0.5 # NOTE: averaging needed for line above
        if (grid_type == "wgs84") {
            # radius is ceiling of the ratio of the product vs analysis ratio
-           radius = round(resolution / product_res, digits=0)
+           radius = floor(0.5*(resolution / product_res))
         } else if (grid_type == "UK") {
            # Estimate radius for UK grid assuming radius is determine by the longitude size
            # 6371e3 = mean earth radius (m)
@@ -49,7 +55,7 @@ extract_Cwood_stocks<- function(timestep_days,spatial_type,resolution,grid_type,
    Cwood_stock_unc[which(is.na(Cwood_stock_unc))] = -9999
 
    # pass the information back
-   #return(list(Cwood_stock = Cwood_stock, Cwood_stock_unc = Cwood_stock_unc))
-   return(list(Cwood_stock = Cwood_stock, Cwood_stock_unc = 500))
+   return(list(Cwood_stock = Cwood_stock, Cwood_stock_unc = Cwood_stock_unc))
+   #return(list(Cwood_stock = Cwood_stock, Cwood_stock_unc = 250))
 
 } # end of function

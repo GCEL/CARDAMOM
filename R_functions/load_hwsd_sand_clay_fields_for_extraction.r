@@ -1,8 +1,9 @@
 
 ###
-## Function to load met data from global field ECMWF data
-## subsequently extracted in extract_met_drivers.txt
+## Function to load soil texture information from global gridded HWSD
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 load_hwsd_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source) {
 

@@ -1,7 +1,7 @@
 
 subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
                    ,out_var,out_var2,out_var3,out_var4,out_var5 &
-                   ,lat &
+                   ,out_var6,lat &
                    ,nopars,nomet,nofluxes,nopools,pft,pft_specific &
                    ,nodays,noyears,deltat,nos_iter,soil_frac_clay_in,soil_frac_sand_in &
                    ,exepath,pathlength)
@@ -17,13 +17,21 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
                               fire_loss_wood, fire_loss_litter, fire_loss_litwood, &
                               fire_loss_som, fire_residue_to_litter, &
                               fire_residue_to_litwood,fire_residue_to_som,       &
-                              gs_demand_supply_ratio, cica_time, rSWP_time, CMI, &
+                              gs_demand_supply_ratio, cica_time, rSWP_time,  &
                               gs_total_canopy, gb_total_canopy, canopy_par_MJday_time, &
                               total_water_flux_time, NCCE
   use CARBON_MODEL_CROP_MOD, only: CARBON_MODEL_CROP
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
+
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
 
   implicit none
   interface
@@ -78,10 +86,11 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
 
   ! output declaration
   double precision, intent(out), dimension(nos_iter,nodays,output_dim) :: out_var
-  double precision, intent(out), dimension(nos_iter,aNPP_dim) :: out_var2
-  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var3
-  double precision, intent(out), dimension(nos_iter,SS_dim) :: out_var4
-  double precision, intent(out), dimension(nos_iter,MTT_dim,noyears) :: out_var5
+  double precision, intent(out), dimension(nos_iter,aNPP_dim) :: out_var2 ! Mean annual NPP allocatino (0-1)
+  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var3  ! Mean annual MRT (years)
+  double precision, intent(out), dimension(nos_iter,SS_dim) :: out_var4   ! Steady State (gC/m2)
+  double precision, intent(out), dimension(nos_iter,MTT_dim,noyears) :: out_var5 ! Annual estimates of MRT (years)
+  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var6  ! Natural component of mean annual MRT (years)
 
   ! local variables
   integer :: i, y, y_s, y_e, nos_years, steps_per_year
@@ -193,10 +202,10 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
         out_var(i,1:nodays,15) = 0d0
      else
         out_var(i,1:nodays,14) = FLUXES(1:nodays,18) ! CGI value
-        out_var(i,1:nodays,15) = CMI(1:nodays)       ! CMI
+        out_var(i,1:nodays,15) = NCCE(1:nodays)      ! NCCE
      endif
      out_var(i,1:nodays,16) = rSWP_time(1:nodays) !
-     out_var(i,1:nodays,17) = NCCE(1:nodays)!total_water_flux_time(1:nodays)
+     out_var(i,1:nodays,17) = total_water_flux_time(1:nodays)
      out_var(i,1:nodays,18) = FLUXES(1:nodays,19) ! Evapotranspiration (kgH2O.m-2.day-1)
      out_var(i,1:nodays,19) = POOLS(1:nodays,8)   ! rootwater (kgH2O.m-2.10cmdepth)
      out_var(i,1:nodays,20) = wSWP_time(1:nodays) ! Weighted Soil Water Potential (MPa)
@@ -329,6 +338,7 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
                som_hak = 1 ; som_filter(1:nodays) = 0d0
          end where
 
+         ! Estimate MRT (years)
          ! Foliage
          out_var3(i,1) = sum( ((FLUXES(1:nodays,10)+fire_loss_foliar + harvest_loss_foliar) &
                               / POOLS(1:nodays,2)) * fol_filter) / dble(nodays-sum(fol_hak))
@@ -345,6 +355,19 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
          ! Soil
          out_var3(i,5) = sum( ((FLUXES(1:nodays,14)+fire_loss_som + harvest_loss_som) &
                               / POOLS(1:nodays,6)) * som_filter) / dble(nodays-sum(som_hak))
+
+         ! Estimate natural MRT (years)
+         ! Foliage
+         out_var6(i,1) = sum( (FLUXES(1:nodays,10) / POOLS(1:nodays,2)) * fol_filter) / dble(nodays-sum(fol_hak))
+         ! Fine roots
+         out_var6(i,2) = sum( (FLUXES(1:nodays,12) / POOLS(1:nodays,3)) * root_filter) / dble(nodays-sum(root_hak))
+         ! Wood
+         out_var6(i,3) = sum( (FLUXES(1:nodays,11) / POOLS(1:nodays,4)) * wood_filter) / dble(nodays-sum(wood_hak))
+         ! Lit+litwood
+         out_var6(i,4) = sum( ((FLUXES(1:nodays,13)+FLUXES(1:nodays,15)+FLUXES(1:nodays,20)+FLUXES(1:nodays,4)) &
+                              / (POOLS(1:nodays,5)+POOLS(1:nodays,7))) * lit_filter) / dble(nodays-sum(lit_hak))
+         ! Soil
+         out_var6(i,5) = sum( (FLUXES(1:nodays,14) / POOLS(1:nodays,6)) * som_filter) / dble(nodays-sum(som_hak))
 
          ! Keep track of the fraction of wood litter transfer to som, this value is needed for the steady state estimation
          litwood_to_som_frac(i) = sum( (FLUXES(1:nodays,20) / POOLS(1:nodays,7)) * lit_filter) / dble(nodays-sum(lit_hak))
@@ -406,6 +429,7 @@ subroutine rdalecg6(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
   ! MTT - Convert daily fractional loss to years
   out_var3 = (out_var3*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit+litwood,som)
   out_var5 = (out_var5*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit+litwood,som)
+  out_var6 = (out_var6*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit+litwood,som)
 
   ! Steady state gC/m2 estimation
   ! Determine the mean annual input (gC/m2/yr) based on current inputs for all pool,

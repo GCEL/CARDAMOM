@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -9,7 +20,7 @@ module MODEL_PARAMETERS
   public :: pars_info
 
   contains
-  
+
   !
   !------------------------------------------------------------------
   !
@@ -29,9 +40,9 @@ module MODEL_PARAMETERS
 
     ! contains 6 fields with min max log for par and par
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
     ! Decomposition rate
     PI%parmin(1)=0.00001
@@ -77,7 +88,7 @@ module MODEL_PARAMETERS
     ! set to parmin=1 for FLUXCOM only
     ! e.g. for wetlands etc.
     PI%parmin(11)=-0.50
-    PI%parmax(11)=1.1 
+    PI%parmax(11)=1.1
 
     ! GSI max labile turnover
     PI%parmin(12)=0.0001
@@ -100,12 +111,12 @@ module MODEL_PARAMETERS
     PI%parmax(16)=3600d0*10d0 ! 64800d0 ! 18 hours
 
     ! LMA
-    ! Kattge et al. 2011, 
-    PI%parmin(17)=10d0 
-    PI%parmax(17)=200d0 
+    ! Kattge et al. 2011,
+    PI%parmin(17)=10d0
+    PI%parmax(17)=200d0
 
     ! GSI max photoperiod threshold (sec)
-    PI%parmin(24)=3600d0 !21600d0 ! 6 hours 
+    PI%parmin(24)=3600d0 !21600d0 ! 6 hours
     PI%parmax(24)=64800d0 ! 18 hours
 
     ! GSI min VPD threshold (Pa)
@@ -128,7 +139,7 @@ module MODEL_PARAMETERS
     PI%parmin(29)=0.15
     PI%parmax(29)=0.45
 
-    ! GSI senstivity for leaf senescence 
+    ! GSI senstivity for leaf senescence
     PI%parmin(34)=0.96
     PI%parmax(34)=1.00
 
@@ -136,13 +147,13 @@ module MODEL_PARAMETERS
     PI%parmin(35)=0.50
     PI%parmax(35)=1.5
 
-    ! GSI - initial GSI value 
+    ! GSI - initial GSI value
     PI%parmin(36)=1.0
     PI%parmax(36)=2.0
-   
-    ! CWD turnover 
+
+    ! CWD turnover
     PI%parmin(37)=0.0001
-    PI%parmax(37)=0.02    
+    PI%parmax(37)=0.02
 
     ! root C:N
     PI%parmin(45)=1d0
@@ -159,11 +170,11 @@ module MODEL_PARAMETERS
     ! DON leaching fraction
     PI%parmin(46)=0.0015*0.5
     PI%parmax(46)=0.0015*1.5
- 
+
     ! DIN leached per day
     PI%parmin(47)=0.00001*0.5
     PI%parmax(47)=0.00001*1.5
- 
+
     ! DIN depostion per day
     PI%parmin(48)=0.5/365.25
     PI%parmax(48)=1.5/365.25
@@ -171,7 +182,7 @@ module MODEL_PARAMETERS
     ! Nitrogen use efficiency
     PI%parmin(49)=5.0**(-2.999299929993)
     PI%parmax(49)=15.0**(-2.999299929993)
- 
+
     !
     ! INITIAL VALUES DECLARED HERE
     !
@@ -212,12 +223,12 @@ module MODEL_PARAMETERS
     PI%parmin(40)=0.001
     PI%parmax(40)=50.0
 
-    ! N labile 
+    ! N labile
     PI%parmin(43)=0.001
     PI%parmax(43)=300.0
 
     !
-    ! Replanting pools values 
+    ! Replanting pools values
     !
 
     ! C labile
@@ -236,10 +247,10 @@ module MODEL_PARAMETERS
     PI%parmin(33)=1.0
     PI%parmax(33)=1000.0
 
-    ! N labile 
+    ! N labile
     PI%parmin(44)=0.001
     PI%parmax(44)=300.0
- 
+
   end subroutine pars_info
 
   !

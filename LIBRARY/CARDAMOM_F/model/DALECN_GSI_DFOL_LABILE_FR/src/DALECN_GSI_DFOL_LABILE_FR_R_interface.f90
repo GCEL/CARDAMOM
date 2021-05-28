@@ -1,13 +1,21 @@
 
 
-subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat & 
-                             ,nopars,nomet,nofluxes,nopools,pft,pft_specific & 
+subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
+                             ,nopars,nomet,nofluxes,nopools,pft,pft_specific &
                              ,nodays,deltat,nos_iter)
 
   use CARBON_MODEL_MOD, only: CARBON_MODEL, extracted_C, itemp, ivpd, iphoto, DON_leaching
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
+
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
 
   implicit none
   ! declare input variables
@@ -46,7 +54,7 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
                                         ,NEE   ! net ecosystem exchange of CO2
 
   ! zero initial conditions
-  lai = 0d0 ; GPP = 0d0 ; NEE = 0d0 ; POOLS = 0d0 ; FLUXES = 0d0 
+  lai = 0d0 ; GPP = 0d0 ; NEE = 0d0 ; POOLS = 0d0 ; FLUXES = 0d0
   out_var = 0d0 ; out_var2 = 0d0
 
   ! update settings
@@ -68,7 +76,7 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
                       ,lat,lai,NEE,FLUXES,POOLS &
                       ,nopars,nomet,nopools,nofluxes,GPP)
 !if (i == 1) then
-!    open(unit=666,file="/home/lsmallma/out.csv", & 
+!    open(unit=666,file="/home/lsmallma/out.csv", &
 !         status='replace',action='readwrite' )
 !write(666,*)"deltat",deltat
 !    write(666,*),"GSI",FLUXES(:,14)(1:365)
@@ -76,11 +84,11 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
 !endif
 
      ! now allocate the output the our 'output' variable
-     out_var(i,1:nodays,1)  = lai 
+     out_var(i,1:nodays,1)  = lai
      out_var(i,1:nodays,2)  = GPP
      out_var(i,1:nodays,3)  = FLUXES(1:nodays,3) ! auto resp
      out_var(i,1:nodays,4)  = FLUXES(1:nodays,13) + FLUXES(1:nodays,14) ! het resp
-     out_var(i,1:nodays,5)  = NEE 
+     out_var(i,1:nodays,5)  = NEE
      out_var(i,1:nodays,6)  = POOLS(1:nodays,4) ! wood
      out_var(i,1:nodays,7)  = POOLS(1:nodays,6) ! som
      out_var(i,1:nodays,8)  = POOLS(1:nodays,1) + POOLS(1:nodays,2) + POOLS(1:nodays,3) & ! common pools
@@ -106,7 +114,7 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
      out_var(i,1:nodays,24) = (FLUXES(1:nodays,14)*(1/pars(48,i))*(1d0-DON_leaching)) &
                              - FLUXES(1:nodays,21) ! N_mineralisation
 
-     ! calculate the actual NPP allocation fractions to foliar, wood and fine root pools 
+     ! calculate the actual NPP allocation fractions to foliar, wood and fine root pools
      ! by comparing the sum alloaction to each pools over the sum NPP.
      sumNPP = (1 / (sum(GPP)-sum(FLUXES(1:nodays,3))))! GPP - Ra
      out_var2(i,1) = sum(FLUXES(1:nodays,8)) * sumNPP ! foliar
@@ -119,7 +127,7 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
      resid_fol(1:nodays) = FLUXES(1:nodays,10)/POOLS(1:nodays,2)
      ! division by zero results in NaN plus obviously I can't have turned
      ! anything over if there was nothing to start out with...
-     where ( POOLS(1:nodays,2) == 0 ) 
+     where ( POOLS(1:nodays,2) == 0 )
             hak = 1 ; resid_fol(1:nodays) = 0.0
      end where
      out_var2(i,4) = sum(resid_fol) /dble(nodays-sum(hak))
@@ -134,7 +142,7 @@ subroutine rdalecngsidfollabfr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat
      end where
      out_var2(i,6) = sum(resid_fol) /dble(nodays-sum(hak))
 
-     ! Csom 
+     ! Csom
      resid_fol(1:nodays) = FLUXES(1:nodays,14)/POOLS(1:nodays,6)
      out_var2(i,7) = sum(resid_fol) /dble(nodays)
 

@@ -1,6 +1,10 @@
+
 ###
 ## function to return x,y coordinate from an array which is nearest to a provided lat / long value
 ###
+
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 closest2d <- function (id,lat,long,lat_in,long_in,nos_dim) {
 

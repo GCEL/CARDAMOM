@@ -3,6 +3,8 @@
 ## Function to load biomass data to be applied as an initial condition
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 load_initial_biomass_maps_for_extraction<-function(latlon_in,Cwood_initial_source,start,finish,timestep_days) {
 
       # Generate timing information need in most cases

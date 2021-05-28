@@ -1,8 +1,9 @@
 
 ###
-## Function to load met data from global field ECMWF data
-## subsequently extracted in extract_met_drivers.txt
+## Function to load a gridded dataset of prior values for crop planting and harvest dates
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 load_sacks_calendar_fields_for_extraction<-function(latlon_in,crop_management_source) {
 

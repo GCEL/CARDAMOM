@@ -3,6 +3,9 @@
 ## Function to freeze CARAMOM
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 cardamom_freeze_code<- function (PROJECT) {
 
       #function CARDAMOM_FREEZE_CODE(PROJECT)
@@ -25,9 +28,9 @@ cardamom_freeze_code<- function (PROJECT) {
       print('changes are made to the code')
       print('**********************************************')
 
-      #step 0. delete the old local backup copy
+      # step 0. delete the old local backup copy
       if (file.exists('./CARDAMOM_LOCAL/CARDAMOM_RECENT.zip') == TRUE) {
-	  system('rm CARDAMOM_LOCAL/CARDAMOM_RECENT.zip')
+          system('rm CARDAMOM_LOCAL/CARDAMOM_RECENT.zip')
       }
 
       #step 1. zip cardamom
@@ -46,4 +49,4 @@ cardamom_freeze_code<- function (PROJECT) {
       print('CARDAMOM successfully backed up!!!')
       print('**********************************************')
 
-}
+} # end function

@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -51,7 +62,7 @@ module MODEL_PARAMETERS
     ! Leaf Lifespan (yr)
     ! Wright et al. (2004)
     ! 55 - 2922 days
-    PI%parmin(5) = 0.15d0 
+    PI%parmin(5) = 0.15d0
     PI%parmax(5) = 8d0
 
     ! TOR wood* - 1% loss per year value
@@ -65,7 +76,7 @@ module MODEL_PARAMETERS
     PI%parmax(7) = 0.01d0        ! 0.27 years
 
     ! TOR litter
-    PI%parmin(8)=0.0001d0 ! 24.00 years 
+    PI%parmin(8)=0.0001d0 ! 24.00 years
     PI%parmax(8)=0.01d0   !  0.13 years
 
     ! Turnover of som to Rhet (fraction; temperature adjusted)
@@ -90,7 +101,7 @@ module MODEL_PARAMETERS
     !
 
     ! C foliar
-    PI%parmin(13) = 1d0 
+    PI%parmin(13) = 1d0
     PI%parmax(13) = 2000d0
 
     ! C roots
@@ -107,7 +118,7 @@ module MODEL_PARAMETERS
 
     ! C_som
     PI%parmin(17) = 1d0
-    PI%parmax(17) = 200000d0 
+    PI%parmax(17) = 200000d0
 
   end subroutine pars_info
   !

@@ -2,6 +2,17 @@
 module model_likelihood_module
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -1257,11 +1268,11 @@ module model_likelihood_module
     ! Luyssaert et al (2007)
 
     ! Limits on foliar allocation
-    if ((EDC2 == 1 .or. DIAG == 1) .and. fNPP < 0.05d0) then
+    if ((EDC2 == 1 .or. DIAG == 1) .and. (fNPP < 0.05d0 .or. fNPP /= fNPP)) then
         EDC2 = 0d0 ; EDCD%PASSFAIL(19) = 0
     endif
     ! Limits on fine root allocation
-    if ((EDC2 == 1 .or. DIAG == 1) .and. rNPP < 0.05d0) then
+    if ((EDC2 == 1 .or. DIAG == 1) .and. (rNPP < 0.05d0 .or. rNPP /= rNPP)) then
         EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
     endif
 
@@ -1550,6 +1561,11 @@ module model_likelihood_module
     !
 
     ! additional faults can be stored in locations > 55 of the PASSFAIL array
+
+    ! The maximum value for GPP must be greater than 0, 0.001 to guard against precision values
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_GPP) < 0.001d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(54) = 0
+    end if
 
     ! ensure minimum pool values are >= 0, /= NaN or Inf
     if (EDC2 == 1 .or. DIAG == 1) then

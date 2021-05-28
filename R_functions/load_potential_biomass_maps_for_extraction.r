@@ -3,6 +3,8 @@
 ## Function to load potential biomass maps to be used as attractor
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 load_potential_biomass_maps_for_extraction<-function(latlon_in,Cwood_potential_source,start,finish,timestep_days) {
 
    if (Cwood_potential_source == "UoE_potAGB") {

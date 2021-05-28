@@ -1,7 +1,9 @@
 
 ###
-## Load met function
+## Load met function, called by met_fields_for_extraction.r
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 load_met_function<- function (year_to_do,varid,infile_varid,remove_lat,remove_long,path_to_met_source,met_source,wheat) {
 

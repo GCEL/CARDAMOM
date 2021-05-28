@@ -3,6 +3,8 @@
 ## Function to load Net Biome Exchange for subsquent subsetting
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load) {
 
   if (nbe_source == "GEOSCHEM") {

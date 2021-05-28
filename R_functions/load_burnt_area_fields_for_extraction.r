@@ -1,8 +1,9 @@
 
 ###
-## Function to load met data from global field ECMWF data
-## subsequently extracted in extract_met_drivers.txt
+## Function to load burned area data from various gridded datasets
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path_to_burnt_area,start_year,end_year) {
 
@@ -140,7 +141,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                   # restrict spatial area
                   var1 = var1[min(remove_long):max(remove_long),min(remove_lat):max(remove_lat),]
                   # set actual missing data to 0 as missing data is actually no fire
-                  var1[which(is.na(as.vector(var1)))] = 0
+#                  var1[which(is.na(as.vector(var1)))] = 0
 
                   # get time information (day of year)
                   var2 = ncvar_get(data1, "time") ; time_steps_per_year = 12

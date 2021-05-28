@@ -1,7 +1,10 @@
-####
-## Function to extract the HWSD soil carbon estimate for initial conditions
-####
 
+###
+## Function to extract location specific information on soil texture from the gridded SoilGrids database
+###
+
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_soilgrid_sand_clay<- function(spatial_type,resolution,grid_type,latlon_in,sand_clay_all) {
 
@@ -23,8 +26,8 @@ extract_soilgrid_sand_clay<- function(spatial_type,resolution,grid_type,latlon_i
       product_res = abs(sand_clay_all$lat[1,2]-sand_clay_all$lat[1,1])+abs(sand_clay_all$long[2,1]-sand_clay_all$long[1,1])
       product_res = product_res * 0.5 # NOTE: averaging needed for line above
 	    if (grid_type == "wgs84") {
-          # radius is ceiling of the ratio of the product vs analysis ratio
-          radius = round(resolution / product_res, digits=0)
+          # radius is floor of the ratio of the product vs analysis ratio
+          radius = floor(0.5*(resolution / product_res))
 	    } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size
           # 6371e3 = mean earth radius (m)
@@ -53,7 +56,9 @@ extract_soilgrid_sand_clay<- function(spatial_type,resolution,grid_type,latlon_i
 	    # error checking
 	    if (is.na(top_sand) | top_sand == 0) {radius = radius+1 ; answer = NA} else {answer = 0}
 	}
+  # Inform the user
 	print(paste("NOTE sand/clay averaged over a pixel radius (i.e. centre + radius) of ",radius," points",sep=""))
+
 	# just to check because when averaging sometimes the sand / clay combinations can be > 100 %
 	# 94 % chosesn as this is the highest total % found in the HWSD dataset
 	if ((top_sand+top_clay) > 94) {
@@ -66,6 +71,7 @@ extract_soilgrid_sand_clay<- function(spatial_type,resolution,grid_type,latlon_i
 	    tmp2 = bot_clay / (bot_sand + bot_clay + 6) # 6 % is implicit in the 94 % max value for silt / gravel
 	    top_sand = tmp1*100 ; top_clay = tmp2*100
 	}
+
 	# pass the information back
 	return(list(top_sand=top_sand,bot_sand=bot_sand,top_clay=top_clay,bot_clay=bot_clay))
 

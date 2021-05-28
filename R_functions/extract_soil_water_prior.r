@@ -1,7 +1,9 @@
+
 ####
-## Function to extract the HWSD soil carbon estimate for initial conditions
+## Function to extract a prior estimate of soil moisture content from the GLEAM gridded dataset
 ####
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_soilwater_initial<- function(spatial_type,resolution,grid_type,latlon_in,soilwater_all) {
 

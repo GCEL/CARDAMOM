@@ -2,7 +2,7 @@
 
 subroutine rdalecevergreennolitroot(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars &
                                    ,out_var,out_var2,out_var3,out_var4,out_var5 &
-                                   ,lat,nopars,nomet &
+                                   ,out_var6,lat,nopars,nomet &
                                    ,nofluxes,nopools,pft,pft_specific,nodays,noyears,deltat &
                                    ,nos_iter)
 
@@ -10,6 +10,14 @@ subroutine rdalecevergreennolitroot(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars 
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
+
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
 
   implicit none
   ! declare input variables
@@ -34,10 +42,11 @@ subroutine rdalecevergreennolitroot(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars 
 
   ! output declaration
   double precision, intent(out), dimension(nos_iter,nodays,output_dim) :: out_var
-  double precision, intent(out), dimension(nos_iter,aNPP_dim) :: out_var2
-  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var3
-  double precision, intent(out), dimension(nos_iter,SS_dim) :: out_var4
-  double precision, intent(out), dimension(nos_iter,MTT_dim,noyears) :: out_var5
+  double precision, intent(out), dimension(nos_iter,aNPP_dim) :: out_var2 ! Mean annual NPP allocatino (0-1)
+  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var3  ! Mean annual MRT (years)
+  double precision, intent(out), dimension(nos_iter,SS_dim) :: out_var4   ! Steady State (gC/m2)
+  double precision, intent(out), dimension(nos_iter,MTT_dim,noyears) :: out_var5 ! Annual estimates of MRT (years)
+  double precision, intent(out), dimension(nos_iter,MTT_dim) :: out_var6  ! Natural component of mean annual MRT (years)
 
   ! local variables
   ! vector of ecosystem pools
@@ -166,11 +175,13 @@ subroutine rdalecevergreennolitroot(output_dim,aNPP_dim,MTT_dim,SS_dim,met,pars 
   end do ! nos_iter loop
 
   ! MTT - Convert daily fractional loss to years
-  out_var3(:,3) = (out_var3(:,3)*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit+litwood,som)
-  out_var3(:,5) = (out_var3(:,5)*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit+litwood,som)
-  out_var5(:,1,:) = (out_var5(:,1,:)*365.25d0)**(-1d0)               ! iter,(fol,root,wood,lit+litwood,som)
-  out_var5(:,3,:) = (out_var5(:,3,:)*365.25d0)**(-1d0)               ! iter,(fol,root,wood,lit+litwood,som)
-  out_var5(:,5,:) = (out_var5(:,5,:)*365.25d0)**(-1d0)               ! iter,(fol,root,wood,lit+litwood,som)
+  out_var3(:,3) = (out_var3(:,3)*365.25d0)**(-1d0)     ! iter,(fol,root,wood,lit,som)
+  out_var3(:,5) = (out_var3(:,5)*365.25d0)**(-1d0)     ! iter,(fol,root,wood,lit,som)
+  out_var5(:,1,:) = (out_var5(:,1,:)*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit,som)
+  out_var5(:,3,:) = (out_var5(:,3,:)*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit,som)
+  out_var5(:,5,:) = (out_var5(:,5,:)*365.25d0)**(-1d0) ! iter,(fol,root,wood,lit,som)
+  ! Assume same output for natural MRT as no disturbance is coded
+  out_var6 = out_var3
 
   ! Steady state gC/m2
   out_var4 = (out_var4 / dble(nodays)) * 365.25d0 ! convert to annual mean input

@@ -1,3 +1,11 @@
+
+###
+## Function to load all R scripts comprising the UoE CARDAMOM framework wrapper
+###
+
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 load_r_libraries<-function(){
     # load all needed libraries first
     require(chron)

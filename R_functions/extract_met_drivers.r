@@ -1,7 +1,10 @@
 
 ###
-## Function to extractmet data from global field ECMWF data
+## Function to extract meteorology data from global gridded data
 ###
+
+# These functions are by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
 
   est_potential_radiation <- function(doy,latitude,diurnal_range,mean_diuranal_range,surf_pressure_Pa,water_vapour_Pa,hardcode_Tt) {
 
@@ -54,6 +57,7 @@
   } # function est_potential_radiation
 
 daily_mean <-function(var, interval, missing_allowed) {
+
    # work out how many intervals fit
    # i.e. number of days possible
    nos_days=ceiling(length(var)/interval)
@@ -70,9 +74,11 @@ daily_mean <-function(var, interval, missing_allowed) {
    # clean up
    rm(nos_days,b,i) ; gc()
    return(output)
-}
+
+} # end function daily_mean
 
 daily_sum <-function(var, interval, missing_allowed) {
+
    # work out how many intervals fit
    # i.e. number of days possible
    nos_days=ceiling(length(var)/interval)
@@ -89,12 +95,14 @@ daily_sum <-function(var, interval, missing_allowed) {
    # clean up
    rm(nos_days,b,i) ; gc()
    return(output)
-}
+
+} # end function daily sum
 
 calc_photoperiod_sec<-function(lat,days){
 
-   # function calculates the day length in hours based on day of year and latitude (degrees).
+   # Function calculates the day length in hours based on day of year and latitude (degrees).
    # the output is daylength converted to seconds
+   # Ref: NEEDS TO BE ADDED
 
    declin    = - asin ( sin ( 23.45 * ( pi / 180 ) ) * cos ( 2. * pi * ( days + 10. ) / 365. ) )
    sinld     = sin ( lat*(pi/180.) ) * sin ( declin )
@@ -158,10 +166,14 @@ vpd_to_rh<-function(vpd_in,air_temperature) {
 
 dew_temp_to_sp_humidity<-function(dew_airt,airt,pressure) {
 
+  # Ref: p95 McIlveen 1986, Basic Meteorology -
+  # a physical outline
+
   # dew_airt (oC)
   # airt (oC)
   # pressure (Pa->hPa)
   # vapour pressues (hPa->Pa)
+
   ## Specific humidity (kg/kg)
   vapour_pressure = 6.11*10**((7.5*dew_airt)/(237.3+dew_airt))
   dew_temp_to_sp_humidity = 0.622*vapour_pressure/(pressure*1e-2)
@@ -191,6 +203,9 @@ rh_to_vpd<-function(rh_in,air_temperature) {
 } # end function rh_to_vpd
 
 sp_humidity_to_rh <- function(qair, temp, press = 1013.25){
+
+   # Ref: p95 McIlveen 1986, Basic Meteorology -
+   # a physical outline
 
    # temperature in oC, specific humidity pressure in (hPa)
    es <-  6.112 * exp((17.67 * temp)/(temp + 243.5))

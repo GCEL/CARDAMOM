@@ -3,14 +3,16 @@
 ## Function to extract met data for ACM recalibration
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 extract_acm_met_drivers<-function(PROJECT,latlon_wanted,site_name) {
 
 	# construct assumed name
 	infile=paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
-#	infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater.csv",sep="")
-	#infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_copy.csv",sep="")
-#        infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_avgNlessthan4.csv",sep="")
-        infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_avgNlessthan4_subsample.csv.csv",sep="")
+#  infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater.csv",sep="")
+#  infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_copy.csv",sep="")
+#  infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_avgNlessthan4.csv",sep="")
+  infile=paste(path_to_site_obs,site_name,"_timeseries_obs_iWUE_trunk_nowater_avgNlessthan4_subsample.csv.csv",sep="")
 	# extract the drivers currently in use
 	maxt_out=read_site_specific_obs("sat_max",infile)
 	mint_out=read_site_specific_obs("sat_min",infile)
@@ -29,7 +31,7 @@ extract_acm_met_drivers<-function(PROJECT,latlon_wanted,site_name) {
 	top_clay = read_site_specific_obs("clay_top",infile) # % clay in top soil
 	bot_clay = read_site_specific_obs("clay_bot",infile) # % clay in deep soil
 
-  	# update start / end year information
+  # update start / end year information
 	year_out=read_site_specific_obs("year",infile)
 	PROJECT$start_year=min(as.numeric(year_out))
 	PROJECT$end_year=max(as.numeric(year_out))
@@ -45,8 +47,8 @@ extract_acm_met_drivers<-function(PROJECT,latlon_wanted,site_name) {
 
 	# output variables
 	return(list(run_day=run_day,mint=mint_out,maxt=maxt_out,swrad=swrad_out,co2=co2_out,doy=doy_out,lagged_precip=lagged_precip_out
-		   ,avgTmax=avgTmax_out,photoperiod=photoperiod_out,vpd_lagged=vpd_lagged_out,vpd=vpd_out,avgN=avgN_out
-		   ,lai=lai_out,lat=lat_out,wind_spd=wind_out,precip=precip_out,Rtot=Rtot_out,top_sand = top_sand
-		   ,bot_sand = bot_sand, top_clay  = top_clay, bot_clay = bot_clay))
+             ,avgTmax=avgTmax_out,photoperiod=photoperiod_out,vpd_lagged=vpd_lagged_out,vpd=vpd_out,avgN=avgN_out
+             ,lai=lai_out,lat=lat_out,wind_spd=wind_out,precip=precip_out,Rtot=Rtot_out,top_sand = top_sand
+             ,bot_sand = bot_sand, top_clay  = top_clay, bot_clay = bot_clay))
 
 } # function end

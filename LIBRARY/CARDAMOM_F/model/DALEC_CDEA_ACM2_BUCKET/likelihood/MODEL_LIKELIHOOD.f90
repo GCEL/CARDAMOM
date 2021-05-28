@@ -2,6 +2,17 @@
 module model_likelihood_module
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -621,7 +632,7 @@ module model_likelihood_module
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
            end if
            ! Restrict exponential behaviour at initialisation
-           if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+           if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            end if
         end do
@@ -630,7 +641,7 @@ module model_likelihood_module
         if (abs(log(Fin(n)/Fout(n))) > EQF5) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
         end if
-        if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+        if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
         end if
         ! Dead pools
@@ -640,19 +651,24 @@ module model_likelihood_module
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
            end if
            ! Restrict exponential behaviour at initialisation
-           if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+           if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            end if
         end do
 
     end if ! EDC2 == 1 .or. DIAG == 1
 
+    ! The maximum value for GPP must be greater than 0, 0.001 to guard against precision values
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_GPP) < 0.001d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
+    end if
+
     !
     ! EDCs done, below are additional fault detection conditions
     !
 
 
-    ! additional faults can be stored in locations 35 - 40 of the PASSFAIL array
+    ! additional faults can be stored in locations 55 - 61 of the PASSFAIL array
 
     ! ensure minimum pool values are >= 0, /= NaN or Inf
     if (EDC2 == 1 .or. DIAG == 1) then

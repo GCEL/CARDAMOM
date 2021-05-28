@@ -3,6 +3,19 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
 ! make all private
 private
 
@@ -49,7 +62,7 @@ contains
 !
   subroutine CARBON_MODEL(start,finish,met,pars,deltat,nodays,lat,lai,NEE,FLUXES,POOLS &
                        ,nopars,nomet,nopools,nofluxes,GPP)
-  
+
     ! The Data Assimilation Linked Ecosystem Carbon - Combined Deciduous
     ! Evergreen Analytical (DALEC_CDEA) model. The subroutine calls the
     ! Aggregated Canopy Model to simulate GPP and partitions between various
@@ -60,7 +73,7 @@ contains
 
     ! declare input variables
     integer, intent(in) :: start    &
-                          ,finish   & 
+                          ,finish   &
                           ,nopars   & ! number of paremeters in vector
                           ,nomet    & ! number of meteorological fields
                           ,nofluxes & ! number of model fluxes
@@ -77,9 +90,9 @@ contains
                                                ,NEE   ! net ecosystem exchange of CO2
 
     double precision, dimension((nodays+1),nopools), intent(inout) :: POOLS ! vector of ecosystem pools
- 
+
     double precision, dimension(nodays,nofluxes), intent(inout) :: FLUXES ! vector of ecosystem fluxes
-                                             
+
     ! declare local variables
     double precision :: gpppars(12)            & ! ACM inputs (LAI+met)
              ,constants(10)          & ! parameters for ACM
@@ -104,7 +117,7 @@ contains
     ! 5 = litter
     ! 6 = som
 
-    ! FLUXES are: 
+    ! FLUXES are:
     ! 1 = GPP
     ! 2 = temprate
     ! 3 = respiration_auto
@@ -127,7 +140,7 @@ contains
 
     ! p(1) Litter to SOM conversion rate  - m_r
     ! p(2) Fraction of GPP respired - f_a
-    ! p(3) Fraction of NPP allocated to foliage - f_f 
+    ! p(3) Fraction of NPP allocated to foliage - f_f
     ! p(4) Fraction of NPP allocated to roots - f_r
     ! p(5) Leaf lifespan - L_f
     ! p(6) Turnover rate of wood - t_w
@@ -136,7 +149,7 @@ contains
     ! p(9) SOM turnover rate  - t_S
     ! p(10) Parameter in exponential term of temperature - \theta
     ! p(11) Canopy efficiency parameter - C_eff (part of ACM)
-    ! p(12) = date of Clab release - B_day  
+    ! p(12) = date of Clab release - B_day
     ! p(13) = Fraction allocated to Clab - f_l
     ! p(14) = lab release duration period - R_l
     ! p(15) = date of leaf fall - F_day
@@ -194,12 +207,12 @@ contains
     ! scaling to biyearly sine curve
     sf=365.25/pi
 
-    ! 
+    !
     ! Begin looping through each time step
-    ! 
+    !
 
     do n = start, finish
-  
+
       ! calculate LAI value
       lai(n)=POOLS(n,2)/pars(17)
 
@@ -223,16 +236,16 @@ contains
       FLUXES(n,5) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4))*pars(13)
       ! root production (gC.m-2.day-1)
       FLUXES(n,6) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5))*pars(4)
-      ! wood production 
+      ! wood production
       FLUXES(n,7) = FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5)-FLUXES(n,6)
 
       ! Labile release and leaffall factors
       FLUXES(n,9) = (2./(pi**0.5))*(ff/wf)*exp(-((sin((met(1,n)-pars(15)+osf)/sf)*sf/wf)**2.))
       FLUXES(n,16) = (2./(pi**0.5))*(fl/wl)*exp(-((sin((met(1,n)-pars(12)+osl)/sf)*sf/wl)**2.))
- 
-      ! 
+
+      !
       ! those with time dependancies
-      ! 
+      !
 
       ! total labile release
       FLUXES(n,8) = POOLS(n,1)*(1.-(1.-FLUXES(n,16))**deltat(n))/deltat(n)
@@ -243,9 +256,9 @@ contains
       ! total root litter production
       FLUXES(n,12) = POOLS(n,3)*(1.-(1.-pars(7))**deltat(n))/deltat(n)
 
-      ! 
+      !
       ! those with temperature AND time dependancies
-      ! 
+      !
 
       ! respiration heterotrophic litter
       FLUXES(n,13) = POOLS(n,5)*(1.-(1.-FLUXES(n,2)*pars(8))**deltat(n))/deltat(n)
@@ -254,14 +267,14 @@ contains
       ! litter to som
       FLUXES(n,15) = POOLS(n,5)*(1.-(1.-pars(1)*FLUXES(n,2))**deltat(n))/deltat(n)
 
-      ! calculate the NEE 
+      ! calculate the NEE
       NEE(n) = (-FLUXES(n,1)+FLUXES(n,3)+FLUXES(n,13)+FLUXES(n,14))
       ! load GPP
       GPP(n) = FLUXES(n,1)
 
       !
       ! update pools for next timestep
-      ! 
+      !
 
       ! labile pool
       POOLS(n+1,1) = POOLS(n,1) + (FLUXES(n,5)-FLUXES(n,8))*deltat(n)
@@ -309,7 +322,7 @@ contains
     lai = drivers(1)
     maxt = drivers(2)
     mint = drivers(3)
-    nit = drivers(4)   
+    nit = drivers(4)
     co2 = drivers(5)
     doy = drivers(6)
     radiation = drivers(8)
@@ -321,7 +334,7 @@ contains
     Rtot = drivers(10)
     NUE = constants(1)
     dayl_coef = constants(2)
-    co2_comp_point = constants(3) 
+    co2_comp_point = constants(3)
     co2_half_sat = constants(4)
     dayl_const = constants(5)
     hydraulic_temp_coef = constants(6)
@@ -330,9 +343,9 @@ contains
     lai_const = constants(9)
     hydraulic_exponent = constants(10)
 
-    ! determine temperature range 
+    ! determine temperature range
     trange=0.5*(maxt-mint)
-    ! daily canopy conductance 
+    ! daily canopy conductance
     gc=abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange))
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited photosynthesis (gC.m-2.day-1)
     pn=lai*nit*NUE*exp(temp_exponent*maxt)

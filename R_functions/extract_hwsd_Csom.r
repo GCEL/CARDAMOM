@@ -1,7 +1,9 @@
+
 ####
 ## Function to extract the HWSD soil carbon estimate for initial conditions
 ####
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_hwsd_Csom<- function(spatial_type,resolution,grid_type,latlon_in,Csom_all) {
 
@@ -23,7 +25,8 @@ extract_hwsd_Csom<- function(spatial_type,resolution,grid_type,latlon_in,Csom_al
       product_res = product_res * 0.5 # NOTE: averaging needed for line above
 	    if (grid_type == "wgs84") {
           # radius is ceiling of the ratio of the product vs analysis ratio
-          radius = round(resolution / product_res, digits=0)
+#          radius = round(resolution / product_res, digits=0)
+          radius = floor(0.5*(resolution / product_res))
 	    } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size
           # 6371e3 = mean earth radius (m)

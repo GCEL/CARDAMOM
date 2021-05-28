@@ -3,6 +3,18 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Williams et al., (2005), doi: 10.1111 /j.1365-2486.2004.091.x
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
 ! make all private
 private
 
@@ -50,12 +62,12 @@ contains
   subroutine CARBON_MODEL(start,finish,met,pars,deltat,nodays,lat,lai,NEE,FLUXES,POOLS &
                          ,nopars,nomet,nopools,nofluxes,GPP)
 
-    ! The Data Assimilation Linked Ecosystem Carbon - EVERGREEN. 
-    ! The subroutine calls the Aggregated Canopy Model to simulate GPP 
-    ! and partitions between various ecosystem carbon pools. 
-    ! These pools are subject to turnovers / decompostion resulting 
+    ! The Data Assimilation Linked Ecosystem Carbon - EVERGREEN.
+    ! The subroutine calls the Aggregated Canopy Model to simulate GPP
+    ! and partitions between various ecosystem carbon pools.
+    ! These pools are subject to turnovers / decompostion resulting
     ! in ecosystem phenology and fluxes of CO2
-    ! Ref: Williams et al (2005) An improved analysis of forest carbon dynamics 
+    ! Ref: Williams et al (2005) An improved analysis of forest carbon dynamics
     ! using data assimilation. Global Change Biology 11, 89-105.
 
     ! This version includes the option to simulate fire combustion based
@@ -104,7 +116,7 @@ contains
     ! 6th DOY at end of time step
     ! 7th Not used
     ! 8th removed fraction
-    ! 9th burned fraction   
+    ! 9th burned fraction
 
     ! POOLS are:
     ! 1 = foliar
@@ -147,8 +159,8 @@ contains
     ! 11 values (including 3 initial conditions)
 
     ! p(1) Fraction of GPP respired
-    ! p(2) Fraction of NPP allocated to foliage 
-    ! p(3) leaf lifespan (years) 
+    ! p(2) Fraction of NPP allocated to foliage
+    ! p(3) leaf lifespan (years)
     ! p(4) Cwood turnover rate (frac / day)
     ! p(5) Clitter turnover rate (frac / day)
     ! p(6) Parameter in exponential term of temperature
@@ -186,7 +198,7 @@ contains
     if (start == 1) then
        ! assigning initial conditions
        POOLS(1,1) = pars(9)  ! foliar
-       POOLS(1,2) = pars(10) ! wood + root 
+       POOLS(1,2) = pars(10) ! wood + root
        POOLS(1,3) = pars(11) ! lit + som
     endif
 

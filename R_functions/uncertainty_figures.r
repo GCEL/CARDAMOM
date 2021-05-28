@@ -3,6 +3,10 @@
 ## Function which allows figure generation to be spread across the cores
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
+
 #Function to determine rmse
 rmse <- function(obs, pred) sqrt(mean((obs-pred)^2, na.rm=TRUE))
 ## Use byte compile
@@ -63,7 +67,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
                 var=as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
             }
 
-            jpeg(file=paste(PROJECT$figpath,"timeseries_RootDepth_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+            jpeg(file=paste(PROJECT$figpath,"timeseries_RootDepth_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
             # now create the plotting area
             par(mfrow=c(1,1), mar=c(5,5,3,1))
             plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var)[which(var != Inf)], prob=c(0.75), na.rm=TRUE)), cex=0.8,ylab="Rooting Depth (m)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -83,7 +87,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
             # flip it to get the right shape
             var=t(states_all$wSWP_MPa)
 
-            jpeg(file=paste(PROJECT$figpath,"timeseries_wSWP_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+            jpeg(file=paste(PROJECT$figpath,"timeseries_wSWP_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
             # now create the plotting area
             par(mfrow=c(1,1), mar=c(5,5,3,1))
             plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(quantile(as.vector(var)[which(var != Inf)], prob=c(0.001,0.999), na.rm=TRUE)), cex=0.8,ylab="Weighted Soil Water Potential (MPa)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -99,10 +103,10 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
             # flip it to get the right shape
             var=t(states_all$sfc_water_mm)
 
-            jpeg(file=paste(PROJECT$figpath,"timeseries_sfc_water_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+            jpeg(file=paste(PROJECT$figpath,"timeseries_sfc_water_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
             # now create the plotting area
             par(mfrow=c(1,1), mar=c(5,5,3,1))
-            plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Soil surface water (0-15 cm; kgH2O.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
+            plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Soil surface water (0-30 cm; kgH2O.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
             axis(1, at=time_vector[seq(1,length(time_vector),interval)],labels=round(year_vector[seq(1,length(time_vector),interval)], digits=0),tck=-0.02, padj=+0.15, cex.axis=1.9)
             # add the confidence intervals
             plotconfidence(var)
@@ -123,7 +127,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
                 # filter -9999 to NA
                 filter = which(evap_obs == -9999) ; evap_obs[filter] = NA ; evap_obs_unc[filter] = NA
 
-                jpeg(file=paste(PROJECT$figpath,"timeseries_evap_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+                jpeg(file=paste(PROJECT$figpath,"timeseries_evap_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
                 if (PROJECT$model$name == "ACM" & max(as.vector(evap_var),na.rm=TRUE) > 0) {
                     par(mfrow=c(1,1), omi=c(0.1,0.1,0.1,0.1), mai=c(1,1,1,1))
                     maxl=which(as.vector(parameters[dim(parameters)[1],,]) == max(as.vector(parameters[dim(parameters)[1],,])))
@@ -173,7 +177,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		ymin=quantile(as.vector(Cfol_var), prob=c(0.001), na.rm=TRUE)
 		xloc=0.15*dim(Cfol_var)[1] ; yloc=(1-0.05)*ymax
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Cfol_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Cfol_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Cfol_var)[1]),xaxt="n", pch=16, ylim=c(ymin,ymax), cex=0.8,ylab="Cfol (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -199,7 +203,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		lai_var=t(states_all$lai_m2m2)
 		lai_obs=drivers$obs[,3]
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_lai_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_lai_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(lai_obs, pch=16,xaxt="n", ylim=c(0,max(max(lai_obs),quantile(as.vector(lai_var), prob=c(0.999), na.rm=TRUE))), cex=0.8,ylab="LAI (m2/m2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -221,7 +225,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(gpp_obs == -9999) ; gpp_obs[filter] = NA ; gpp_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_gpp_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_gpp_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		if (PROJECT$model$name == "ACM") {
 			par(mfrow=c(1,1), omi=c(0.1,0.1,0.1,0.1), mai=c(1,1,1,1))
 			maxl=which(as.vector(parameters[dim(parameters)[1],,]) == max(as.vector(parameters[dim(parameters)[1],,])))
@@ -261,7 +265,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(nee_obs == -9999) ; nee_obs[filter] = NA ; nee_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_nee_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_nee_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(nee_obs, pch=16,xaxt="n", ylim=c(quantile(as.vector(nee_var),prob=c(0.001),na.rm=TRUE),quantile(as.vector(nee_var),prob=c(0.999),na.rm=TRUE)), cex=0.8,ylab="NEE (gC.m-2.day-1)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -289,7 +293,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(eco_resp_obs == -9999) ; eco_resp_obs[filter] = NA ; eco_resp_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_eco_resp_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_eco_resp_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Reco_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Reco_var), prob=c(0.999),na.rm=TRUE)), cex=0.8,ylab="Eco Resp (gC.m-2.day-1)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -310,7 +314,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		Rhet_var=t(states_all$rhet_gCm2day)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_het_resp_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_het_resp_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Rhet_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Rhet_var), prob=c(0.999),na.rm=TRUE)), cex=0.8,ylab="Het Resp (gC.m-2.day-1)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -327,7 +331,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
                 # flip it to get the right shape
    		Clab_var=t(states_all$lab_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Clab_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Clab_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Clab_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Clab_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clab (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -344,7 +348,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 			Clab_var=t(states_all$labroot_gCm2)
 
 
-			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabroot_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabroot_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(Clab_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Clab_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clab_root (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -358,7 +362,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 			# flip it to get the right shape
 			Clab_var=t(states_all$labwood_gCm2)
 
-			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabwood_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabwood_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(Clab_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Clab_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clab_wood (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -376,7 +380,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 			# flip it to get the right shape
 			Clab_var=t(states_all$Clabslow_gCm2)
 
-			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabslow_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_Clabslow_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(Clab_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Clab_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clab_slow (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -402,7 +406,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		filename_alt="timeseries_Clit_" ; var_name_alt="Clit (gC.m-2)"
 		if (PROJECT$model$name == "DALEC_GSI_DBio_FR") {filename_alt="timeseries_Clitfoliage_" ; var_name_alt="Clit_foliage (gC.m-2)"}
 
-		jpeg(file=paste(PROJECT$figpath,filename_alt,PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,filename_alt,PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
@@ -425,7 +429,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 			# flip it to get the right shape
 			Clit_var = Clit_var + t(states_all$litroot_gCm2)
 
-			jpeg(file=paste(PROJECT$figpath,"timeseries_Clit_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_Clit_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(Clit_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Clit_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clit (gC m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -453,7 +457,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(Croots_obs == -9999) ; Croots_obs[filter] = NA ; Croots_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Croots_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Croots_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Cr_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Cr_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Croots (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -478,7 +482,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(Cwood_obs == -9999) ; Cwood_obs[filter] = NA ; Cwood_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Cwood_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Cwood_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Cw_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Cw_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Cwood (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -504,7 +508,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# filter -9999 to NA
 		filter = which(Csom_obs == -9999) ; Csom_obs[filter] = NA ; Csom_obs_unc[filter] = NA
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Csom_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Csom_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(Csom_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Csom_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Csom (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -527,10 +531,10 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		Call_var=t(states_all$bio_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Call_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Cbio_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
-		plot(rep(-9999,dim(Call_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Call_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Call (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
+		plot(rep(-9999,dim(Call_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(Call_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Cbio (gC.m-2)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
 		axis(1, at=time_vector[seq(1,length(time_vector),interval)],labels=round(year_vector[seq(1,length(time_vector),interval)], digits=0),tck=-0.02, padj=+0.15, cex.axis=1.9)
 		# add the confidence intervals
 		plotconfidence(Call_var)
@@ -577,7 +581,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 			# flip it to get the right shape
 			GSI_var=t(states_all$gsi)
 			# bulk value
-			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(GSI_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(GSI_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="GSI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -603,7 +607,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 #			}
 
 			# photoperiod
-			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_photoperiod_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_photoperiod_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(GSI_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(GSI_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="GSI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name," ( median = ",round(bob[2],digits=2),", 97.5% = ",round(bob[1],digits=2),", 2.5% = ",round(bob[3],digits=2),")", sep=""))
@@ -623,7 +627,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 #				bob = quantile(bob[,1],prob=c(0.975,0.50,0.025),na.rm=TRUE)
 #			}
 			# temperature
-			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_temperature_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_temperature_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(GSI_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(GSI_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="GSI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name," ( median = ",round(bob[2],digits=2),", 97.5% = ",round(bob[1],digits=2),", 2.5% = ",round(bob[3],digits=2),")", sep=""))
@@ -643,7 +647,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 #				bob = quantile(bob[,3],prob=c(0.975,0.50,0.025),na.rm=TRUE)
 #			}
 			# VPD
-			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_vpd_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+			jpeg(file=paste(PROJECT$figpath,"timeseries_GSI_vpd_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 			# now create the plotting area
 			par(mfrow=c(1,1), mar=c(5,5,3,1))
 			plot(rep(-9999,dim(GSI_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(GSI_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="GSI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name," ( median = ",round(bob[2],digits=2),", 97.5% = ",round(bob[1],digits=2),", 2.5% = ",round(bob[3],digits=2),")", sep=""))
@@ -660,7 +664,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		somfast_var=t(states_all$somfast_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Csomfast_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Csomfast_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(somfast_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(somfast_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Csom_fast",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -675,7 +679,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		somfast_var=t(states_all$microbial_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Cmicrobial_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Cmicrobial_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(somfast_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(somfast_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Cmicrobial",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -692,7 +696,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		litroot_var=t(states_all$litroot_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Crootlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Crootlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(litroot_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(litroot_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clitter_root",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -710,7 +714,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		# flip it to get the right shape
 		litwood_var=t(states_all$litwood_gCm2)
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Cwoodlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Cwoodlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(litwood_var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(litwood_var), prob=c(0.999), na.rm=TRUE)), cex=0.8,ylab="Clitter_wood",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -732,7 +736,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		info = round(quantile(apply((t(states_all$lit_gCm2)/litN_var),2,mean),prob=c(0.025,0.5,0.975)),digits=2)
 		ymax=quantile(as.vector(litN_var), prob=c(0.999), na.rm=TRUE)
 		xloc=0.15*dim(litN_var)[1] ; yloc=(1-0.05)*ymax
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Nlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Nlitter_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(litN_var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Nlitter",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -752,7 +756,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		labN_var=t(states_all$labN_gNm2)
 
 		ymax=quantile(as.vector(labN_var), prob=c(0.999), na.rm=TRUE)
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Nlabile_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Nlabile_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(labN_var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Nlabile",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -774,7 +778,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		ymax=quantile(as.vector(DIN_var), prob=c(0.999), na.rm=TRUE)
 		xloc=0.15*dim(DIN_var)[1] ; yloc=(1-0.05)*ymax
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_DIN_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_DIN_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(DIN_var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Dissolved Inorganic Nitrogen",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -798,7 +802,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		ymin=quantile(as.vector(DIN_var), prob=c(0.001), na.rm=TRUE)
 		xloc=0.15*dim(DIN_var)[1] ; yloc=(1-0.05)*ymax
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_Nmineralisation_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_Nmineralisation_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(DIN_var)[1]),xaxt="n", pch=16, ylim=c(ymin,ymax), cex=0.8,ylab="N mineralisation rate",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -825,7 +829,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		ymin=quantile(as.vector(DIN_var), prob=c(0.01), na.rm=TRUE)
 		xloc=0.15*dim(DIN_var)[1] ; yloc=(1-0.05)*ymax
 
-		jpeg(file=paste(PROJECT$figpath,"timeseries_RaGPP_actual_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_RaGPP_actual_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(DIN_var)[1]),xaxt="n", pch=16, ylim=c(ymin,ymax), cex=0.8,ylab="Actual Ra:GPP",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -845,7 +849,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		harvestC_var=t(states_all$harvest_C_gCm2day)
 
 		ymax=quantile(as.vector(harvestC_var), prob=c(0.999), na.rm=TRUE)
-		jpeg(file=paste(PROJECT$figpath,"timeseries_harvestedC_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_harvestedC_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(harvestC_var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Harvested C",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -864,7 +868,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		canopyage_var=t(states_all$canopyage_days)
 
 		ymax=quantile(as.vector(canopyage_var), prob=c(0.999), na.rm=TRUE)
-		jpeg(file=paste(PROJECT$figpath,"timeseries_CanopyAge_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_CanopyAge_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(canopyage_var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Mean Canopy Age (days)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
@@ -883,7 +887,7 @@ uncertainty_figures<-function(which_plot,PROJECT,states_all,drivers,parameters,n
 		var=t(states_all$fire_gCm2day)
 
 		ymax=quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)
-		jpeg(file=paste(PROJECT$figpath,"timeseries_fire_",PROJECT$sites[n],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=280, quality=100)
+		jpeg(file=paste(PROJECT$figpath,"timeseries_fire_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=280, quality=100)
 		# now create the plotting area
 		par(mfrow=c(1,1), mar=c(5,5,3,1))
 		plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,ymax), cex=0.8,ylab="Fire (gC/m2/day)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8, main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))

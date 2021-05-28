@@ -3,6 +3,10 @@
 ## Function to read final parameter covariance matrix from file
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
+
 read_parameter_covariance<- function(PROJECT_in,n) {
 
   # search for all output files

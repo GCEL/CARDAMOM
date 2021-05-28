@@ -4,6 +4,8 @@
 ## are within the defined box
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 ## lcm2007_to_ctessel, a function which matches the dominant classifications of the lcm2007 to the appropriate C/D-TESSEL PFT
 
 lcm2007_to_ctessel<- function(input_pft) {

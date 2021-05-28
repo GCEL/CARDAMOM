@@ -1,4 +1,12 @@
 
+###
+## Function determines whether or not parametr chains have statistically converged
+###
+
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
+
 psrf<- function (X) {
       #PSRF Potential Scale Reduction Factor
       #
@@ -10,7 +18,7 @@ psrf<- function (X) {
       #   dimension D. MCMC-simulations can be given as separate
       #   arguments x1,x2,... which should have the same length.
       #
-      #   Returns 
+      #   Returns
       #     R     PSRF in a row vector of length D
       #     neff  estimated effective number of samples M*N*V/B
       #     V     estimated mixture-of-sequences variances
@@ -39,8 +47,8 @@ psrf<- function (X) {
       # Copyright (C) 1999 Simo Särkkä
       # Copyright (C) 2003 Aki Vehtari
       #
-      # This software is distributed under the GNU General Public 
-      # Licence (version 2 or later); please refer to the file 
+      # This software is distributed under the GNU General Public
+      # Licence (version 2 or later); please refer to the file
       # Licence.txt, included with the software, for details.
 
       # 2004-01-22 Aki.Vehtari@hut.fi Added neff, R^2->R, and cleaning
@@ -80,7 +88,7 @@ psrf<- function (X) {
       B = Bpn*N
       neff = min(M*N*V/B,M*N)
       output=list(R=R,neff=neff,V=V,W=W,B=B)
-      return(output) 
+      return(output)
 }
 ## Use byte compile
 psrf<-cmpfun(psrf)

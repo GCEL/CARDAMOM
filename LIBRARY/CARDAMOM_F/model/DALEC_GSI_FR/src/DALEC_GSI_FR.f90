@@ -3,6 +3,20 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+  ! Smallman et al., (2017), https://doi.org/10.1002/2016JG003520.
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
 ! make all private
 private
 
@@ -56,8 +70,8 @@ contains
                          ,nopars,nomet,nopools,nofluxes,GPP)
 
     ! The Data Assimilation Linked Ecosystem Carbon - Growing Season
-    ! Index - Forest Rotation (DALEC_GSI_FR) model. 
-    ! The subroutine calls the Aggregated Canopy Model to simulate GPP and 
+    ! Index - Forest Rotation (DALEC_GSI_FR) model.
+    ! The subroutine calls the Aggregated Canopy Model to simulate GPP and
     ! partitions between various ecosystem carbon pools. These pools are
     ! subject to turnovers / decompostion resulting in ecosystem phenology and fluxes of CO2
 
@@ -65,7 +79,7 @@ contains
 
     ! declare input variables
     integer, intent(in) :: start    &
-                          ,finish   & 
+                          ,finish   &
                           ,nopars   & ! number of paremeters in vector
                           ,nomet    & ! number of meteorological fields
                           ,nofluxes & ! number of model fluxes
@@ -82,9 +96,9 @@ contains
                                                ,NEE   ! net ecosystem exchange of CO2
 
     double precision, dimension((nodays+1),nopools), intent(inout) :: POOLS ! vector of ecosystem pools
- 
+
     double precision, dimension(nodays,nofluxes), intent(inout) :: FLUXES ! vector of ecosystem fluxes
-                                             
+
     ! declare general local variables
     double precision :: gpppars(12)        & ! ACM inputs (LAI+met)
              ,constants(10)                  ! parameters for ACM
@@ -93,7 +107,7 @@ contains
 
     ! local microbial decomposition
     double precision ::  microbial_activity           & ! microbial activity for decompostion
-                        ,dmact,microbial_death        
+                        ,dmact,microbial_death
 
     ! local fire related variables
     double precision :: CFF(6) = 0, CFF_res(4) = 0    & ! combusted and non-combustion fluxes
@@ -110,18 +124,18 @@ contains
                                      ,branch_frac_res     &
                                      ,Cbranch_part        &
                                      ,Crootcr_part        &
-                                     ,soil_loss_frac     
+                                     ,soil_loss_frac
 
     double precision :: labile_loss,foliar_loss      &
                        ,roots_loss,wood_loss         &
                        ,labile_residue,foliar_residue&
-                       ,roots_residue,wood_residue   & 
+                       ,roots_residue,wood_residue   &
                        ,wood_pellets,C_total         &
                        ,labile_frac_res              &
                        ,Cstem,Cbranch,Crootcr        &
                        ,stem_residue,branch_residue  &
                        ,coarse_root_residue          &
-                       ,soil_loss_with_roots  
+                       ,soil_loss_with_roots
 
     integer :: reforest_day, harvest_management
 
@@ -157,7 +171,7 @@ contains
     ! p(32) = fine root replanting
     ! p(33) = wood replanting
 
-    ! FLUXES are: 
+    ! FLUXES are:
     ! 1 = GPP
     ! 2 = temprate
     ! 3 = respiration_auto
@@ -182,7 +196,7 @@ contains
 
     ! p(1) Litter to SOM conversion rate  - m_r
     ! p(2) Fraction of GPP respired - f_a
-    ! p(3) Fraction of NPP allocated to foliage - f_f 
+    ! p(3) Fraction of NPP allocated to foliage - f_f
     ! p(4) Fraction of NPP allocated to roots - f_r
     ! p(5) max leaf turnover (GSI) ! Leaf lifespan - L_f (CDEA)
     ! p(6) Turnover rate of wood - t_w
@@ -195,7 +209,7 @@ contains
     ! p(13) = Fraction allocated to Clab - f_l
     ! p(14) = min temp threshold (GSI) ! lab release duration period - R_l (CDEA)
     ! p(15) = max temp threshold (GSI)! date of leaf fall - F_day
-    ! p(16) = min photoperiod threshold (GIS) 
+    ! p(16) = min photoperiod threshold (GIS)
     ! p(17) = LMA
     ! p(24) = max photoperiod threshold (GSI)
     ! p(25) = min VPD threshold (GSI)
@@ -233,7 +247,7 @@ contains
     gpppars(11) = pi
 
     ! assign acm parameters
-    constants(1)=pars(11) 
+    constants(1)=pars(11)
     constants(2)=0.0156935
     constants(3)=4.22273
     constants(4)=208.868
@@ -274,18 +288,18 @@ contains
     roots_frac_res(1)   = 1.0
     rootcr_frac_res(1) = 1.0
     branch_frac_res(1) = 1.0
-    stem_frac_res(1)   = 0. ! 
+    stem_frac_res(1)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(1) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(1) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(1) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
-    post_harvest_burn(1) = 1. 
+    post_harvest_burn(1) = 1.
 
     !## scen 2
     ! harvest residue (fraction); 1 = all remains, 0 = all removed
@@ -293,14 +307,14 @@ contains
     roots_frac_res(2)   = 1.0
     rootcr_frac_res(2) = 1.0
     branch_frac_res(2) = 1.0
-    stem_frac_res(2)   = 0. ! 
+    stem_frac_res(2)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(2) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(2) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(2) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -312,14 +326,14 @@ contains
     roots_frac_res(3)   = 1.0
     rootcr_frac_res(3) = 1.0
     branch_frac_res(3) = 0.
-    stem_frac_res(3)   = 0. ! 
+    stem_frac_res(3)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(3) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(3) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(3) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -331,14 +345,14 @@ contains
     roots_frac_res(4)   = 1.0
     rootcr_frac_res(4) = 0.
     branch_frac_res(4) = 0.
-    stem_frac_res(4)   = 0. ! 
+    stem_frac_res(4)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(4) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(4) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(4) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -354,12 +368,12 @@ contains
     combust_eff(3) = 0.1 ; combust_eff(4) = 0.5
     combust_eff(5) = 0.3 ; rfac = 0.5
 
-    ! 
+    !
     ! Begin looping through each time step
-    ! 
+    !
 
     do n = start, finish
-  
+
       ! calculate LAI value
       lai(n)=POOLS(n,2)/pars(17)
 
@@ -376,7 +390,7 @@ contains
          FLUXES(n,1) = acm(gpppars,constants)
       else
          FLUXES(n,1) = 0.
-      endif 
+      endif
       ! temprate (i.e. temperature modified rate of metabolic activity))
       FLUXES(n,2) = exp(pars(10)*0.5*(met(3,n)+met(2,n)))
       ! autotrophic respiration (gC.m-2.day-1)
@@ -387,21 +401,21 @@ contains
       FLUXES(n,5) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4))*pars(13)
       ! root production (gC.m-2.day-1)
       FLUXES(n,6) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5))*pars(4)
-      ! wood production 
+      ! wood production
       FLUXES(n,7) = FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5)-FLUXES(n,6)
 
       ! GSI added to fortran version by TLS 24/11/2014
       ! /* 25/09/14 - JFE
-      ! Here we calculate the Growing Season Index based on 
-      ! Jolly et al. A generalized, bioclimatic index to predict foliar 
+      ! Here we calculate the Growing Season Index based on
+      ! Jolly et al. A generalized, bioclimatic index to predict foliar
       ! phenology in response to climate Global Change Biology, Volume 11, page 619-632,
-      ! 2005 (doi: 10.1111/j.1365-2486.2005.00930.x) 
+      ! 2005 (doi: 10.1111/j.1365-2486.2005.00930.x)
       ! Stoeckli, R., T. Rutishauser, I. Baker, M. A. Liniger, and A. S.
       ! Denning (2011), A global reanalysis of vegetation phenology, J. Geophys. Res.,
       ! 116, G03020, doi:10.1029/2010JG001545.
-        
+
       ! It is the product of 3 limiting factors for temperature, photoperiod and
-      ! vapour pressure deficit that grow linearly from 0 to 1 between a calibrated 
+      ! vapour pressure deficit that grow linearly from 0 to 1 between a calibrated
       ! min and max value. Photoperiod, VPD and avgTmin are direct input
 
       ! temperature limitation, then restrict to 0-1; correction for k-> oC
@@ -457,9 +471,9 @@ contains
 !          endif ! GSI condition
 !      endif
 
-      ! 
+      !
       ! those with time dependancies
-      ! 
+      !
 
       ! total labile release
       FLUXES(n,8) = POOLS(n,1)*(1.-(1.-FLUXES(n,16))**deltat(n))/deltat(n)
@@ -470,9 +484,9 @@ contains
       ! total root litter production
       FLUXES(n,12) = POOLS(n,3)*(1.-(1.-pars(7))**deltat(n))/deltat(n)
 
-      ! 
+      !
       ! those with temperature AND time dependancies
-      ! 
+      !
 
       ! respiration heterotrophic litter
       FLUXES(n,13) = POOLS(n,5)*(1.-(1.-FLUXES(n,2)*pars(8))**deltat(n))/deltat(n)
@@ -481,14 +495,14 @@ contains
       ! litter to som
       FLUXES(n,15) = POOLS(n,5)*(1.-(1.-pars(1)*FLUXES(n,2))**deltat(n))/deltat(n)
 
-      ! calculate the NEE 
+      ! calculate the NEE
       NEE(n) = (-FLUXES(n,1)+FLUXES(n,3)+FLUXES(n,13)+FLUXES(n,14))
       ! load GPP
       GPP(n) = FLUXES(n,1)
 
       !
       ! update pools for next timestep
-      ! 
+      !
 
       ! labile pool
       POOLS(n+1,1) = POOLS(n,1) + (FLUXES(n,5)-FLUXES(n,8))*deltat(n)
@@ -503,16 +517,16 @@ contains
       ! som pool
       POOLS(n+1,6) = POOLS(n,6) + (FLUXES(n,15)-FLUXES(n,14)+FLUXES(n,11))*deltat(n)
 
-      ! 
+      !
       ! deal first with deforestation
-      ! 
+      !
 
       if (n == reforest_day) then
           POOLS(n+1,1) = pars(30) !150d0    !pars(18)
           POOLS(n+1,2) = pars(31) !175d0    !pars(19)
           POOLS(n+1,3) = pars(32) !55d0     !pars(20)
-          POOLS(n+1,4) = pars(33) !500d0    !pars(21)          
-      endif 
+          POOLS(n+1,4) = pars(33) !500d0    !pars(21)
+      endif
 
       if (met(8,n) > 0.) then
 
@@ -527,11 +541,11 @@ contains
           Crootcr = POOLS(n+1,4)*Crootcr_part(harvest_management)
           Cstem   = POOLS(n+1,4)-(Cbranch + Crootcr)
           ! now calculate the labile fraction of residue
-          labile_frac_res = ( (POOLS(n+1,2)/C_total) * foliage_frac_res(harvest_management) ) & 
-                          + ( (POOLS(n+1,3)/C_total) * roots_frac_res(harvest_management)   ) & 
+          labile_frac_res = ( (POOLS(n+1,2)/C_total) * foliage_frac_res(harvest_management) ) &
+                          + ( (POOLS(n+1,3)/C_total) * roots_frac_res(harvest_management)   ) &
                           + ( (Cbranch/C_total)      * branch_frac_res(harvest_management)  ) &
                           + ( (Cstem/C_total)        * stem_frac_res(harvest_management)    ) &
-                          + ( (Crootcr/C_total)      * rootcr_frac_res(harvest_management)  ) 
+                          + ( (Crootcr/C_total)      * rootcr_frac_res(harvest_management)  )
 
           ! loss of carbon from each pools
           labile_loss = POOLS(n+1,1)*met(8,n)
@@ -548,8 +562,8 @@ contains
           branch_residue = Cbranch*met(8,n)*branch_frac_res(harvest_management)
           stem_residue = Cstem*met(8,n)*stem_frac_res(harvest_management)
           ! now finally calculate the final wood residue
-          wood_residue = stem_residue + branch_residue + coarse_root_residue 
-          ! mechanical loss of Csom due to coarse root extraction                 
+          wood_residue = stem_residue + branch_residue + coarse_root_residue
+          ! mechanical loss of Csom due to coarse root extraction
           soil_loss_with_roots = Crootcr*met(8,n)*(1.-rootcr_frac_res(harvest_management)) &
                               * soil_loss_frac(harvest_management)
 
@@ -585,7 +599,7 @@ contains
               CFF(5) = POOLS(n+1,5)*post_harvest_burn(harvest_management)*combust_eff(5)
               NCFF(5) = POOLS(n+1,5)*post_harvest_burn(harvest_management)*(1-combust_eff(5))*(1-rfac)
               !/*fires as daily averages to comply with units*/
-              FLUXES(n,17)=(CFF(1)+CFF(2)+CFF(3)+CFF(4)+CFF(5) & 
+              FLUXES(n,17)=(CFF(1)+CFF(2)+CFF(3)+CFF(4)+CFF(5) &
                            +CFF_res(1)+CFF_res(2)+CFF_res(3)+CFF_res(4))/deltat(n)
               ! update the residue terms
               labile_residue = labile_residue - CFF_res(1) - NCFF_res(1)
@@ -623,7 +637,7 @@ contains
           ! values and reforestation is assumed one year forward
           if (met(8,n) > 0.99) then
               m=0 ; test=sum(deltat(n:(n+m)))
-              do while (test < 365) 
+              do while (test < 365)
                  m=m+1 ; test = sum(deltat(n:(n+m)))
                  !  get out clause for hitting the end of the simulation
                  if (m+n >= nodays) test = 365
@@ -634,9 +648,9 @@ contains
 
       endif ! end deforestation info
 
-      ! 
+      !
       ! then deal with fire
-      ! 
+      !
 
       if (met(9,n) > 0.) then
 
@@ -716,7 +730,7 @@ contains
     lai = drivers(1)
     maxt = drivers(2)
     mint = drivers(3)
-    nit = drivers(4)   
+    nit = drivers(4)
     co2 = drivers(5)
     doy = drivers(6)
     radiation = drivers(8)
@@ -728,7 +742,7 @@ contains
     Rtot = drivers(10)
     NUE = constants(1)
     dayl_coef = constants(2)
-    co2_comp_point = constants(3) 
+    co2_comp_point = constants(3)
     co2_half_sat = constants(4)
     dayl_const = constants(5)
     hydraulic_temp_coef = constants(6)
@@ -737,9 +751,9 @@ contains
     lai_const = constants(9)
     hydraulic_exponent = constants(10)
 
-    ! determine temperature range 
+    ! determine temperature range
     trange=0.5*(maxt-mint)
-    ! daily canopy conductance 
+    ! daily canopy conductance
     gc=abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange))
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited photosynthesis (gC.m-2.day-1)
     pn=lai*nit*NUE*exp(temp_exponent*maxt)

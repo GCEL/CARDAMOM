@@ -1,4 +1,13 @@
 
+###
+## Function to create gridded, uncertainty propogated plots for the gridded CARDAMOM analyses.
+## Includes functions to determine the linear components of GSI's associations with DALEC simulated LAI.
+## NOTE: these functions are largely superceded by those found in "generate_simplified_stock_and_flux_maps.r"
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# The GSI concept is derived from the Growing Season Index described by Jolley et al., (2005)
+
 gsi_controlling<-function(gsi_components,gsi,gsi_wanted,timesteps,m) {
 
   ###
@@ -650,7 +659,7 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
 
     mean_rooting_depth = NA
     if (PROJECT$model$name == "DALEC_GSI_BUCKET" | PROJECT$model$name == "DALECN_GSI_BUCKET") {
-        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         mean_rooting_depth = par_array_median[,,40] * (states_array_median[,,10]*2) / (par_array_median[,,39] + (states_array_median[,,10]*2))
         z_axis=c(min(as.vector(mean_rooting_depth),na.rm=TRUE),max(as.vector(mean_rooting_depth),na.rm=TRUE))
@@ -658,7 +667,7 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
     } else if (PROJECT$model$name == "DALEC" | PROJECT$model$name == "DALEC_BUCKET" | PROJECT$model$name == "DALEC_BUCKET_CanAGE") {
-        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         mean_rooting_depth = par_array_median[,,40] * (states_array_median[,,7]*par_array_median[,,29]*2) / (par_array_median[,,39] + (states_array_median[,,7]*par_array_median[,,29]*2))
         z_axis=c(min(as.vector(mean_rooting_depth),na.rm=TRUE),max(as.vector(mean_rooting_depth),na.rm=TRUE))
@@ -666,7 +675,7 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
     } else if (PROJECT$model$name == "DALECN_BUCKET") {
-        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         mean_rooting_depth = par_array_median[,,35] * (states_array_median[,,10]*2) / (par_array_median[,,34] + (states_array_median[,,10]*2))
         z_axis=c(min(as.vector(mean_rooting_depth),na.rm=TRUE),max(as.vector(mean_rooting_depth),na.rm=TRUE))
@@ -679,59 +688,59 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
         # generate GSI dominent control plots in bespoke fashion
         ## GSI_itemp component with dominent control
         z_axis=c(0,100)
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_itemp_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_itemp_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_median[,,1],col=colour_choices, main=paste("Median GSI min temp dominant control",sep=""),zlim=z_axis,axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_itemp_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_itemp_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_unc[,,1],col=colour_choices, main=paste("Median uncertainty GSI min temp dominant control",sep=""),axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_itemp_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_itemp_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_median[,,1], main=paste("Median GSI min temp dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_itemp_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_itemp_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_unc[,,1], main=paste("Median uncertainty GSI min temp dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
         ## GSI iphoto
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_iphoto_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_iphoto_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_median[,,2],col=colour_choices, main=paste("Median GSI photoperiod dominant control",sep=""),zlim=z_axis,axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_iphoto_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_iphoto_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_unc[,,2],col=colour_choices, main=paste("Median uncertainty GSI photoperiod dominant control",sep=""),axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_iphoto_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_iphoto_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_median[,,2], main=paste("Median GSI photoperiod dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_iphoto_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_iphoto_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_unc[,,2], main=paste("Median uncertainty GSI photoperiod dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
         ## GSI ivpd
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_ivpd_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_ivpd_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_median[,,3],col=colour_choices, main=paste("Median GSI VPD dominant control",sep=""),zlim=z_axis,axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_ivpd_control_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_ivpd_control_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         image.plot(gsi_control_unc[,,3],col=colour_choices, main=paste("Median uncertainty GSI VPD dominant control",sep=""),axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
         contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_gsi_ivpd_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_gsi_ivpd_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_median[,,3], main=paste("Median GSI VPD dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
-        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_ivpd_control_hist_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+        jpeg(file=paste(PROJECT$figpath,"median_uncertainty_gsi_ivpd_control_hist_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
         par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
         hist(gsi_control_unc[,,3], main=paste("Median uncertainty GSI VPD dominant control",sep=""), cex.main=2.4,cex=1.5)
         dev.off()
@@ -747,12 +756,12 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
               if ( grepl("GSI",par_names[p]) ) {z_axis=c(0,1)}
               if ( grepl("_limiting",par_names[p]) ) {z_axis=c(0,100)}
 
-              jpeg(file=paste(PROJECT$figpath,"state_flux_maps_mean_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+              jpeg(file=paste(PROJECT$figpath,"state_flux_maps_mean_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
               par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
               image.plot(states_array_median[,,p],col=colour_choices, main=paste("Mean ",par_names[p]," (",par_names_units[p],")",sep=""),zlim=z_axis,axes=FALSE, cex.main=2.4,legend.width=3.0,cex=1.5,axis.args=list(cex.axis=1.8,hadj=0.1))
               contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
               dev.off()
-              jpeg(file=paste(PROJECT$figpath,"state_flux_uncertainty_maps_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+              jpeg(file=paste(PROJECT$figpath,"state_flux_uncertainty_maps_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
               # define z axis for colour consistency
               z_axis=c(min(states_array_unc[,,p],na.rm=TRUE),max((states_array_unc[,,p])[which( abs(states_array_unc[,,p]) < abs(log(0)))],na.rm=TRUE))
               par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
@@ -762,11 +771,11 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
 
               if (grepl("GSI",par_names[p])) {
                   # limiting GSI scaler
-                  jpeg(file=paste(PROJECT$figpath,"state_flux_hist_mean_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+                  jpeg(file=paste(PROJECT$figpath,"state_flux_hist_mean_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
                   par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
                   hist(states_array_median[,,p], main=paste("Mean ",par_names[p]," (",par_names_units[p],")",sep=""), cex.main=2.4,cex=1.5)
                   dev.off()
-                  jpeg(file=paste(PROJECT$figpath,"state_flux_hist_uncertainty_maps_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+                  jpeg(file=paste(PROJECT$figpath,"state_flux_hist_uncertainty_maps_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
                   par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.3), omi=c(0.2, 0.2, 0.2, 0.40))
                   hist(states_array_unc[,,p], main=paste("Mean ",par_names[p]," CI range  (",par_names_units[p],")",sep=""), cex.main=2.4,cex=1.5)
                   dev.off()
@@ -777,7 +786,7 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
     # time series data
     for (p in seq(1,dim(states_array_median)[3]-nos_extra)) {
          if (length(which(as.vector(states_sum_timeseries[,,p,]) != 0)) > 0) {
-              jpeg(file=paste(PROJECT$figpath,"grid_sum_timeseries_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=300, quality=100)
+              jpeg(file=paste(PROJECT$figpath,"grid_sum_timeseries_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=300, quality=100)
               info = " " # assume default is no header, but sometimes we add something extra...
               if (par_names[p] == "NEE"){
                   for (c in seq(1,nos_uk_clusters)) {
@@ -1013,7 +1022,7 @@ generate_stocks_and_fluxes_maps<-function(PROJECT) {
               }
               lines(apply(tmp_var,2,median), lwd=1,col="blue")
               dev.off()
-              jpeg(file=paste(PROJECT$figpath,"grid_averaged_timeseries_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=7200, height=4000, res=300, quality=100)
+              jpeg(file=paste(PROJECT$figpath,"grid_averaged_timeseries_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=7200, height=4000, res=300, quality=100)
               info = " " # assume default is no header, but sometimes we add something extra...
               if (par_names[p] == "NEE"){
                   for (c in seq(1,nos_uk_clusters)) {

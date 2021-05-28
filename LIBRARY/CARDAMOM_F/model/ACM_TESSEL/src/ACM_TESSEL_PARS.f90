@@ -1,5 +1,16 @@
 module MODEL_PARAMETERS
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   implicit none
 
   ! make all private
@@ -9,7 +20,7 @@ module MODEL_PARAMETERS
   public :: pars_info
 
   contains
-  
+
   !
   !------------------------------------------------------------------
   !
@@ -30,9 +41,9 @@ module MODEL_PARAMETERS
 
     ! contains 6 fields with min max log for par and par
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
     ! Decomposition rate
     PI%parmin(1)=0.00001
@@ -127,7 +138,7 @@ module MODEL_PARAMETERS
     ! C_som
     PI%parmin(22)=100.0
     PI%parmax(22)=200000.0
- 
+
   end subroutine pars_info
 
   !

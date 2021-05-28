@@ -3,6 +3,21 @@ module CARBON_MODEL_MOD
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+  ! Smallman & Williams (2019) https://doi.org/10.5194/gmd-12-2227-2019.
+  ! Thomas et al., (2019), https://doi.org/10.1029/2019MS001679
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -10,6 +25,7 @@ module CARBON_MODEL_MOD
   public :: CARBON_MODEL     &
            ,layer_thickness  &
            ,wSWP_time        &
+           ,rSWP_time        &
            ,cica_time        &
            ,gs_demand_supply_ratio &
            ,gs_total_canopy               &
@@ -38,7 +54,7 @@ module CARBON_MODEL_MOD
   double precision, parameter :: vsmall = tiny(0d0)*1d3 & ! *1d3 to add a little breathing room
                                 ,vlarge = huge(0d0)
 
-  integer, parameter :: nos_root_layers = 3, nos_soil_layers = nos_root_layers + 1
+  integer, parameter :: nos_root_layers = 2, nos_soil_layers = nos_root_layers + 1
   double precision, parameter :: pi = 3.1415927d0,  &
                                pi_1 = 0.3183099d0,  & ! pi**(-1d0)
                              two_pi = 6.283185d0,   & ! pi*2d0
@@ -100,8 +116,7 @@ module CARBON_MODEL_MOD
                        min_drythick = 0.001d0,      & ! minimum dry thickness depth (m)
                           min_layer = 0.03d0,       & ! minimum thickness of the third rooting layer (m)
                         soil_roughl = 0.05d0,       & ! soil roughness length (m)
-                     top_soil_depth = 0.15d0,       & ! thickness of the top soil layer (m)
-                     mid_soil_depth = 0.15d0,       & ! thickness of the second soil layer (m)
+                     top_soil_depth = 0.30d0,       & ! thickness of the top soil layer (m)
                            min_root = 5d0,          & ! minimum root biomass (gBiomass.m-2)
                             min_lai = 0.1d0,        & ! minimum LAI assumed for aerodynamic conductance calculations (m2/m2)
                         min_storage = 0.2d0           ! minimum canopy water (surface) storage (mm)
@@ -182,9 +197,8 @@ module CARBON_MODEL_MOD
                              fine_root_biomass, & ! root depth, coarse+fine, and fine root biomass
                               total_water_flux, & ! potential transpiration flux (kgH2O.m-2.day-1)
                                       drythick, & ! estimate of the thickness of the dry layer at soil surface (m)
-                                          wSWP, & ! weighted soil water potential (MPa) used in GSI calculate.
-                                                  ! Removes / limits the fact that very low root density in young plants
-                                                  ! give values too large for GSI to handle.
+                                          wSWP, & ! soil water potential weighted by canopy supply (MPa)
+                                          rSWP, & ! soil water potential weighted by root presence (MPa)
                                      max_depth, & ! maximum possible root depth (m)
                                         root_k, & ! biomass to reach half max_depth
                                         runoff, & ! runoff (kgH2O.m-2.day-1)
@@ -274,7 +288,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                       daylength_seconds_1, &
                                             rainfall_time, &
                                                 cica_time, & ! Internal vs ambient CO2 concentrations
-                                                wSWP_time    ! Soil water potential weighted by root access to water
+                                                rSWP_time, & ! Timeseries of rSWP
+                                                wSWP_time    ! Timeseries of wSWP
 
   contains
   !
@@ -285,7 +300,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! The Data Assimilation Linked Ecosystem Carbon - Combined Deciduous
     ! Evergreen Analytical - ACMv2 - BUCKET (DALEC_CDEA_ACM2_BUCKET) model.
-    ! The subroutine calls the Aggregated Canopy Model version 2 to simulate GPP and partitions
+    ! The subroutine calls the Aggregated Canopy Model version 2 (ACMv2) to simulate GPP which is partitioned
     ! between various ecosystem carbon pools. These pools are subject
     ! to turnovers / decompostion resulting in ecosystem phenology and fluxes of CO2
     ! ACMv2 simulates coupled photosynthesis-transpiration (via stomata), soil and intercepted canopy
@@ -294,6 +309,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! This version includes the option to simulate fire combustion based
     ! on burned fraction and fixed combusion rates. It also includes the
     ! possibility to remove a fraction of biomass to simulate deforestation.
+
+    ! Relevant references:
+    ! Bloom & Williams (2015), doi: 10.5194/bg-12-1299-2015
+    ! Smallman & Williams (2019), doi: 10.5194/gmd-12-2227-2019
+    ! Yin et al., (2020), doi: 10.1038/s414647-020-15852-2
 
     implicit none
 
@@ -321,7 +341,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! declare local variables
     double precision :: tmp, infi &
-                       ,Rtot & ! Total hydraulic resistance (MPa.s-1.m-2.mmol-1)
               ,transpiration & ! kgH2O/m2/day
             ,soilevaporation & ! kgH2O/m2/day
              ,wetcanopy_evap & ! kgH2O/m2/day
@@ -429,7 +448,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! load ACM-GPP-ET parameters
     deltaWP = minlwp     ! leafWP-soilWP (i.e. -2-0)
-    Rtot = 1d0
     Ceff = pars(11) ! Canopy efficiency (gC/m2/day)
                     ! This is in the full model the product of Nitrogen use efficiency (gC/gN/m2leaf/day)
                     ! and average foliar nitrogen gC/m2leaf
@@ -451,7 +469,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Some time consuming variables we only want to set once
     if (.not.allocated(deltat_1)) then
         ! allocate variables dimension which are fixed per site only the once
-        allocate(deltat_1(nodays),wSWP_time(nodays),gs_demand_supply_ratio(nodays), &
+        allocate(deltat_1(nodays),wSWP_time(nodays),rSWP_time(nodays),gs_demand_supply_ratio(nodays), &
                  gs_total_canopy(nodays),gb_total_canopy(nodays),canopy_par_MJday_time(nodays), &
                  daylength_hours(nodays),daylength_seconds(nodays),daylength_seconds_1(nodays), &
                  meant_time(nodays),rainfall_time(nodays),Rg_from_labile(nodays),cica_time(nodays))
@@ -538,6 +556,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     sf = 365.25d0/pi
 
     ! Define fire constants
+    ! Originally based on model described in Bloom et al., (2016),
+    ! updated defaults by Casey Ryan.
     cf(1) = 0.1d0         ! labile combustion efficiency
     cf(2) = 0.9d0         ! foliar combustion efficiency
     cf(3) = 0.1d0         ! roots combustion efficiency
@@ -547,6 +567,19 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     cf(7) = 0.7d0         ! wood litter combustion efficiency
     rfac = 0.5d0          ! resilience factor
     rfac(5) = 0.1d0 ; rfac(6) = 0d0 ; rfac(7) = 0.1d0
+
+    ! Update fire parameters derived from
+    ! Yin et al., (2020), doi: 10.1038/s414647-020-15852-2
+    ! Assign proposed resilience factor
+    rfac(1:4) = pars(31)
+    ! Assign combustion completeness to foliage
+    cf(2) = pars(32) ! foliage
+    ! Assign combustion completeness to non-photosynthetic
+    cf(1) = pars(33) ; cf(3) = pars(33) ; cf(4) = pars(33)
+    cf(6) = pars(34) ! soil
+    ! derived values for litter and wood litter
+    cf(5) = (cf(2) + cf(6)) * 0.5d0
+    cf(7) = (cf(4) + cf(6)) * 0.5d0
 
     !
     ! Begin looping through each time step
@@ -576,13 +609,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! layer_thickness correctly!
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
     ! Determine initial soil layer thickness
-    layer_thickness(1) = top_soil_depth ; layer_thickness(2) = mid_soil_depth
-    layer_thickness(3) = max(min_layer,root_reach-sum(layer_thickness(1:2)))
-    layer_thickness(4) = max_depth - sum(layer_thickness(1:3))
-    layer_thickness(5) = top_soil_depth
-    previous_depth = sum(layer_thickness(1:3))
+    layer_thickness(1) = top_soil_depth ; layer_thickness(2) = max(min_layer,root_reach-top_soil_depth)
+    layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
+    layer_thickness(4) = top_soil_depth
+    previous_depth = sum(layer_thickness(1:2))
     ! Needed to initialise soils
-    call calculate_Rtot(Rtot)
+    call calculate_Rtot
     ! Used to initialise soils
 
     call calculate_update_soil_water(0d0,0d0,0d0,FLUXES(1,29)) ! assume no evap or rainfall
@@ -708,9 +740,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! fine root mass ! *2*2 => *RS*C->Bio
        fine_root_biomass = max(min_root,POOLS(n,3)*2d0)
        root_biomass = fine_root_biomass + max(min_root,POOLS(n,4)*pars(25)*2d0)
-       call calculate_Rtot(Rtot)
+       call calculate_Rtot
        ! Pass wSWP to output variable
-       wSWP_time(n) = wSWP
+       wSWP_time(n) = wSWP ; rSWP_time(n) = rSWP
 
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
@@ -1850,29 +1882,28 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
   !
   !-----------------------------------------------------------------
   !
-  subroutine calculate_Rtot(Rtot)
+  subroutine calculate_Rtot
 
     ! Purpose of this subroutine is to calculate the minimum soil-root hydraulic
     ! resistance input into ACM. The approach used here is identical to that
     ! found in SPA.
 
-    ! declare inputs
-    double precision,intent(inout) :: Rtot ! MPa.s-1.m-2.mmol-1
-
     ! local variables
     integer :: i, rooted_layer
     double precision :: bonus, &
                         transpiration_resistance,root_reach_local, &
-                        root_depth_50
-    double precision, dimension(nos_root_layers) :: Rtot_layer, &
+                        root_depth_50, slpa, mult, prev, exp_func
+    double precision, dimension(nos_root_layers) :: Rcond_layer, &
                                                     root_mass,  &
                                                     root_length
-    double precision, parameter :: root_depth_frac_50 = 0.25d0 ! fractional soil depth above which 50 %
+    double precision, parameter :: rootdist_tol = 13.81551d0 ! log(1d0/rootdist_tol - 1d0) were rootdist_tol = 1d-6
+                                  !rootdist_tol = 1d-6!, & ! Root density assessed for the max rooting depth
+                                   !root_depth_frac_50 = 0.25d0 ! fractional soil depth above which 50 %
                                                                ! of the root mass is assumed to be located
 
     ! reset water flux
-    total_water_flux = 0d0 ; water_flux_mmolH2Om2s = 0d0 ; wSWP = 0d0
-    root_mass = 0d0
+    total_water_flux = 0d0 ; water_flux_mmolH2Om2s = 0d0 ; wSWP = 0d0 ; rSWP = 0d0
+    slpa = 0d0 ; root_length = 0d0 ; root_mass = 0d0 ; Rcond_layer = 0d0
     ! calculate soil depth to which roots reach
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
     ! calculate the plant hydraulic resistance component. Currently unclear
@@ -1898,57 +1929,57 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! to maintain 50 % of root biomass in the top 25 % of the rooting depth.
     ! In a simple 3 root layer system this can be estimates more simply
 
-    ! top 25 % of root profile
-    root_depth_50 = root_reach * root_depth_frac_50
-    if (root_depth_50 <= layer_thickness(1)) then
-
-        ! Greater than 50 % of the fine root biomass can be found in the top
-        ! soil layer
-
-        ! Start by assigning all 50 % of root biomass to the top soil layer
-        root_mass(1) = fine_root_biomass * 0.5d0
-        ! Then quantify how much additional root is found in the top soil layer
-        ! assuming that the top 25 % depth is found somewhere within the top
-        ! layer
-        bonus = (fine_root_biomass-root_mass(1)) &
-              * (layer_thickness(1)-root_depth_50) / (root_reach - root_depth_50)
-        root_mass(1) = root_mass(1) + bonus
-        ! partition the remaining root biomass between the seconds and third
-        ! soil layers
-        if (root_reach > sum(layer_thickness(1:2))) then
-            root_mass(2) = (fine_root_biomass - root_mass(1)) &
-                         * (layer_thickness(2)/(root_reach-layer_thickness(1)))
-            root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-        else
-            root_mass(2) = fine_root_biomass - root_mass(1)
-        endif
-
-    else if (root_depth_50 > layer_thickness(1) .and. root_depth_50 <= sum(layer_thickness(1:2))) then
-
-        ! Greater than 50 % of fine root biomass found in the top two soil
-        ! layers. We will divide the root biomass uniformly based on volume,
-        ! plus bonus for the second layer (as done above)
-        root_mass(1) = fine_root_biomass * (layer_thickness(1)/root_depth_50)
-        root_mass(2) = fine_root_biomass * ((root_depth_50-layer_thickness(1))/root_depth_50)
-        root_mass(1:2) = root_mass(1:2) * 0.5d0
-
-        ! determine bonus for the seconds layer
-        bonus = (fine_root_biomass-sum(root_mass(1:2))) &
-              * ((sum(layer_thickness(1:2))-root_depth_50)/(root_reach-root_depth_50))
-        root_mass(2) = root_mass(2) + bonus
-        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-
-    else
-
-        ! Greater than 50 % of fine root biomass stock spans across all three
-        ! layers
-        root_mass(1:2) = fine_root_biomass * 0.5d0 * (layer_thickness(1:2)/root_depth_50)
-        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-
-    endif
-    ! now convert root mass into lengths
-    root_length = root_mass * root_mass_length_coef_1
-!    root_length = root_mass / (root_density * root_cross_sec_area)
+!    ! top 25 % of root profile
+!    root_depth_50 = root_reach * root_depth_frac_50
+!    if (root_depth_50 <= layer_thickness(1)) then
+!
+!        ! Greater than 50 % of the fine root biomass can be found in the top
+!        ! soil layer
+!
+!        ! Start by assigning all 50 % of root biomass to the top soil layer
+!        root_mass(1) = fine_root_biomass * 0.5d0
+!        ! Then quantify how much additional root is found in the top soil layer
+!        ! assuming that the top 25 % depth is found somewhere within the top
+!        ! layer
+!        bonus = (fine_root_biomass-root_mass(1)) &
+!              * (layer_thickness(1)-root_depth_50) / (root_reach - root_depth_50)
+!        root_mass(1) = root_mass(1) + bonus
+!        ! partition the remaining root biomass between the seconds and third
+!        ! soil layers
+!        if (root_reach > sum(layer_thickness(1:2))) then
+!            root_mass(2) = (fine_root_biomass - root_mass(1)) &
+!                         * (layer_thickness(2)/(root_reach-layer_thickness(1)))
+!            root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
+!        else
+!            root_mass(2) = fine_root_biomass - root_mass(1)
+!        endif
+!
+!    else if (root_depth_50 > layer_thickness(1) .and. root_depth_50 <= sum(layer_thickness(1:2))) then
+!
+!        ! Greater than 50 % of fine root biomass found in the top two soil
+!        ! layers. We will divide the root biomass uniformly based on volume,
+!        ! plus bonus for the second layer (as done above)
+!        root_mass(1) = fine_root_biomass * (layer_thickness(1)/root_depth_50)
+!        root_mass(2) = fine_root_biomass * ((root_depth_50-layer_thickness(1))/root_depth_50)
+!        root_mass(1:2) = root_mass(1:2) * 0.5d0
+!
+!        ! determine bonus for the seconds layer
+!        bonus = (fine_root_biomass-sum(root_mass(1:2))) &
+!              * ((sum(layer_thickness(1:2))-root_depth_50)/(root_reach-root_depth_50))
+!        root_mass(2) = root_mass(2) + bonus
+!        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
+!
+!    else
+!
+!        ! Greater than 50 % of fine root biomass stock spans across all three
+!        ! layers
+!        root_mass(1:2) = fine_root_biomass * 0.5d0 * (layer_thickness(1:2)/root_depth_50)
+!        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
+!
+!    endif
+!    ! now convert root mass into lengths
+!    root_length = root_mass * root_mass_length_coef_1
+!!    root_length = root_mass / (root_density * root_cross_sec_area)
 
     !!!!!!!!!!!
     ! Calculate hydraulic properties and each rooted layer
@@ -1961,7 +1992,28 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     demand = max(0d0, (SWP(1:nos_root_layers) - (head*canopy_height)) - minlwp )
     ! now loop through soil layers, where root is present
     rooted_layer = 1
+    ! Determine the exponential coefficient needed for an exponential decay to the current root reach
+    ! Exponential decay profile following:
+    ! Y = 1 / (1 + exp(-B * Z)), where Y = density at Z, B = gradient, Z = depth
+    ! To determine gradient for current maximum root depth assuming density reaches rootdist_tol value, rearranges to:
+    ! B = ln(1/Y - 1) / Z
+!d = seq(0,2, 0.01) ; c = -2.6 ; rmax = 1 ; d50 = 0.25 ; rd = rmax / (1+ (d/d50)**c)
+!rmax = rd * (1 + (d/d50)**c)
+!(((rmax / rd) - 1)**(1/c)) * d50 = d ! Depth at which rd = 99 %
+    !slpa = log(1d0/rootdist_tol - 1d0) / root_reach
+    slpa = rootdist_tol / root_reach
+    prev = 1d0
     do i = 1, nos_root_layers
+       ! Determine the exponential function for the current cumulative depth
+       exp_func = exp(-slpa * sum(layer_thickness(1:i)))
+       ! Calculate the difference in the integral between depths, i.e. the proportion of root in the current volume
+       mult = prev - (1d0 - (1d0/(1d0+exp_func)) + (0.5d0 * exp_func))
+       ! Assign fine roo the the current layer...
+       root_mass(i) = fine_root_biomass * mult
+       ! and determine the associated amount of root
+       root_length(i) = root_mass(i) * root_mass_length_coef_1
+       prev = prev - mult
+       ! If there is root in the current layer then we should calculate the resistances
        if (root_mass(i) > 0d0) then
            ! Track the deepest root layer assessed
            rooted_layer = i
@@ -1970,31 +2022,38 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
            ! calculate and accumulate steady state water flux in mmol.m-2.s-1
            call plant_soil_flow(i,root_length(i),root_mass(i) &
                                ,demand(i),root_reach_local &
-                               ,transpiration_resistance,Rtot_layer(i))
+                               ,transpiration_resistance,Rcond_layer(i))
        else
            ! ...if there is not then we wont have any below...
            exit
        end if ! root present in current layer?
     end do ! nos_root_layers
+    ! Turn the output resistance into conductance
+    Rcond_layer = Rcond_layer**(-1d0)
 
     ! if freezing then assume soil surface is frozen, therefore no water flux
-    if (meant < 1d0) water_flux_mmolH2Om2s(1) = 0d0
+    if (meant < 1d0) then
+        water_flux_mmolH2Om2s(1) = 0d0
+        Rcond_layer(1) = 0d0
+    end if
 
     ! calculate sum value (mmolH2O.m-2.s-1)
     total_water_flux = sum(water_flux_mmolH2Om2s)
+    ! wSWP based on the conductance due to the roots themselves.
+    ! The idea being that the plant may hedge against growth based on the majority of the
+    ! profile being dry while not losing leaves within some toleration.
+    rSWP = sum(SWP(1:rooted_layer) * (Rcond_layer(1:rooted_layer) / sum(Rcond_layer(1:rooted_layer))))
     if (total_water_flux <= vsmall) then
         ! Set values for no water flow situation
         uptake_fraction = (layer_thickness(1:nos_root_layers) / sum(layer_thickness(1:nos_root_layers)))
         ! Estimate weighted soil water potential based on fractional extraction from soil layers
         wSWP = sum(SWP(1:nos_root_layers) * uptake_fraction(1:nos_root_layers))
-        Rtot = 100d0 ; total_water_flux = 0d0
+        total_water_flux = 0d0
       else
         ! calculate weighted SWP and uptake fraction
         uptake_fraction(1:nos_root_layers) = water_flux_mmolH2Om2s(1:nos_root_layers) / total_water_flux
         ! Estimate weighted soil water potential based on fractional extraction from soil layers
         wSWP = sum(SWP(1:nos_root_layers) * uptake_fraction(1:nos_root_layers))
-        ! determine effective resistance (MPa.s-1.m-2.mmol-1)
-        Rtot = -(minlwp - wSWP) / total_water_flux
     endif
 
     ! and return
@@ -2171,7 +2230,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     double precision, intent(out) :: corrected_ET     ! water balance corrected evapotranspiration (kgH2O/m2/day)
 
     ! local variables
-    integer :: day, a
+    integer :: day, a, i
     double precision :: depth_change, water_change, initial_soilwater, balance, mass_check
     double precision, dimension(nos_root_layers) :: avail_flux, evaporation_losses, pot_evap_losses
 
@@ -2211,6 +2270,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! convert kg.m-2 (or mm) -> Mg.m-2 (or m)
        soil_waterfrac(1:nos_root_layers) = soil_waterfrac(1:nos_root_layers) &
                                          + ((-pot_evap_losses*days_per_step*1d-3) / layer_thickness(1:nos_root_layers))
+
        ! Correct for dew formation; any water above porosity in the top layer is assumed runoff
        if (soil_waterfrac(1) > porosity(1)) then
            runoff = ((soil_waterfrac(1)-porosity(1)) * layer_thickness(1) * 1d3)
@@ -2265,6 +2325,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
           ! convert kg.m-2 (or mm) -> Mg.m-2 (or m)
           soil_waterfrac(1:nos_root_layers) = soil_waterfrac(1:nos_root_layers) &
                                             + ((-evaporation_losses(1:nos_root_layers)*1d-3) / layer_thickness(1:nos_root_layers))
+
           ! Correct for dew formation; any water above porosity in the top layer is assumed runoff
           if (soil_waterfrac(1) > porosity(1)) then
               runoff = runoff + ((soil_waterfrac(1)-porosity(1)) * layer_thickness(1) * 1d3)
@@ -2308,7 +2369,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Update soil layer thickness
     !!!!!!!!!!
 
-    depth_change = (top_soil_depth+mid_soil_depth+min_layer) ; water_change = 0
+    depth_change = (top_soil_depth+min_layer) ; water_change = 0
     ! if roots extent down into the bucket
     if (root_reach > depth_change .and. previous_depth <= depth_change) then
 
@@ -2335,9 +2396,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
             ! explicitly update the soil profile if there has been rooting depth
             ! changes
-            layer_thickness(1) = top_soil_depth ; layer_thickness(2) = mid_soil_depth
-            layer_thickness(3) = root_reach - sum(layer_thickness(1:2))
-            layer_thickness(4) = max_depth - sum(layer_thickness(1:3))
+            layer_thickness(1) = top_soil_depth
+            layer_thickness(2) = root_reach - top_soil_depth
+            layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
 
             ! keep track of the previous rooting depth
             previous_depth = root_reach
@@ -2355,9 +2416,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
             ! explicitly update the soil profile if there has been rooting depth
             ! changes
-            layer_thickness(1) = top_soil_depth ; layer_thickness(2) = mid_soil_depth
-            layer_thickness(3) = root_reach - sum(layer_thickness(1:2))
-            layer_thickness(4) = max_depth - sum(layer_thickness(1:3))
+            layer_thickness(1) = top_soil_depth
+            layer_thickness(2) = root_reach - top_soil_depth
+            layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
 
             ! keep track of the previous rooting depth
             previous_depth = root_reach
@@ -2387,14 +2448,14 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
         ! explicitly update the soil profile if there has been rooting depth
         ! changes
-        layer_thickness(1) = top_soil_depth ; layer_thickness(2) = mid_soil_depth
-        layer_thickness(3) = min_layer
-        layer_thickness(4) = max_depth - sum(layer_thickness(1:3))
+        layer_thickness(1) = top_soil_depth
+        layer_thickness(2) = min_layer
+        layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
 
         ! keep track of the previous rooting depth
         previous_depth = min_layer
 
-    else ! root_reach > (top_soil_depth + mid_soil_depth + min_layer)
+    else ! root_reach > (top_soil_depth + min_layer)
 
         ! if we are outside of the range when we need to consider rooting depth changes keep track in case we move into a zone when we do
         previous_depth = previous_depth

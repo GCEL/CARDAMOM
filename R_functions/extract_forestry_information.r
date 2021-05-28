@@ -1,5 +1,8 @@
+###
+## Function deals with the extraction of relevant forest clearance and growth information for UK forestry only!
+###
 
-# function deals with the extraction of relevant forest clearance and growth information for UK forestry only!
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_forestry_information<-function(timestep_days,spatial_type,resolution,grid_type,latlon_in,forest_all,start_year,end_year,ctessel_pft_in) {
 

@@ -1,4 +1,10 @@
 
+###
+## Function extracts a location specific estimate of the initial Csom value from the gridded SoilGrids dataset
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 extract_soilgrid_Csom<-function(spatial_type,resolution,grid_type,latlon_wanted,Csom_all) {
 
   # extract information on soil C content from soil grids database
@@ -16,7 +22,7 @@ extract_soilgrid_Csom<-function(spatial_type,resolution,grid_type,latlon_wanted,
       product_res = product_res * 0.5 # NOTE: averaging needed for line above
       if (grid_type == "wgs84") {
           # radius is ceiling of the ratio of the product vs analysis ratio
-          radius = round(resolution / product_res, digits=0)
+          radius = floor(0.5*(resolution / product_res))
       } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size
           # 6371e3 = mean earth radius (m)
@@ -42,7 +48,7 @@ extract_soilgrid_Csom<-function(spatial_type,resolution,grid_type,latlon_wanted,
   }
 
   # retun back to the user
-  #return(list(Csom_initial = Csom, Csom_initial_unc = Csom_unc))
-  return(list(Csom_initial = Csom, Csom_initial_unc = 500))
+  return(list(Csom_initial = Csom, Csom_initial_unc = Csom_unc))
+  #return(list(Csom_initial = Csom, Csom_initial_unc = 500))
 
 } # extract_soilgrid_Csom

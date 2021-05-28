@@ -1,13 +1,17 @@
+
 ###
 ## Function to create binary input files
 ###
 
-# /*TEMPLATE FOR ALL DALEC MCMC DATA files*/
-# /*Static Elements: 1-100 - use as many as needed*/
-# /*Parameter Priors: 101-150*/
-# /*Parameter prior uncertainty: 151-200*/
-#/*Other priors & uncertainties: 201-300*/
-# /*TEMPORAL DRIVERS & DATA: 301-end*/
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE) & J. F. Exbrayat (UoE).
+
+# TEMPLATE FOR ALL DALEC MCMC DATA files
+# Static Elements: 1-100
+# Parameter Priors: 101-200
+# Parameter prior uncertainty: 201-300
+# Other priors & uncertainties: 301-400
+# TEMPORAL DRIVERS & DATA: 401-end
 
 binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter_type,nopars) {
   print(paste("writing out binary...",Sys.time(),sep=""))
@@ -123,62 +127,66 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       MET[,16] = pmax(0,met$vpd)      # Pa
   }
 
-  # TEMPLATE FOR ALL DALEC MCMC DATA files
-  # Static Elements: 1-100 - use as many as needed
-  # Parameter Priors: 101-150
-  # Parameter prior uncertainty: 151-200
-  # Other priors & uncertainties: 201-300
-  # TEMPORAL DRIVERS & DATA: 301-end
-  # construct obs/drivers
+  # Create time series observation matrix, i.e. things with uncertainty associated. 
+  # Currently space for 18 time series of observation and its uncertainty.
+  # Uncertainty is assumed to be the Gaussian variance in same units as the observation itself.
+  # NOTE: that not all models are currently coded to be compatible with all observation streams.
   OBSMAT = array(-9999.0,dim=c(length(met$run_day),36))
-  #OBSMAT=MET[,1:9]*0-9999.0 # all rows, first 3 columns, which are 1= day of simulation run, 2= mint, 3= maxt, 4 =RAD, 5= CO2, 6=doy
-  # line makes the correct array size but with -9999 in place of all
-  OBSMAT[,1] = OBS$GPP      # loads into column 1 GPP, 2 LAI, 3 NEE, 4 Woodinc, 5 Reco obs where they exist, leaving the rest -9999
-  OBSMAT[,2] = OBS$GPP_unc
-  OBSMAT[,3] = OBS$LAI
-  OBSMAT[,4] = OBS$LAI_unc
-  OBSMAT[,5] = OBS$NEE
-  OBSMAT[,6] = OBS$NEE_unc
-  OBSMAT[,7] = OBS$woodinc
-  OBSMAT[,8] = OBS$woodinc_unc
-  OBSMAT[,9] = OBS$Reco
-  OBSMAT[,10] = OBS$Reco_unc
-  OBSMAT[,11] = OBS$Cfol_stock
-  OBSMAT[,12] = OBS$Cfol_stock_unc
-  OBSMAT[,13] = OBS$Cwood_stock
-  OBSMAT[,14] = OBS$Cwood_stock_unc
-  OBSMAT[,15] = OBS$Croots_stock
-  OBSMAT[,16] = OBS$Croots_stock_unc
-  OBSMAT[,17] = OBS$Clit_stock
-  OBSMAT[,18] = OBS$Clit_stock_unc
-  OBSMAT[,19] = OBS$Csom_stock
-  OBSMAT[,20] = OBS$Csom_stock_unc
-  OBSMAT[,21] = OBS$Cagb_stock
-  OBSMAT[,22] = OBS$Cagb_stock_unc
-  OBSMAT[,23] = -9999 # Empty
-  OBSMAT[,24] = -9999 # Empty
-  OBSMAT[,25] = -9999 # Empty
-  OBSMAT[,26] = -9999 # Empty
-  OBSMAT[,27] = OBS$Ccoarseroot_stock
-  OBSMAT[,28] = OBS$Ccoarseroot_stock_unc
-  OBSMAT[,29] = OBS$Cfolmax_stock
-  OBSMAT[,30] = OBS$Cfolmax_stock_unc
-  OBSMAT[,31] = OBS$Evap
-  OBSMAT[,32] = OBS$Evap_unc
-  OBSMAT[,33] = OBS$SWE # snow water equivalent
-  OBSMAT[,34] = OBS$SWE_unc
-  OBSMAT[,35] = OBS$nbe
-  OBSMAT[,36] = OBS$nbe_unc
+  # Line makes the correct array size but with -9999 in place of all
+  OBSMAT[,1] = OBS$GPP                    # GPP (gC/m2/day)
+  OBSMAT[,2] = OBS$GPP_unc                # GPP variance (gC/m2/day)
+  OBSMAT[,3] = OBS$LAI                    # Leaf area index (m2/m2)
+  OBSMAT[,4] = OBS$LAI_unc                # Leaf area index variance
+  OBSMAT[,5] = OBS$NEE                    # Net Ecosystem Exchange of CO2 (gC/m2/day)
+  OBSMAT[,6] = OBS$NEE_unc                # Net Ecosystem Exchange of CO2 variance
+  OBSMAT[,7] = OBS$woodinc                # Wood stock increment (gC/m2/step)
+  OBSMAT[,8] = OBS$woodinc_unc            # Wood stock increment variance
+  OBSMAT[,9] = OBS$Reco                   # Ecosystem respiration (Ra + Rh; gC/m2/day)
+  OBSMAT[,10] = OBS$Reco_unc              # Ecosystem respiration (Ra + Rh) variance
+  OBSMAT[,11] = OBS$Cfol_stock            # Foliar stock (gC/m2)
+  OBSMAT[,12] = OBS$Cfol_stock_unc        # Foliar stock variance
+  OBSMAT[,13] = OBS$Cwood_stock           # Wood stock (above + below; gC/m2)
+  OBSMAT[,14] = OBS$Cwood_stock_unc       # Wood stock (above + below) variance
+  OBSMAT[,15] = OBS$Croots_stock          # Fine root stock (gC/m2)
+  OBSMAT[,16] = OBS$Croots_stock_unc      # Fine root stock variance 
+  OBSMAT[,17] = OBS$Clit_stock            # Foliar + fine root litter stock (gC/m2)
+  OBSMAT[,18] = OBS$Clit_stock_unc        # Foliar + fine root litter stock variance 
+  OBSMAT[,19] = OBS$Csom_stock            # Soil organic matter stock (gC/m2)
+  OBSMAT[,20] = OBS$Csom_stock_unc        # Soil organic matter stock variance 
+  OBSMAT[,21] = OBS$Cagb_stock            # Above ground biomass stock (gC/m2)
+  OBSMAT[,22] = OBS$Cagb_stock_unc        # Above ground biomass stock variance 
+  OBSMAT[,23] = -9999                     # Empty
+  OBSMAT[,24] = -9999                     # Empty
+  OBSMAT[,25] = -9999                     # Empty
+  OBSMAT[,26] = -9999                     # Empty
+  OBSMAT[,27] = OBS$Ccoarseroot_stock     # Coarse root stock (gC/m2)
+  OBSMAT[,28] = OBS$Ccoarseroot_stock_unc # Coarse root stock variance 
+  OBSMAT[,29] = OBS$Cfolmax_stock         # Annual foliar maximum (gC/m2)
+  OBSMAT[,30] = OBS$Cfolmax_stock_unc     # Annual foliar maximum variance
+  OBSMAT[,31] = OBS$Evap                  # Evapotranspiration (kgH2O/m2/day)
+  OBSMAT[,32] = OBS$Evap_unc              # Evapotranspiration variance 
+  OBSMAT[,33] = OBS$SWE                   # Snow water equivalent (kgH2O/m2)
+  OBSMAT[,34] = OBS$SWE_unc               # Snow water equivalent variance
+  OBSMAT[,35] = OBS$nbe                   # Net Biome Exchange of CO2 (gC/m2/day)
+  OBSMAT[,36] = OBS$nbe_unc               # Net Biome Exchange variance
   DATA_TEMP = t(cbind(MET,OBSMAT))
 
-  # STATIC DATA
-  # Model ID = static_data[1]; DALEC_CDEA, DALEC_BUCKET etc
-  # LAT=static_data[2]; Latitude of site(Degrees)
-  # nodays=static_data[3]; Number of days (or time steps) in simulation
-  # nomet=static_data[4]; Number of met variables
-  # noobs=static_data[5]; Number of observation streams
-  # EDC=static_data[6]; EDCs on (1) or off (0)
-  # pft=static_data[7]; CTESSEL plant functional type, only used by ACM_TESSEL
+  # STATIC DATA (1-100)
+  # Model ID      = static_data[1]; DALEC_CDEA, DALEC_BUCKET etc
+  # LAT           = static_data[2]; Latitude of site(Degrees)
+  # nodays        = static_data[3]; Number of days (or time steps) in simulation
+  # nomet         = static_data[4]; Number of met variables
+  # noobs         = static_data[5]; Number of observation streams
+  # EDC           = static_data[6]; EDCs on (1) or off (0)
+  # pft           = static_data[7]; CTESSEL plant functional type, only used by ACM_TESSEL
+  # yield class   = static_data[8]; UK forestry commission yield class NOT IN USE
+  # age           = static_data[9]; years since last complete disturbance
+  # nos. pars     = static_data[10]; number of parameters to be optimised for model
+  # random search = static_data[11]; force random starting points for all parameters
+  # top_sand      = static_data[12]; top soil (0-30cm) sand fractional content
+  # bot_sand      = static_data[13]; bottom soil (31cm-maxdepth) sand fractional content
+  # top_clay      = static_data[14]; top soil (0-30cm) clay fractional content
+  # bot_clay      = static_data[15]; bottom soil (31cm-maxdepth) clay fraction content
 
   # if force_random_search == 1 then CARDAMOM ignores parameter priors even if present in the file during the EDC initialisation
   force_random_search = -9999 #; OBS$age = -9999
@@ -502,6 +510,9 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
         PARPRIORS[21]=-9999         ; PARPRIORUNC[21]=-9999
     } else {
       PARPRIORS[1]=0.5            ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
+      PARPRIORS[14]=0             ; PARPRIORUNC[14]=5  # minimum CGI temperature
+      PARPRIORS[15]=30            ; PARPRIORUNC[15]=5 # optimum CMI and CGI temperatures
+      PARPRIORS[32]=-1.8          ; PARPRIORUNC[32]=1 # minLWP (MPa)
       PARPRIORS[42]=11.197440     ; PARPRIORUNC[42]=9.3  # NUE prior derived from Kattge et al., (2011), based on log10 gaussian distribution
 #      PARPRIORS[42]=14.77735       ; PARPRIORUNC[42]=0.4696238*2 # Derived from ACM2 recalibration.
                                                                 # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -514,6 +525,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #      OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[4] = 0.66          ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
+      OTHERPRIORS[6] = 0.5           ; OTHERPRIORUNC[6] = 0.05 # Rleaf:Rauto ratio See Atkin et al., various for approximate ratio
     } # crop or not
   } else if (modelname == "DALEC_G6") {
     PARPRIORS[11]=0.2764618             ; PARPRIORUNC[11]=0.2014871*0.5 # log10 avg foliar N (gN.m-2)
@@ -532,13 +544,13 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[1]=0.5            ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[14]=0             ; PARPRIORUNC[14]=5  # minimum CGI temperature
       PARPRIORS[15]=30            ; PARPRIORUNC[15]=5 # optimum CMI and CGI temperatures
+      PARPRIORS[32]=-1.8          ; PARPRIORUNC[32]=1 # minLWP (MPa)
       PARPRIORS[42]=11.197440     ; PARPRIORUNC[42]=9.3  # NUE prior derived from Kattge et al., (2011), based on log10 gaussian distribution
 #      PARPRIORS[42]=14.77735       ; PARPRIORUNC[42]=0.4696238*2 # Derived from ACM2 recalibration.
                                                                 # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
                                                                 # These observational constraints are not the same and would lead to
                                                                 # overestimation of GPP (SPA = 34, ACM2 = 15)
 #      PARPRIORS[43]=275.1452      ; PARPRIORUNC[43]=296.2767 # Leaf lifespan prior form Kattge et al., 2011, based on log10 gauusian distribution
-      PARPRIORS[44]=-1.8          ; PARPRIORUNC[44]=1 # minLWP (MPa)
       # other priors
       OTHERPRIORS[1] = 0.46          ; OTHERPRIORUNC[1] = 0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       OTHERPRIORS[2] = OBS$soilwater ; OTHERPRIORUNC[2] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)

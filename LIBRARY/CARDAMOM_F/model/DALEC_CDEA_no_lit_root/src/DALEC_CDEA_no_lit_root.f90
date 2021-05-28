@@ -3,6 +3,18 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
 ! make all private
 private
 
@@ -103,7 +115,7 @@ contains
     ! 6th DOY at end of time step
     ! 7th Not used
     ! 8th removed fraction
-    ! 9th burned fraction   
+    ! 9th burned fraction
 
     ! POOLS are:
     ! 1 = labile
@@ -118,15 +130,15 @@ contains
     ! 4 = leaf production
     ! 5 = labile production
     ! 6 = wood+root production
-    ! 7 = 
+    ! 7 =
     ! 8 = labile production
     ! 9 = leaffall factor
     ! 10 = leaf litter production
     ! 11 = wood+root litter production
-    ! 12 = 
+    ! 12 =
     ! 13 = respiration het litter+som
-    ! 14 = 
-    ! 15 = 
+    ! 14 =
+    ! 15 =
     ! 16 = labrelease factor
 
     ! JFE added 03/05/2018 - start
@@ -151,20 +163,20 @@ contains
     ! PARAMETERS
     ! 14 values + 4 initial conditions
 
-    ! p(1) Litter to SOM conversion rate  
-    ! p(2) Fraction of GPP respired 
-    ! p(3) Fraction of NPP allocated to foliage 
+    ! p(1) Litter to SOM conversion rate
+    ! p(2) Fraction of GPP respired
+    ! p(3) Fraction of NPP allocated to foliage
     ! p(4) Leaf lifespan
-    ! p(5) Turnover rate of wood+root 
-    ! p(6) Litter+som turnover rate 
-    ! p(7) Parameter in exponential term of temperature 
-    ! p(8) Canopy efficiency parameter 
+    ! p(5) Turnover rate of wood+root
+    ! p(6) Litter+som turnover rate
+    ! p(7) Parameter in exponential term of temperature
+    ! p(8) Canopy efficiency parameter
     ! p(9) date of Clab release
     ! p(10) Fraction allocated to Clab
     ! p(11) lab release duration period
     ! p(12) date of leaf fall
     ! p(13) leaf fall duration period
-    ! p(14) LMA (gC/m2) 
+    ! p(14) LMA (gC/m2)
 
     ! p(15) Initial labile
     ! p(16) Initial foliage

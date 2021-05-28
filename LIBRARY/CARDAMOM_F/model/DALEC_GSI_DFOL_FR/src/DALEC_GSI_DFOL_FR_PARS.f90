@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -9,7 +20,7 @@ module MODEL_PARAMETERS
   public :: pars_info
 
   contains
-  
+
   !
   !------------------------------------------------------------------
   !
@@ -31,13 +42,13 @@ module MODEL_PARAMETERS
        ! called
        call crop_parameters
        call crop_development_parameters(PI)
- 
-    else 
+
+    else
        ! generic model
 
-       ! 
+       !
        ! declare parameters
-       ! 
+       !
 
        ! Decomposition rate
        PI%parmin(1)=0.00001
@@ -83,7 +94,7 @@ module MODEL_PARAMETERS
        ! set to parmin=1 for FLUXCOM only
        ! e.g. for wetlands etc.
        PI%parmin(11)=10d0 ! -0.50
-       PI%parmax(11)=100d0! 1d0  
+       PI%parmax(11)=100d0! 1d0
 
        ! GSI max labile turnover
        PI%parmin(12)=0.000001
@@ -106,12 +117,12 @@ module MODEL_PARAMETERS
        PI%parmax(16)=3600d0*10d0 ! 64800d0 ! 18 hours
 
        ! LMA
-       ! Kattge et al. 2011, 
-       PI%parmin(17)=10d0 
-       PI%parmax(17)=200d0 
+       ! Kattge et al. 2011,
+       PI%parmin(17)=10d0
+       PI%parmax(17)=200d0
 
        ! GSI max photoperiod threshold (sec)
-       PI%parmin(24)=3600d0 !21600d0 ! 6 hours 
+       PI%parmin(24)=3600d0 !21600d0 ! 6 hours
        PI%parmax(24)=64800d0 ! 18 hours
 
        ! GSI min VPD threshold (Pa)
@@ -134,7 +145,7 @@ module MODEL_PARAMETERS
        PI%parmin(29)=0.15
        PI%parmax(29)=0.45
 
-       ! GSI senstivity for leaf senescence 
+       ! GSI senstivity for leaf senescence
        PI%parmin(34)=0.96
        PI%parmax(34)=1.00
 
@@ -142,7 +153,7 @@ module MODEL_PARAMETERS
        PI%parmin(35)=0.50
        PI%parmax(35)=1.5
 
-       ! GSI - initial GSI value 
+       ! GSI - initial GSI value
        PI%parmin(36)=1.0
        PI%parmax(36)=2.0
 
@@ -175,7 +186,7 @@ module MODEL_PARAMETERS
        PI%parmax(23)=200000d0
 
        !
-       ! Replanting pools values 
+       ! Replanting pools values
        !
 
        ! C labile
@@ -194,23 +205,23 @@ module MODEL_PARAMETERS
        PI%parmin(33)=1.0
        PI%parmax(33)=1000.0
 
-    endif ! crop / default split 
+    endif ! crop / default split
   end subroutine pars_info
   !
   !------------------------------------------------------------------
   !
   subroutine crop_parameters
 
-    ! Subroutine reads specific parameter ranges for the 
+    ! Subroutine reads specific parameter ranges for the
     ! generic AT_DALEC model
 
     use MCMCOPT, only: PI
 
     implicit none
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
 !    PI%npars=34;
 
@@ -263,7 +274,7 @@ module MODEL_PARAMETERS
     ! LMA
     PI%parmin(17)=10.0 ; PI%parmax(17)=50.0
 
-    ! 
+    !
     ! NOTE number order not consistent
     !
 
@@ -281,7 +292,7 @@ module MODEL_PARAMETERS
     ! optimum temperature for vernalisation (oC)
     PI%parmin(31)=(2.9+273.15) ; PI%parmax(31)=(6.9+273.15)   ! -5,15
 
-    ! critical photoperiod for development (hrs) 
+    ! critical photoperiod for development (hrs)
     PI%parmin(32)=6.0 ; PI%parmax(32)=12.0
     ! photoperiod sensitivity
     PI%parmin(33)=0.10 ; PI%parmax(33)=0.35

@@ -1,8 +1,20 @@
 
 module cardamom_io
 
-  ! module contains subroutines and variables needed to output parameter,
-  ! likelihood and step size information from the MHMCMC
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
+  ! Module contains subroutines and variables needed to output parameter,
+  ! likelihood and step size information from the MHMCMC.
 
   implicit none
 
@@ -48,6 +60,8 @@ module cardamom_io
     ! don't forget to update values found in the relevant model *_PARS.f90
 
     ! choose between included model arrangements
+    ! NOTE: negative values are coded elsewhere and reserved for MCMC stress
+    ! testing
     if (DATAin%ID == 0) then
         ! ID = 0 - ACM/ACM-ET
         DATAin%nopools = 2
@@ -244,7 +258,7 @@ module cardamom_io
     else if (DATAin%ID == 30) then
         ! ID = 30 - DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT
         DATAin%nopools = 8
-        DATAin%nopars = 30
+        DATAin%nopars = 34
         DATAin%nofluxes = 33
     else if (DATAin%ID == 31) then
         ! ID = 20 - DALEC_BUCKET_CanAGE
@@ -260,7 +274,7 @@ module cardamom_io
     else if (DATAin%ID == 32) then
         ! ID = 20 - DALEC_G5
         DATAin%nopools = 8
-        DATAin%nopars = 43
+        DATAin%nopars = 46
         DATAin%nofluxes = 25
         if (DATAin%PFT == 1) then
            ! then actually this is a crop pixel
@@ -303,7 +317,7 @@ module cardamom_io
     ! local variables
     logical :: par_exists, step_exists, cov_exists, covinfo_exists
     double precision :: dummy
-    integer :: num_lines,status
+    integer :: num_lines, status
 
     ! Check that all files exist
     inquire(file=trim(parname),     exist=par_exists)
@@ -1295,7 +1309,7 @@ module cardamom_io
 
     ! load parameter max/min information
     call pars_info
-    ! For log-normalisation procedure, not parameter can be <=0.
+    ! For log-normalisation procedure, no parameter can be <=0.
     ! To facilitate easy of setting parameter ranges to real values
     ! we here instead calculate the adjustment need to ensure positive only values
     where (PI%parmin <= 0d0) PI%paradj = abs(PI%parmin) + 1d0

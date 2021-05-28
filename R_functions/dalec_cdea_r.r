@@ -1,7 +1,10 @@
 
 ###
 ## Function containing the DALEC_CDEA model in R form
-### 
+###
+
+# This function is based on an original C functions development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 # DRIVERS
 # maxt= max daily temperature (oC)
@@ -13,15 +16,15 @@
 # co2 = co2 (ppm) often held constant
 
 acm_dalec_cdea <- function (LAI,maxt,mint,co2,yearday,lat,radiation,constants,p11) {
-  # The aggregated canopy model, a GPP response function 
+  # The aggregated canopy model, a GPP response function
   gc=0;pp=0;qq=0;ci=0;e0=0;mult=0;dayl=0;cps=0;dec=0;nit=1
 
   # default constants
   #constants=c(0,0.0156935,4.22273,208.868,0.0453194,0.37836,7.19298,0.011136,2.1001,0.789798,-2,1)
 
-  # determine temperature range 
+  # determine temperature range
   trange=0.5*(maxt-mint)
-  # daily canopy conductance 
+  # daily canopy conductance
   gc=abs(constants[11])**(constants[10])/((constants[6]*constants[12]+trange))
   # maximum rate of temperature and nitrogen (canopy efficiency) limited photosynthesis (gC.m-2.day-1)
   #pn=LAI*nit*constants[1]*exp(constants[8]*maxt)
@@ -61,7 +64,7 @@ acm_dalec_cdea <- function (LAI,maxt,mint,co2,yearday,lat,radiation,constants,p1
 
 # p(1) Litter to SOM conversion rate  - m_r
 # p(2) Fraction of GPP respired - f_a
-# p(3) Fraction of NPP allocated to foliage - f_f 
+# p(3) Fraction of NPP allocated to foliage - f_f
 # p(4) Fraction of NPP allocated to roots - f_r
 # p(5) Leaf lifespan - L_f
 # p(6) Turnover rate of wood - t_w
@@ -70,7 +73,7 @@ acm_dalec_cdea <- function (LAI,maxt,mint,co2,yearday,lat,radiation,constants,p1
 # p(9) SOM turnover rate  - t_S
 # p(10) Parameter in exponential term of temperature - \theta
 # p(11) Canopy efficiency parameter - C_eff (part of ACM)
-# p(12) = date of Clab release - B_day  
+# p(12) = date of Clab release - B_day
 # p(13) = Fraction allocated to Clab - f_l
 # p(14) = lab release duration period - R_l
 # p(15) = date of leaf fall - F_day
@@ -78,7 +81,7 @@ acm_dalec_cdea <- function (LAI,maxt,mint,co2,yearday,lat,radiation,constants,p1
 # p(17) = LMA
 
 # C pools initial conditions
-# p(18) labile C (gC.m-2) 
+# p(18) labile C (gC.m-2)
 # p(19) foliar C (gC.m-2)
 # p(20) wood C (gC.m-2)
 # p(21) root C (gC.m-2)
@@ -127,7 +130,7 @@ dalec_cdea_r <- function(met,p,lat) {
     woodlitter_production=array(-9999,dim=c(dim(p)[2],length(mint)+1))
     litter2som=array(-9999,dim=c(dim(p)[2],length(mint)+1))
     extracted_C=array(-9999,dim=c(dim(p)[2],length(mint)+1))
-    
+
     ###
     ## Declare some constants
 
@@ -182,7 +185,7 @@ dalec_cdea_r <- function(met,p,lat) {
 	leaflitter_production = C_foliar[,step]*(1-(1-leaffall_factor)**deltat)/deltat
 	woodlitter_production[,step] = C_wood[,step]*(1-(1-p[6,])**deltat)/deltat
 	rootlitter_production = C_root[,step]*(1-(1-p[7,])**deltat)/deltat
-        
+
 	# those with temperature AND time dependancies
 	respiration_het_litter[,step] = C_litter[,step]*(1-(1-temprate*p[8,])**deltat)/deltat
 	respiration_het_som[,step] = C_som[,step]*(1-(1-temprate*p[9,])**deltat)/deltat
@@ -207,7 +210,7 @@ dalec_cdea_r <- function(met,p,lat) {
     # calculate total ecosystem carbon too
     Biomass=C_foliar+C_wood+C_litter+C_root+C_labile+C_som
 
-    # collect results 
+    # collect results
     results=list(nee=nee
 		,gpp=gpp
 		,respiration_auto=respiration_auto
@@ -228,5 +231,3 @@ dalec_cdea_r <- function(met,p,lat) {
     return(results)
 
 }
-
-

@@ -3,6 +3,9 @@
 ## Function to compile the model C code
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 dalec_cdea_mcmc_compile<-function (paths,PROJECT) {
 
     print('Compiling latest DALEC setup')

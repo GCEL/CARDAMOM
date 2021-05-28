@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -66,8 +77,8 @@ module MODEL_PARAMETERS
     ! maximum canopy quantum yield (gC/MJ_PAR/m2/day)
     ! SPA apparent canopy quantum yield 3.2
     ! Observational constraints = ~ 1
-    PI%parmin(5) = 1d0   
-    PI%parmax(5) = 8d0   
+    PI%parmin(5) = 1d0
+    PI%parmax(5) = 8d0
 
     !
     ! canopy conductance (gc) drivers
@@ -93,11 +104,11 @@ module MODEL_PARAMETERS
     ! iWUE (gC/m2leaf/dayl/mmolH2Ogs/s)
     ! Actual value used in SPA is 8.4e-8 (Williams et al., 1996)
     ! Other reported values are 9.0e-8 -> 1.8e-7 (Bonan et al., 2014)
-    ! NOTE: As this is applied at daily time step and the 
-    !       hourly time step activities in SPA operate across 
+    ! NOTE: As this is applied at daily time step and the
+    !       hourly time step activities in SPA operate across
     !       a non-linear diurnal cycle the true equivalent value is effectively unknown.
     PI%parmin(8) = 1d-7
-    PI%parmax(8) = 1e-4 
+    PI%parmax(8) = 1e-4
 
     !
     ! Soil shortwave radiation absorption
@@ -112,7 +123,7 @@ module MODEL_PARAMETERS
     !
 
     ! NOTE: The priors are based on the fraction of LW released by the canopy which is lost.
-    !       The priors are very well constrained, however, 
+    !       The priors are very well constrained, however,
     !       the amount of long wave loss is different due to multi-layer vs bulk canopy
 
     ! Max fractional reduction of longwave release from canopy

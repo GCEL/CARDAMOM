@@ -1,8 +1,25 @@
 module MHMCMC_MODULE
 
-! module contains all subroutine and functions relevant specifically to the
-! MHMCMC method. The choice of EDC, likelihood and model are made else where and
-! are thus contains within a seperate module
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
+  ! Module contains all subroutine and functions relevant specifically to the
+  ! MHMCMC method. The choice of EDC, likelihood and model are made else where and
+  ! are thus contains within a seperate module
+
+  ! Relevant source references:
+  ! Haario et al., (2001) An adaptive Metropolis algorithm. Bernoulli 7.2: 223-242.
+  ! Haario et al., (2006) Stat. Comput., 16:339–354, DOI 10.1007/s11222-006-9438-0,
+  ! Roberts and Rosenthal (2009), Examples of Adaptive MCMC, J. Comp. Graph. Stat. 18:349-367
 
 implicit none
 
@@ -10,7 +27,7 @@ implicit none
 private
 
 ! specify what can be seen
-public :: MHMCMC, par_minstepsize,par_initstepsize
+public :: MHMCMC, par_minstepsize, par_initstepsize
 
 ! declare any module level variables needed
 
@@ -495,7 +512,7 @@ contains
 
     ! Increment step size via different proposal based on whether we have a sufficiently development covariance matrix
     ! Splitting step calculation based on number of parameter vectors accepted
-    ! is linked to the need build a covarianc matrix prior to multivariate
+    ! is linked to the need build a covariance matrix prior to multivariate
     ! sampling.
     ! See Roberts and Rosenthal, Examples of Adaptive MCMC, J. Comp. Graph. Stat. 18:349-367, 2009.
     if ((PI%use_multivariate .and. nint(PI%Nparvar) > N_before_mv*PI%npars)) then
@@ -517,9 +534,8 @@ contains
         ! create the new proposal. scd = a scaling parameter linking searching
         ! stepping to the number of parameters being retrieved by the analysis.
         ! See Haario et al., (2001) An adaptive Metropolis algorithm. Bernoulli 7.2: 223-242.
-        ! and references therein.
+        ! and references therein. See also, Roberts & Rosenthal (2009) for beta scaling.
         norpars = norpars0 + (rn * opt_scaling * (1d0-beta)) + (par_minstepsize * rn2 * beta)
-
 
     else ! nint(PI%Nparvar) > N_before_mv*PI%npars .and. tmp > beta
 

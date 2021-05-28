@@ -1,7 +1,9 @@
-# declare function
-bintodec <- function(x) {
-  sum(2^(which(rev(unlist(strsplit(as.character(x), ""), use.names=FALSE) == 1))-1))
-}
+
+###
+## Function extracts leaf area index (LAI) information from a pre-loaded gridded dataset of Copernicus LAI
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_copernicus_lai<- function(timestep_days,spatial_type,resolution,grid_type,latlon_in,lai_all,years_to_load) {
 
@@ -22,7 +24,7 @@ extract_copernicus_lai<- function(timestep_days,spatial_type,resolution,grid_typ
       product_res = product_res * 0.5 # NOTE: averaging needed for line above
       if (grid_type == "wgs84") {
           # radius is ceiling of the ratio of the product vs analysis ratio
-          radius = round(resolution / product_res, digits=0)
+          radius = floor(0.5*(resolution / product_res))
           max_radius = radius+4
       } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size

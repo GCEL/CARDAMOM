@@ -10,6 +10,14 @@ subroutine rdalecgsibiofr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   implicit none
   ! declare input variables
   integer, intent(in) :: nopars         & ! number of paremeters in vector
@@ -72,18 +80,18 @@ subroutine rdalecgsibiofr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
                       ,nopars,nomet,nopools,nofluxes,GPP)
 
      ! now allocate the output the our 'output' variable
-     out_var(i,1:nodays,1)  = lai 
+     out_var(i,1:nodays,1)  = lai
      out_var(i,1:nodays,2)  = GPP
      out_var(i,1:nodays,3)  = FLUXES(1:nodays,3) ! auto resp
      out_var(i,1:nodays,4)  = FLUXES(1:nodays,13) + FLUXES(1:nodays,14) + &
                               FLUXES(1:nodays,15) + FLUXES(1:nodays,19) + &
                               FLUXES(1:nodays,20) + FLUXES(1:nodays,21) ! het resp
-     out_var(i,1:nodays,5)  = NEE 
+     out_var(i,1:nodays,5)  = NEE
      out_var(i,1:nodays,6)  = POOLS(1:nodays,4) ! wood
      out_var(i,1:nodays,7)  = POOLS(1:nodays,6) ! som slow
      out_var(i,1:nodays,8)  = POOLS(1:nodays,1) + POOLS(1:nodays,2) + POOLS(1:nodays,3) & ! plant biomass only
                               + POOLS(1:nodays,4) !+ POOLS(1:nodays,5) + POOLS(1:nodays,6) &
-!                              + POOLS(1:nodays,7) + POOLS(1:nodays,8) + POOLS(1:nodays,9) & 
+!                              + POOLS(1:nodays,7) + POOLS(1:nodays,8) + POOLS(1:nodays,9) &
 !                              + POOLS(1:nodays,10)
      out_var(i,1:nodays,9)  = POOLS(1:nodays,3) ! root
      out_var(i,1:nodays,10) = POOLS(1:nodays,7) ! foliar litter
@@ -102,9 +110,9 @@ subroutine rdalecgsibiofr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
 
      !!!
      ! NPP calculation
-     !!!     
+     !!!
 
-     ! calculate the actual NPP allocation fractions to foliar, wood and fine root pools 
+     ! calculate the actual NPP allocation fractions to foliar, wood and fine root pools
      ! by comparing the sum alloaction to each pools over the sum NPP.
      fauto = sum(FLUXES(1:nodays,3)) / sum(FLUXES(1:nodays,1))
      sumNPP = 1 / (sum(FLUXES(1:nodays,1))*(1d0-fauto))
@@ -172,7 +180,7 @@ subroutine rdalecgsibiofr(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
   ! moving this out of the loop to calculate fractions to years residence times
   out_var2(1:nos_iter,4) = 1 / (out_var2(1:nos_iter,4)*365.25) ! fol
   out_var2(1:nos_iter,5) = 1 / (out_var2(1:nos_iter,5)*365.25) ! wood
-  out_var2(1:nos_iter,6) = 1 / (out_var2(1:nos_iter,6)*365.25) ! root 
+  out_var2(1:nos_iter,6) = 1 / (out_var2(1:nos_iter,6)*365.25) ! root
   out_var2(1:nos_iter,7) = 1 / (out_var2(1:nos_iter,7)*365.25) ! som
   out_var2(1:nos_iter,8) = 1 / (out_var2(1:nos_iter,8)*365.25) ! CWD + Litter
 

@@ -3,6 +3,18 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+!!!!!!!!!!!
+! Authorship contributions
+!
+! This source code is used for calibration of the
+! Aggregated Canopy Model for Gross Primary Productivity and Evapotranspiration (ACM-GPP-ETv1),
+! also known as ACM2, and described in Smallman & Williams (2019) https://doi.org/10.5194/gmd-12-2227-2019.
+! This code was written by T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+! Subsequent modifications by:
+! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+! See function / subroutine specific comments for exceptions and contributors
+!!!!!!!!!!!
+
 ! make all private
 private
 

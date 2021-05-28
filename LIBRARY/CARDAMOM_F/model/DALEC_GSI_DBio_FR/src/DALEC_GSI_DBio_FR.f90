@@ -3,6 +3,24 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+  ! This version of DALEC is derived from the following primary references:
+  ! Xenakis & Williams (2014) https://doi.org/10.5194/gmd-7-1519-2014
+  ! Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+  ! Smallman et al., (2017), https://doi.org/10.1002/2016JG003520.
+  ! Smallman & Williams (2019) https://doi.org/10.5194/gmd-12-2227-2019.
+  ! Thomas et al., (2019), https://doi.org/10.1029/2019MS001679
+  ! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+  ! Subsequent modifications by:
+  ! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! G. Xenakis (University of Edinburgh, now at Forest Research, UK)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
 ! make all private
 private
 
@@ -63,7 +81,7 @@ double precision, allocatable, dimension(:) :: microbial_activity_out, &
                                                disturbance_residue_to_som,    &
                                                disturbance_loss_from_som
 
-integer :: gsi_lag_remembered 
+integer :: gsi_lag_remembered
 double precision, allocatable, dimension(:) :: tmp_x, tmp_m
 double precision, allocatable, dimension(:,:) ::     leftDaughter, & ! left daughter for forest
                                                     rightDaughter, & ! right daughter for forets
@@ -85,10 +103,10 @@ double precision, parameter::   gplant = 5.0,          & ! plant hydraulic condu
                            root_radius = 0.0001,       & ! root radius (m) Bonen et al 2014 = 0.00029
                    root_cross_sec_area = 3.141593e-08, & ! root cross sectional area (m2)
                                                          ! = pi * root_radius *
-                                                         ! root_radius 
-                          root_density = 0.5e6,        & ! root density (g biomass m-3 root) 
+                                                         ! root_radius
+                          root_density = 0.5e6,        & ! root density (g biomass m-3 root)
                                                          ! 0.5e6 Williams et al
-                                                         ! 1996                                       
+                                                         ! 1996
                                                          ! 0.31e6 Bonan et al
                                                          ! 2014
                          canopy_height = 9.0,          & ! canopy height assumed to be 9 m
@@ -111,10 +129,10 @@ contains
 !
   subroutine CARBON_MODEL(start,finish,met,pars,deltat,nodays,lat,lai,NEE,FLUXES,POOLS &
                          ,nopars,nomet,nopools,nofluxes,GPP)
- 
+
     ! The Data Assimilation Linked Ecosystem Carbon - Growing Season
-    ! Index - Forest Rotation (DALEC_GSI_FR) model. 
-    ! The subroutine calls the Aggregated Canopy Model to simulate GPP and 
+    ! Index - Forest Rotation (DALEC_GSI_FR) model.
+    ! The subroutine calls the Aggregated Canopy Model to simulate GPP and
     ! partitions between various ecosystem carbon pools. These pools are
     ! subject to turnovers / decompostion resulting in ecosystem phenology and fluxes of CO2
     ! Modified to include a version of microbial decomposition model described in Xenekis & Williams (2013).
@@ -123,7 +141,7 @@ contains
 
     ! declare input variables
     integer, intent(in) :: start    &
-                          ,finish   & 
+                          ,finish   &
                           ,nopars   & ! number of paremeters in vector
                           ,nomet    & ! number of meteorological fields
                           ,nofluxes & ! number of model fluxes
@@ -138,11 +156,11 @@ contains
     double precision, dimension(nodays), intent(inout) :: lai & ! leaf area index
                                                ,GPP & ! Gross primary productivity
                                                ,NEE   ! net ecosystem exchange of CO2
-  
+
     double precision, dimension((nodays+1),nopools), intent(inout) :: POOLS ! vector of ecosystem pools
- 
+
     double precision, dimension(nodays,nofluxes), intent(inout) :: FLUXES ! vector of ecosystem fluxes
-                                             
+
     ! declare general local variables
     double precision :: gpppars(11)        & ! ACM inputs (LAI+met)
              ,constants(10)                  ! parameters for ACM
@@ -164,12 +182,12 @@ contains
                                      ,branch_frac_res     &
                                      ,Cbranch_part        &
                                      ,Crootcr_part        &
-                                     ,soil_loss_frac     
+                                     ,soil_loss_frac
 
     double precision :: labile_loss,foliar_loss      &
                        ,roots_loss,wood_loss         &
                        ,labile_residue,foliar_residue&
-                       ,roots_residue,wood_residue   & 
+                       ,roots_residue,wood_residue   &
                        ,wood_pellets,C_total         &
                        ,labile_frac_res              &
                        ,Cstem,Cbranch,Crootcr        &
@@ -207,7 +225,7 @@ contains
     ! 9 = wood_litter   (p38)
     ! 10 = microbial    (p39)
 
-    ! FLUXES are: 
+    ! FLUXES are:
     ! 1 = GPP
     ! 2 = temprate
     ! 3 = respiration_auto
@@ -234,25 +252,25 @@ contains
     ! 24 = decomposition from wood litter to som (fast+slow)
     ! 25 = microbial death allocation to slow
     ! 26 = microbe mediated transfer from slow to fast
-    ! 27 = accumulation of som_fast into Cmicrobe 
+    ! 27 = accumulation of som_fast into Cmicrobe
 
     ! PARAMETERS
     ! 17+4(GSI)+8(DBio)
 
     ! p(1) 1st stage decompostion efficiency (DBio)
-    ! p(2) Fraction of GPP respired 
-    ! p(3) Fraction of NPP allocated to foliage 
-    ! p(4) Fraction of NPP allocated to roots 
-    ! p(5) Max leaf turnover 
-    ! p(6) Turnover rate of wood 
-    ! p(7) Turnover rate of roots 
+    ! p(2) Fraction of GPP respired
+    ! p(3) Fraction of NPP allocated to foliage
+    ! p(4) Fraction of NPP allocated to roots
+    ! p(5) Max leaf turnover
+    ! p(6) Turnover rate of wood
+    ! p(7) Turnover rate of roots
     ! p(8) Foliage litter turnover rate  (DBio)
     ! p(9) Microbial decomposition efficiency (DBio)
     ! p(10) Parameter in exponential term of temperature
     ! p(11) Canopy efficiency parameter - C_eff (part of ACM)
     ! p(12) = Max labile turnover(GSI)
-    ! p(13) = Fraction allocated to Clab 
-    ! p(14) = Min temp threshold (GSI) 
+    ! p(13) = Fraction allocated to Clab
+    ! p(14) = Min temp threshold (GSI)
     ! p(15) = Max temp threshold (GSI)
     ! p(16) = Min photoperiod threshold (GIS)
     ! p(17) = LMA
@@ -269,11 +287,11 @@ contains
     ! p(34) = Inhibition constant for C dependant microbial activity (DBio)
     ! p(35) = Decomposition of som_slow (DBio)
     ! p(36) = Initial microbial activity (DBio)
-    ! p(41) = Foliar lignin fraction   
+    ! p(41) = Foliar lignin fraction
     ! p(42) = Fine root lignin fraction
     ! p(43) = Wood lignin fraction
     ! p(44) = minimum GPP benefit of increased LAI for labile allocation to be allowed
- 
+
     ! DBio model local parameters
     ! fligin(1:3) = fraction of ligin content for foliage, root and wood
 
@@ -337,18 +355,18 @@ contains
     roots_frac_res(1)   = 1.0
     rootcr_frac_res(1) = 1.0
     branch_frac_res(1) = 1.0
-    stem_frac_res(1)   = 0. ! 
+    stem_frac_res(1)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(1) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(1) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(1) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
-    post_harvest_burn(1) = 1. 
+    post_harvest_burn(1) = 1.
 
     !## scen 2
     ! harvest residue (fraction); 1 = all remains, 0 = all removed
@@ -356,14 +374,14 @@ contains
     roots_frac_res(2)   = 1.0
     rootcr_frac_res(2) = 1.0
     branch_frac_res(2) = 1.0
-    stem_frac_res(2)   = 0. ! 
+    stem_frac_res(2)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(2) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(2) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(2) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -375,14 +393,14 @@ contains
     roots_frac_res(3)   = 1.0
     rootcr_frac_res(3) = 1.0
     branch_frac_res(3) = 0.
-    stem_frac_res(3)   = 0. ! 
+    stem_frac_res(3)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(3) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(3) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(3) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -394,14 +412,14 @@ contains
     roots_frac_res(4)   = 1.0
     rootcr_frac_res(4) = 0.
     branch_frac_res(4) = 0.
-    stem_frac_res(4)   = 0. ! 
+    stem_frac_res(4)   = 0. !
     ! wood partitioning (fraction)
     Crootcr_part(4) = 0.32 ! Coarse roots (Adegbidi et al 2005;
     ! Black et al 2009; Morison et al 2012)
     Cbranch_part(4) =  0.20 ! (Ares & Brauers 2005)
     ! actually < 15 years branches = ~25 %
     !          > 15 years branches = ~15 %.
-    ! Csom loss due to phyical removal with roots 
+    ! Csom loss due to phyical removal with roots
     ! Morison et al (2012) Forestry Commission Research Note
     soil_loss_frac(4) = 0.02 ! actually between 1-3 %
     ! was the forest burned after deforestation
@@ -500,9 +518,9 @@ contains
     lab_turn_crit=pars(3)-1d0
     gsi_lag = gsi_lag_remembered ! added to prevent loss from memory
 
-    ! 
+    !
     ! Begin looping through each time step
-    ! 
+    !
 
     do n = start, finish
 
@@ -530,7 +548,7 @@ contains
          FLUXES(n,1) = acm(gpppars,constants)
       else
          FLUXES(n,1) = 0.0
-      endif 
+      endif
 
       ! temprate (i.e. temperature modified rate of metabolic activity))
       FLUXES(n,2) = exp( ( log(pars(10)) * 0.1 ) * meant  )
@@ -542,7 +560,7 @@ contains
       FLUXES(n,5) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4))*pars(13)
       ! root production (gC.m-2.day-1)
       FLUXES(n,6) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5))*pars(4)
-      ! wood production 
+      ! wood production
       FLUXES(n,7) = FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5)-FLUXES(n,6)
 
       ! DecoBio v1.0 (Xenakis & Williams 2014, Comparing microbial and chemical
@@ -573,16 +591,16 @@ contains
 
       ! GSI added to fortran version by TLS 24/11/2014
       ! /* 25/09/14 - JFE
-      ! Here we calculate the Growing Season Index based on 
-      ! Jolly et al. A generalized, bioclimatic index to predict foliar 
+      ! Here we calculate the Growing Season Index based on
+      ! Jolly et al. A generalized, bioclimatic index to predict foliar
       ! phenology in response to climate Global Change Biology, Volume 11, page 619-632,
-      ! 2005 (doi: 10.1111/j.1365-2486.2005.00930.x) 
+      ! 2005 (doi: 10.1111/j.1365-2486.2005.00930.x)
       ! Stoeckli, R., T. Rutishauser, I. Baker, M. A. Liniger, and A. S.
       ! Denning (2011), A global reanalysis of vegetation phenology, J. Geophys. Res.,
       ! 116, G03020, doi:10.1029/2010JG001545.
-        
+
       ! It is the product of 3 limiting factors for temperature, photoperiod and
-      ! vapour pressure deficit that grow linearly from 0 to 1 between a calibrated 
+      ! vapour pressure deficit that grow linearly from 0 to 1 between a calibrated
       ! min and max value. Photoperiod, VPD and avgTmin are direct input
 
       ! temperature limitation, then restrict to 0-1; correction for k-> oC
@@ -668,9 +686,9 @@ contains
          iphoto(n) = Photofac
       endif
 
-      ! 
+      !
       ! those with time dependancies
-      ! 
+      !
 
       ! total labile release
       FLUXES(n,8)  = POOLS(n,1)*(1.-(1.-FLUXES(n,16))**deltat(n))/deltat(n)
@@ -681,9 +699,9 @@ contains
       ! total root litter production
       FLUXES(n,12) = POOLS(n,3)*(1.-(1.-pars(7))**deltat(n))/deltat(n)
 
-      ! 
+      !
       ! those with temperature AND time dependancies
-      ! 
+      !
 
       ! respiration heterotrophic foliar litter, root litter, wood litter
       FLUXES(n,13) = POOLS(n,7)*((1d0-pars(1))*FLUXES(n,2)*pars(8))
@@ -698,13 +716,13 @@ contains
       FLUXES(n,19) = (1.0-pars(29))*pars(30)*POOLS(n,5)*POOLS(n,10)*microbial_activity
       FLUXES(n,20) = (1.0-pars(9))*min(POOLS(n,6), microbial_activity*pars(35)*POOLS(n,10)*deltat(n) )
       if (FLUXES(n,20) > 0.0) FLUXES(n,20) = FLUXES(n,20) / deltat(n)
-      FLUXES(n,21) = pars(33)*microbial_activity*POOLS(n,10) 
+      FLUXES(n,21) = pars(33)*microbial_activity*POOLS(n,10)
       ! microbial death allocation to slow
       FLUXES(n,25) = microbial_death*microbial_activity*POOLS(n,10)
       ! microbe mediated transfer from slow to fast
-      FLUXES(n,26) = pars(9)*min(POOLS(n,6), microbial_activity*pars(35)*POOLS(n,10)*deltat(n) ) 
+      FLUXES(n,26) = pars(9)*min(POOLS(n,6), microbial_activity*pars(35)*POOLS(n,10)*deltat(n) )
       if (FLUXES(n,26) > 0) FLUXES(n,26) = FLUXES(n,26)/deltat(n)
-      ! accumulation of som_fast into Cmicrobe 
+      ! accumulation of som_fast into Cmicrobe
       FLUXES(n,27) = pars(29)*pars(30)*POOLS(n,5)*POOLS(n,10)*microbial_activity
 
       ! specifically for post processing
@@ -714,15 +732,15 @@ contains
 
       ! calculate growth respiration and adjust allocation to pools assuming
       ! 0.21875 of total C allocation towards each pool (i.e. 0.28 .eq. xNPP)
-      ! foliage 
+      ! foliage
       FLUXES(n,3) = FLUXES(n,3) + (FLUXES(n,8)*0.21875) ; FLUXES(n,8) = FLUXES(n,8) * 0.78125
       ! roots
       FLUXES(n,3) = FLUXES(n,3) + (FLUXES(n,6)*0.21875) ; FLUXES(n,6) = FLUXES(n,6) * 0.78125
       ! wood
       FLUXES(n,3) = FLUXES(n,3) + (FLUXES(n,7)*0.21875) ; FLUXES(n,7) = FLUXES(n,7) * 0.78125
 
-      ! calculate the NEE 
-      NEE(n) = -FLUXES(n,1)+FLUXES(n,3) & 
+      ! calculate the NEE
+      NEE(n) = -FLUXES(n,1)+FLUXES(n,3) &
                +FLUXES(n,13)+FLUXES(n,14)+FLUXES(n,15) &
                +FLUXES(n,19)+FLUXES(n,20)+FLUXES(n,21)
 
@@ -731,7 +749,7 @@ contains
 
       !
       ! update pools for next timestep
-      ! 
+      !
 
       ! labile pool
       POOLS(n+1,1)  = POOLS(n,1)  + (FLUXES(n,5)-FLUXES(n,8))*deltat(n)
@@ -741,12 +759,12 @@ contains
       POOLS(n+1,3)  = POOLS(n,3)  + (FLUXES(n,6)-FLUXES(n,12))*deltat(n)
       ! wood pool
       POOLS(n+1,4)  = POOLS(n,4)  + (FLUXES(n,7)-FLUXES(n,11))*deltat(n)
-      ! som_fast 
+      ! som_fast
       POOLS(n+1,5)  = POOLS(n,5)  + ( ((1d0-flignin(1))*FLUXES(n,22))+ &
                                       ((1d0-flignin(2))*FLUXES(n,23))+ &
                                       ((1d0-flignin(3))*FLUXES(n,24))+ &
                                       FLUXES(n,26)-FLUXES(n,19)-FLUXES(n,27) )*deltat(n)
-      ! som_slow 
+      ! som_slow
       POOLS(n+1,6)  = POOLS(n,6)  + ( ((flignin(1))*FLUXES(n,22))+ &
                                       ((flignin(2))*FLUXES(n,23))+ &
                                       ((flignin(3))*FLUXES(n,24))+ &
@@ -761,16 +779,16 @@ contains
       ! microbial
       POOLS(n+1,10) = POOLS(n,10) + ( FLUXES(n,27)-FLUXES(n,21)-FLUXES(n,25) )*deltat(n)
 
-      ! 
+      !
       ! deal first with deforestation
-      ! 
+      !
 
       if (n == reforest_day) then
           POOLS(n+1,1) = pars(47)
           POOLS(n+1,2) = pars(48)
           POOLS(n+1,3) = pars(49)
-          POOLS(n+1,4) = pars(50)          
-      endif 
+          POOLS(n+1,4) = pars(50)
+      endif
 
       if (met(8,n) > 0) then
 
@@ -785,11 +803,11 @@ contains
           Crootcr = POOLS(n+1,4)*Crootcr_part(harvest_management)
           Cstem   = POOLS(n+1,4)-(Cbranch + Crootcr)
           ! now calculate the labile fraction of residue
-          labile_frac_res = ( (POOLS(n+1,2)/C_total) * foliage_frac_res(harvest_management) ) & 
-                          + ( (POOLS(n+1,3)/C_total) * roots_frac_res(harvest_management)   ) & 
+          labile_frac_res = ( (POOLS(n+1,2)/C_total) * foliage_frac_res(harvest_management) ) &
+                          + ( (POOLS(n+1,3)/C_total) * roots_frac_res(harvest_management)   ) &
                           + ( (Cbranch/C_total)      * branch_frac_res(harvest_management)  ) &
                           + ( (Cstem/C_total)        * stem_frac_res(harvest_management)    ) &
-                          + ( (Crootcr/C_total)      * rootcr_frac_res(harvest_management)  ) 
+                          + ( (Crootcr/C_total)      * rootcr_frac_res(harvest_management)  )
 
           ! loss of carbon from each pools
           labile_loss = POOLS(n+1,1)*met(8,n)
@@ -806,8 +824,8 @@ contains
           branch_residue = Cbranch*met(8,n)*branch_frac_res(harvest_management)
           stem_residue = Cstem*met(8,n)*stem_frac_res(harvest_management)
           ! now finally calculate the final wood residue
-          wood_residue = stem_residue + branch_residue + coarse_root_residue 
-          ! mechanical loss of Csom due to coarse root extraction                 
+          wood_residue = stem_residue + branch_residue + coarse_root_residue
+          ! mechanical loss of Csom due to coarse root extraction
           soil_loss_with_roots = Crootcr*met(8,n)*(1.0-rootcr_frac_res(harvest_management)) &
                               * soil_loss_frac(harvest_management)
 
@@ -846,7 +864,7 @@ contains
              CFF(6) = POOLS(n+1,9)*post_harvest_burn(harvest_management)*combust_eff(5)
              NCFF(6) = POOLS(n+1,9)*post_harvest_burn(harvest_management)*(1-combust_eff(5))*(1-rfac)
              !/*fires as daily averages to comply with units*/
-             FLUXES(n,17)=(CFF(1)+CFF(2)+CFF(3)+CFF(4)+CFF(5)+CFF(6) & 
+             FLUXES(n,17)=(CFF(1)+CFF(2)+CFF(3)+CFF(4)+CFF(5)+CFF(6) &
                           +CFF_res(1)+CFF_res(2)+CFF_res(3)+CFF_res(4))/deltat(n)
              ! update the residue terms
              labile_residue = labile_residue - CFF_res(1) - NCFF_res(1)
@@ -908,9 +926,9 @@ contains
 
       endif ! end deforestation info
 
-      ! 
+      !
       ! then deal with fire
-      ! 
+      !
 
       if (met(9,n) > 0.) then
 
@@ -1017,9 +1035,9 @@ contains
     lai_const = constants(9)
     hydraulic_exponent = constants(10)
 
-    ! determine temperature range 
+    ! determine temperature range
 !    trange=0.5*(maxt-mint)
-    ! daily canopy conductance, of CO2 or H2O? 
+    ! daily canopy conductance, of CO2 or H2O?
     gc=abs(deltaWP)**(hydraulic_exponent)/(hydraulic_temp_coef*Rtot)
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited
     ! photosynthesis (gC.m-2.day-1)
@@ -1059,7 +1077,7 @@ contains
     ! resistance input into ACM. The minimum is assumed to be the same and the
     ! soil layer with the greated root content. Here we use the same assumption
     ! as used in SPA to calcule the root hydraulic resistance in the top soil
-    ! layer only. 
+    ! layer only.
 
     ! This could be extended later for include a 2 soil layer bucket model
 
@@ -1076,7 +1094,7 @@ contains
 
     ! reset water flux
     water_flux = 0.0 ; ratio = 0.0 ; ratio(1) = 1.0
-    ! calculate soil depth to which roots reach    
+    ! calculate soil depth to which roots reach
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
     ! calculate the plant hydraulic resistance component. Currently unclear
     ! whether this actually varies with height or whether tall trees have a
@@ -1115,7 +1133,7 @@ contains
     ! also note that the head correction is now added rather than
     ! subtracted in SPA equations because deltaWP is soilWP-minlwp not
     ! soilWP prior to application of minlwp
-    ! NOTE2: this is a simplified version and does not include 
+    ! NOTE2: this is a simplified version and does not include
     ! an estimate of soil hydraulic resistance as there is no BUCKET!
     demand = deltaWP+head*canopy_height
     water_flux(1) = max(0.,demand/(transpiration_resistance + soilR2))
@@ -1151,7 +1169,7 @@ contains
    double precision :: root_mass, & ! root biomass in layer (gbiomass)
                        thickness    ! thickness of soil zone roots are in
 
-   ! calculate root hydraulic resistance 
+   ! calculate root hydraulic resistance
    root_resistance = root_resist / (root_mass*thickness)
    ! return
    return

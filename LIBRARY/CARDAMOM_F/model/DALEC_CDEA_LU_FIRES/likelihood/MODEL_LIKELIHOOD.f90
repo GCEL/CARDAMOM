@@ -2,6 +2,17 @@
 module model_likelihood_module
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -449,7 +460,7 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, nn, nnn, DIAG, no_years, y, PEDC, steps_per_year, steps_per_month, nd, fl, &
                io_start, io_finish
-    double precision :: no_years_1, infi!, EQF, etol
+    double precision :: infi!, EQF, etol
     double precision, dimension(nopools) :: jan_mean_pools, jan_first_pools, &
                                             mean_pools, Fin, Fout, Rm, Rs, &
                                             Fin_yr1, Fout_yr1, Fin_yr2, Fout_yr2
@@ -493,7 +504,7 @@ module model_likelihood_module
     end do
 
     ! number of years in analysis
-    no_years = nint(sum(deltat)/365.25d0) ; no_years_1 = 1d0 / dble(no_years)
+    no_years = nint(sum(deltat)/365.25d0)
     ! number of time steps per year
     steps_per_year = nodays/no_years
     ! number of time steps per month
@@ -549,7 +560,7 @@ module model_likelihood_module
 
     endif
 
-    ! get total in and out for each pool
+    ! Determine the total input and output fluxes for each C pool
     ! labile
     Fin(1)  = FT(5)
     Fout(1) = FT(8)+FT(18)+FT(24)
@@ -564,7 +575,7 @@ module model_likelihood_module
     Fout_yr1(2) = FT_yr1(10)+FT_yr1(19)+FT_yr1(25)
     Fin_yr2(2)  = FT_yr2(4)+FT_yr2(8)
     Fout_yr2(2) = FT_yr2(10)+FT_yr2(19)+FT_yr2(25)
-    ! root
+    ! fine root
     Fin(3)  = FT(6)
     Fout(3) = FT(12)+FT(20)+FT(26)
     Fin_yr1(3)  = FT_yr1(6)
@@ -578,7 +589,7 @@ module model_likelihood_module
     Fout_yr1(4) = FT_yr1(11)+FT_yr1(21)+FT_yr1(27)
     Fin_yr2(4)  = FT_yr2(7)
     Fout_yr2(4) = FT_yr2(11)+FT_yr2(21)+FT_yr2(27)
-    ! litter
+    ! litter (foliage + fine root)
     Fin(5)  = FT(10)+FT(12)+FT(24)+FT(25)+FT(26)
     Fout(5) = FT(13)+FT(15)+FT(22)+FT(28)
     Fin_yr1(5)  = FT_yr1(10)+FT_yr1(12)+FT_yr1(24)+FT_yr1(25)+FT_yr1(26)
@@ -598,6 +609,8 @@ module model_likelihood_module
     ! See Bloom et al., 2016 PNAS for details
     if (old_edcs) then
 
+        ! Old EDCs
+
         ! iterate to check whether Fin/Fout is within EQF limits
         Rm = Fin/Fout
         Rs = Rm * (jan_mean_pools / jan_first_pools)
@@ -606,13 +619,15 @@ module model_likelihood_module
            if ((EDC2 == 1 .or. DIAG == 1) .and. abs(log(Rm(n))) > log(EQF10)) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
            end if
-           ! Restrict exponential decay
+           ! Restrict exponential decay, 0.1 = etol
            if ((EDC2 == 1 .or. DIAG == 1) .and. abs(Rs(n)-Rm(n)) > 0.1d0) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            end if
         end do
 
     else
+
+        ! New EDCs
 
         if (EDC2 == 1 .or. DIAG == 1) then
 
@@ -623,16 +638,19 @@ module model_likelihood_module
                    EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
                end if
                ! Restrict exponential behaviour at initialisation
-               if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+!               if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+               if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                    EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
                end if
             end do
+
             ! Specific wood pool hack, note that in CDEA EDCs Fin has already been multiplied by time step
             n = 4
             if (abs(log(Fin(n)/Fout(n))) > EQF5) then
                 EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
             end if
-            if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+!            if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+            if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                 EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
             end if
             ! Dead pools
@@ -642,7 +660,8 @@ module model_likelihood_module
                    EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
                end if
                ! Restrict exponential behaviour at initialisation
-               if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+!               if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+               if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                    EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
                end if
             end do

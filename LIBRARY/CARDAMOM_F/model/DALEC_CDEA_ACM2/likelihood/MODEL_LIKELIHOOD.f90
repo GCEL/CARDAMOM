@@ -2,6 +2,17 @@
 module model_likelihood_module
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -606,7 +617,7 @@ module model_likelihood_module
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
            end if
            ! Restrict exponential behaviour at initialisation
-           if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+           if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            end if
         end do
@@ -615,7 +626,7 @@ module model_likelihood_module
         if (abs(log(Fin(n)/Fout(n))) > EQF5) then
                 EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
         end if
-        if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+        if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                 EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
         end if
         ! Dead pools
@@ -625,12 +636,17 @@ module model_likelihood_module
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
            end if
            ! Restrict exponential behaviour at initialisation
-           if (abs(log(Fin_yr1(n)/Fout_yr1(n)) - log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
+           if (abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n))) > etol) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            end if
         end do
 
     end if ! EDC2 == 1 .or. DIAG == 1
+
+    ! The maximum value for GPP must be greater than 0
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_GPP) == 0d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
+    end if
 
     !
     ! EDCs done, below are additional fault detection conditions
@@ -641,7 +657,7 @@ module model_likelihood_module
     ! All pools must confirm to the prior ranges
     do n = 1, nopools
        if ((EDC2 == 1 .or. DIAG == 1) .and. (M_POOLS(1,n) > parmax(n+npars-nopools))) then
-          EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
+          EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
        end if ! prior ranges conditions
     end do ! loop pools
 
@@ -653,7 +669,7 @@ module model_likelihood_module
           do while (nn <= (nodays+1) .and. PEDC == 1)
              ! now check conditions
              if (M_POOLS(nn,n) < 0. .or. M_POOLS(nn,n) /= M_POOLS(nn,n)) then
-                 EDC2 = 0d0 ; PEDC = 0 ; EDCD%PASSFAIL(35+n) = 0
+                 EDC2 = 0d0 ; PEDC = 0 ; EDCD%PASSFAIL(36+n) = 0
              end if ! less than zero and is NaN condition
           nn = nn + 1
           end do ! nn < nodays .and. PEDC == 1

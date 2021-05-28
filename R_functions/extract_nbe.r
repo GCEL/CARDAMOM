@@ -1,4 +1,10 @@
 
+###
+## Function used to extract location specific information on NBE from already loaded gridded dataset
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 extract_nbe<- function(timestep_days,spatial_type,resolution,grid_type,latlon_in,nbe_all,years_to_load) {
 
   # convert input data long to conform to what we need
@@ -18,14 +24,12 @@ extract_nbe<- function(timestep_days,spatial_type,resolution,grid_type,latlon_in
       product_res = product_res * 0.5 # NOTE: averaging needed for line above
       if (grid_type == "wgs84") {
           # radius is ceiling of the ratio of the product vs analysis ratio
-          radius = round(resolution / product_res, digits=0)
-          max_radius = radius+4
+          radius = floor(0.5*(resolution / product_res))
       } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size
           # 6371e3 = mean earth radius (m)
           radius = round(rad2deg(sqrt((resolution / 6371e3**2))) / product_res, digits=0)
           #radius = max(0,floor(1*resolution*1e-3*0.5))
-          max_radius = radius+4
       } else {
           stop("have not specified the grid used in this analysis")
       }

@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -95,6 +106,10 @@ module MODEL_PARAMETERS
        ! Max labile turnover fraction to foliage
        PI%parmin(12) = 0.0006844627d0*2d0 !  2 years
        PI%parmax(12) = 0.07142857d0*0.5d0 ! 28 days
+
+       ! Fraction of GPP to Clab*/
+       PI%parmin(13) = 0.15d0 ! 0.05d0
+       PI%parmax(13) = 0.55d0 ! 0.35d0
 
        ! GSI min temperature threshold (oC)
        PI%parmin(14) = 235d0

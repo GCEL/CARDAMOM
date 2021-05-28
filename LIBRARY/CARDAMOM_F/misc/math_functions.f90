@@ -19,6 +19,18 @@ module math_functions
             calculate_variance, increment_variance
 
   !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! J. F. Exbrayat (University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
+  !!!!!!!!!!!
   ! Subroutines rand(), narray() and rnstrt() are from:
   !!!!!!!!!!!
 
@@ -70,6 +82,9 @@ module math_functions
     ! X = mean for parameter
     ! Xi = ith member of the vector
     ! N = number of parameters accepted so far
+    ! This code was based on CARDAMOM routines provided by A. A. Bloom,
+    ! available at github.com/CARDAMOM-framework/CARDAMOM_2.1.6c
+    ! (contact abloom@jpl.nasa.gov for access)
 
     implicit none
 
@@ -111,6 +126,9 @@ module math_functions
     ! Mi = new mean vector for updated variance_matrix
     ! ar = number of new parameters to be added
     ! N = number of parameters accepted so far
+    ! This code was based on CARDAMOM routines provided by A. A. Bloom,
+    ! available at github.com/CARDAMOM-framework/CARDAMOM_2.1.6c
+    ! (contact abloom@jpl.nasa.gov for access)
 
     implicit none
 
@@ -153,6 +171,9 @@ module math_functions
     ! Y = mean parameter 2
     ! Xi = ith member of the vector
     ! N = number of parameters accepted so far
+    ! This code was based on CARDAMOM routines provided by A. A. Bloom,
+    ! available at github.com/CARDAMOM-framework/CARDAMOM_2.1.6c
+    ! (contact abloom@jpl.nasa.gov for access)
 
     implicit none
 
@@ -197,6 +218,9 @@ module math_functions
     ! Mi = new mean vector for updated covariance_matrix
     ! ar = number of new parameters to be added
     ! N = number of parameters accepted so far
+    ! This code was based on CARDAMOM routines provided by A. A. Bloom,
+    ! available at github.com/CARDAMOM-framework/CARDAMOM_2.1.6c
+    ! (contact abloom@jpl.nasa.gov for access)
 
     implicit none
 
@@ -756,7 +780,9 @@ module math_functions
     ! providing the same distribution each run. To ensure random numbers each time use the
     ! sum of the current system time.
 
-    ! Modified based on blooms C code to alter range of random numbers
+    ! This code was modified based on CARDAMOM routines provided by A. A. Bloom,
+    ! available at github.com/CARDAMOM-framework/CARDAMOM_2.1.6c
+    ! (contact abloom@jpl.nasa.gov for access)
 
     implicit none
     integer :: IA,IM,IQ,IR,NTAB,NDIV,option
@@ -896,6 +922,10 @@ module math_functions
   subroutine random_uniform(u, n)
 
     ! Generate an array of n double precision values between 0 and 1.
+    ! Part of process to generate a random normal deviate using the polar method.
+    ! Reference: Marsaglia,G. & Bray,T.A. 'A convenient method for
+    ! generating normal variables',
+    ! Siam Rev., vol.6, 260-264, 1964.
 
     integer, intent(in)  :: n ! number of random values wanted
     double precision, intent(out) :: u(n) ! output vector
@@ -1136,6 +1166,11 @@ module math_functions
   subroutine rnarry(aa, n)
 
     ! Generate an array of n integers between 0 and 2^30-1.
+    ! Part of process to generate a random normal deviate using the polar
+    ! method.
+    ! Reference: Marsaglia,G. & Bray,T.A. 'A convenient method for
+    ! generating normal variables',
+    ! Siam Rev., vol.6, 260-264, 1964.
 
     integer, intent(in)   :: n
     integer, intent(out)  :: aa(n)
@@ -1166,6 +1201,11 @@ module math_functions
   subroutine rnstrt(seed)
 
     ! Initialize integer array ranx using the input seed.
+    ! Part of process to generate a random normal deviate using the polar
+    ! method.
+    ! Reference: Marsaglia,G. & Bray,T.A. 'A convenient method for
+    ! generating normal variables',
+    ! Siam Rev., vol.6, 260-264, 1964.
 
     integer, intent(in)  :: seed
 

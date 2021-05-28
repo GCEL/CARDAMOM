@@ -4,6 +4,8 @@
 ## subsequently extracted in extract_met_drivers.txt
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 load_met_fields_for_extraction<-function(latlon_in,met_source,modelname,startyear,endyear) {
 
     # let the user know this might take some time

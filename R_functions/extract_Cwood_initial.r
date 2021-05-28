@@ -1,4 +1,9 @@
 
+###
+## Extracts location specific information on the initial wood biomass stock from a loaded gridded dataset
+###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_Cwood_initial<- function(spatial_type,resolution,grid_type,latlon_in,Cwood_initial_all) {
 
@@ -15,7 +20,7 @@ extract_Cwood_initial<- function(spatial_type,resolution,grid_type,latlon_in,Cwo
        product_res = product_res * 0.5 # NOTE: averaging needed for line above
        if (grid_type == "wgs84") {
            # radius is ceiling of the ratio of the product vs analysis ratio
-           radius = round(resolution / product_res, digits=0)
+           radius = floor(0.5*(resolution / product_res))
         } else if (grid_type == "UK") {
            # Estimate radius for UK grid assuming radius is determine by the longitude size
            # 6371e3 = mean earth radius (m)

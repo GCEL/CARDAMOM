@@ -1,6 +1,10 @@
+
 ####
-## Function to extract the HWSD soil carbon estimate for initial conditions
+## Function to extract the a prior estimate of crop harvest and sowing data from the SACKS database
 ####
+
+# This function is based on an original Python function development by D. Slevin (UoE, now at Forestry Commission, Scotland).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 extract_sacks_crop_info<- function(spatial_type,resolution,grid_type,latlon_in,crop_man_all) {
 
@@ -17,23 +21,26 @@ extract_sacks_crop_info<- function(spatial_type,resolution,grid_type,latlon_in,c
 	if (length(check1) > 0) { crop_man_all$long[check1]=crop_man_all$long[check1]+360 }
 
 	# work out number of pixels to average over
-#	print("NOTE all Csom values are a minimum average of 9 pixels (i.e centre+1 )")
-	if (spatial_type == "grid") {
-	    if (grid_type == "wgs84") {
-          # calculate pixel area and convert from m2 -> km2
-          area=calc_pixel_area(latlon_in[1],latlon_in[2],resolution)*1e-6
-          radius=max(0,ceiling(sqrt(area)*0.5))
-	    } else if (grid_type == "UK") {
+  if (spatial_type == "grid") {
+      # resolution of the product
+      product_res = abs(lai_all$lat[1,2]-lai_all$lat[1,1])+abs(lai_all$long[2,1]-lai_all$long[1,1])
+      product_res = product_res * 0.5 # NOTE: averaging needed for line above
+      if (grid_type == "wgs84") {
+          # radius is ceiling of the ratio of the product vs analysis ratio
+          radius = floor(0.5*(resolution / product_res))
+      } else if (grid_type == "UK") {
           # Estimate radius for UK grid assuming radius is determine by the longitude size
           # 6371e3 = mean earth radius (m)
           radius = round(rad2deg(sqrt((resolution / 6371e3**2))) / product_res, digits=0)
           #radius = max(0,floor(1*resolution*1e-3*0.5))
-	    } else {
-          stop("have not specified the grid used in this analysis")
-	    }
-	} else {
-	    radius=0
-	}
+      } else {
+         stop("have not specified the grid used in this analysis")
+      }
+  } else {
+      radius = 0
+  }
+
+
 	answer=NA ; plant = -9999 ; harvest = -9999 ; plant_range = -9999 ; harvest_range = -9999
 	while (is.na(answer) == TRUE) {
 	    # work out average areas

@@ -3,22 +3,33 @@ module CARBON_MODEL_MOD
 
 implicit none
 
+!!!!!!!!!!!
+! Authorship contributions
+!
+! This code contains a variant of the Data Assimilation Linked ECosystem (DALEC) model.
+! This version of DALEC is derived from that described in Bloom & Williams (2015), https://doi.org/10.5194/bg-12-1299-2015.
+! This code is based on that created by A. A. Bloom (UoE, now at JPL, USA).
+! Subsequent modifications by:
+! T. L. Smallman (University of Edinburgh, t.l.smallman@ed.ac.uk)
+! See function / subroutine specific comments for exceptions and contributors
+!!!!!!!!!!!
+
 ! make all private
 private
 
-! explicit publics 
+! explicit publics
 public :: CARBON_MODEL  &
          ,soil_frac_clay   &
          ,soil_frac_sand   &
          ,nos_soil_layers  &
-         ,dim_1,dim_2   & 
+         ,dim_1,dim_2   &
          ,nos_trees     &
          ,nos_inputs    &
          ,leftDaughter  &
          ,rightDaughter &
          ,nodestatus    &
          ,xbestsplit    &
-         ,nodepred      & 
+         ,nodepred      &
          ,bestvar
 
 ! ACM related parameters
@@ -60,7 +71,7 @@ contains
 
     ! declare input variables
     integer, intent(in) :: start    &
-                          ,finish   & 
+                          ,finish   &
                           ,nopars     & ! number of paremeters in vector
                           ,pft        & ! plant functional type
                           ,nomet      & ! number of meteorological fields
@@ -78,9 +89,9 @@ contains
                                                ,NEE   ! net ecosystem exchange of CO2
 
     double precision, dimension((nodays+1),nopools), intent(inout) :: POOLS ! vector of ecosystem pools
- 
+
     double precision, dimension(nodays,nofluxes), intent(inout) :: FLUXES ! vector of ecosystem fluxes
-                                             
+
     ! declare local variables
     double precision :: gpppars(12)            & ! ACM inputs (LAI+met)
              ,constants(10)          & ! parameters for ACM
@@ -106,7 +117,7 @@ contains
     ! 5 = litter
     ! 6 = som
 
-    ! FLUXES are: 
+    ! FLUXES are:
     ! 1 = GPP
     ! 2 = temprate
     ! 3 = respiration_auto
@@ -129,7 +140,7 @@ contains
 
     ! p(1) Litter to SOM conversion rate  - m_r
     ! p(2) Fraction of GPP respired - f_a
-    ! p(3) Fraction of NPP allocated to foliage - f_f 
+    ! p(3) Fraction of NPP allocated to foliage - f_f
     ! p(4) Fraction of NPP allocated to roots - f_r
     ! p(5) Leaf lifespan - L_f
     ! p(6) Turnover rate of wood - t_w
@@ -137,7 +148,7 @@ contains
     ! p(8) Litter turnover rate - t_l
     ! p(9) SOM turnover rate  - t_S
     ! p(10) Parameter in exponential term of temperature - \theta
-    ! p(11) = date of Clab release - B_day  
+    ! p(11) = date of Clab release - B_day
     ! p(12) = Fraction allocated to Clab - f_l
     ! p(13) = lab release duration period - R_l
     ! p(14) = date of leaf fall - F_day
@@ -263,12 +274,12 @@ print*,"FAIL PFT SELECTION" ; stop
     ! scaling to biyearly sine curve
     sf=365.25/pi
 
-    ! 
+    !
     ! Begin looping through each time step
-    ! 
+    !
 
     do n = start, finish
- 
+
       ! calculate LAI value
       lai(n)=POOLS(n,2)/pars(16)
 
@@ -292,7 +303,7 @@ print*,"FAIL PFT SELECTION" ; stop
 !              print*,"pools in step", POOLS(n,:)
 !              stop
 !           endif
-      else 
+      else
           FLUXES(n,1) = 0.0
       end if
       ! temprate (i.e. temperature modified rate of metabolic activity))
@@ -305,16 +316,16 @@ print*,"FAIL PFT SELECTION" ; stop
       FLUXES(n,5) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4))*pars(12)
       ! root production (gC.m-2.day-1)
       FLUXES(n,6) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5))*pars(4)
-      ! wood production 
+      ! wood production
       FLUXES(n,7) = FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,4)-FLUXES(n,5)-FLUXES(n,6)
 
       ! Labile release and leaffall factors
       FLUXES(n,9) = (2d0/(pi**0.5))*(ff/wf)*exp(-((sin((met(1,n)-pars(14)+osf)/sf)*sf/wf)**2d0))
       FLUXES(n,16) = (2d0/(pi**0.5))*(fl/wl)*exp(-((sin((met(1,n)-pars(11)+osl)/sf)*sf/wl)**2d0))
- 
-      ! 
+
+      !
       ! those with time dependancies
-      ! 
+      !
 
       ! total labile release
       FLUXES(n,8) = POOLS(n,1)*(1d0-(1d0-FLUXES(n,16))**deltat(n))/deltat(n)
@@ -325,9 +336,9 @@ print*,"FAIL PFT SELECTION" ; stop
       ! total root litter production
       FLUXES(n,12) = POOLS(n,3)*(1d0-(1d0-pars(7))**deltat(n))/deltat(n)
 
-      ! 
+      !
       ! those with temperature AND time dependancies
-      ! 
+      !
 
       ! respiration heterotrophic litter
       FLUXES(n,13) = POOLS(n,5)*(1d0-(1d0-FLUXES(n,2)*pars(8))**deltat(n))/deltat(n)
@@ -336,14 +347,14 @@ print*,"FAIL PFT SELECTION" ; stop
       ! litter to som
       FLUXES(n,15) = POOLS(n,5)*(1d0-(1d0-pars(1)*FLUXES(n,2))**deltat(n))/deltat(n)
 
-      ! calculate the NEE 
+      ! calculate the NEE
       NEE(n) = (-FLUXES(n,1)+FLUXES(n,3)+FLUXES(n,13)+FLUXES(n,14))
       ! load GPP
       GPP(n) = FLUXES(n,1)
 
       !
       ! update pools for next timestep
-      ! 
+      !
 
       ! labile pool
       POOLS(n+1,1) = POOLS(n,1) + (FLUXES(n,5)-FLUXES(n,8))*deltat(n)
@@ -408,7 +419,7 @@ print*,"FAIL PFT SELECTION" ; stop
     lai_const = constants(9)
     hydraulic_exponent = constants(10)
 
-    ! determine temperature range 
+    ! determine temperature range
 !    trange=0.5*(maxt-mint)
     ! daily canopy conductance (m.s-1) ; NOTE that ratio of H20:CO2 diffusion is
     ! 1.646259 (Jones appendix 2). i.e. gcCO2/1.646259 = gcH2O
@@ -448,13 +459,13 @@ print*,"FAIL PFT SELECTION" ; stop
   subroutine randomForest(nos_wanted,drivers,ans)
 
     ! Random Forest regression based emulator using R v2.13 randomForest
-    ! function library(randomForest). 
+    ! function library(randomForest).
 
     implicit none
 
     ! declare inputs
     integer, intent(in) :: nos_wanted !
-    double precision, intent(in) :: drivers(12) 
+    double precision, intent(in) :: drivers(12)
 
     ! declare output variables
     double precision, intent(out), dimension(nos_wanted) :: ans
@@ -484,7 +495,7 @@ print*,"FAIL PFT SELECTION" ; stop
     new_data(1,2) = drivers(2)
     ! SW radiation (MJ.m-2.day-1)
     new_data(1,3) = drivers(8)
-    ! co2 (ppm) 
+    ! co2 (ppm)
     new_data(1,4) = drivers(5)
     ! avgN (gN.m-2 leaf area)
     new_data(1,6) = drivers(4)
@@ -531,18 +542,18 @@ print*,"FAIL PFT SELECTION" ; stop
   !------------------------------------------------------------------
   !
   subroutine regForest(x,mdim,n,ypred)
-    
+
     implicit none
 
     ! declare inputs
     integer, intent(in) :: mdim  & ! number of met inputs
                           ,n       ! number of outputs requested
 
-    double precision, intent(in) :: x(mdim,n) ! 
+    double precision, intent(in) :: x(mdim,n) !
 
     ! define output variable
     double precision, intent(out), dimension(n) :: ypred
-    
+
     ! define local variables
     double precision, dimension(n):: ytree
     integer :: idx1, i, j, z, k, m
@@ -550,7 +561,7 @@ print*,"FAIL PFT SELECTION" ; stop
     ! initial conditions
     idx1 = 1 ; ypred = 0d0
 
-    ! looks like we run each tree for each location first then move 
+    ! looks like we run each tree for each location first then move
     ! onto the next tree and keep adding things up
     do i = 1, nos_trees
         ! zero this instance
@@ -561,7 +572,7 @@ print*,"FAIL PFT SELECTION" ; stop
         ypred = ypred + ytree
         !/* increment the offset */
         idx1 = idx1 + 1
-    end do 
+    end do
 
     ! return variable of interest
     ypred = (ypred/real(nos_trees)) ; return
@@ -584,12 +595,12 @@ print*,"FAIL PFT SELECTION" ; stop
     double precision, intent(out) :: ypred(nsample)
     ! local variables
     integer :: i, k, m
-                
+
     ypred=1d0
     do i = 1, nsample
         k = 1
         !/* go down the tree */
-        do while (nodestatus(k,idx1) /= -1) 
+        do while (nodestatus(k,idx1) /= -1)
             m = bestvar(k,idx1) !- 1
             if (x(m,i) <= xbestsplit(k,idx1)) then
                 k = leftDaughter(k,idx1) !- 1
@@ -643,4 +654,3 @@ print*,"FAIL PFT SELECTION" ; stop
 !--------------------------------------------------------------------
 !
 end module CARBON_MODEL_MOD
- 

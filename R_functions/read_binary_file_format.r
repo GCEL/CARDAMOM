@@ -3,11 +3,15 @@
 ## Function to extract met drivers from binary file
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
+
 read_binary_file_format<- function(infile) {
 
       #print("Beginning read of binary input files...")
       # Open and read the DALEC binary driver file
-      # open this chains binary file into R, instructing 'r' to read and 'b' for binary  
+      # open this chains binary file into R, instructing 'r' to read and 'b' for binary
       bob=file(infile,'rb') ; nos_var=1e6
       bd=readBin(bob, double(),nos_var)
       # keep reading until we have read all that can be read

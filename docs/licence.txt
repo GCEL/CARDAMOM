@@ -1,0 +1,19 @@
+
+This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+Licence information for the University of Edinburgh CARbon DAta MOdel fraMework (CARDAMOM) code, covering all elements currently coded in R, python, Fortran and C.
+
+History:
+Owner: Professor Mathew Williams (University of Edinburgh, mat.williams@ed.ac.uk)
+Original Authors: A. A. Bloom (University of Edinburgh, now at the Jet Propulsion Laboratory, Pasadena),
+                  M. Williams (University of Edinburgh)
+Subsequent authors: A. A. Bloom (University of Edinburgh, now at the Jet Propulsion Laboratory, Pasadena),
+                    O. Sus (University of Edinburgh),
+                    J. F. Exbrayat (University of Edinburgh),
+                    T. L. Smallman (University of Edinburgh)
+
+For specific code contributions and citations please see the code itself.
+
+Current contact(s):
+Prof. Mathew William (mat.williams@ed.ac.uk)
+Dr. T. Luke Smallman (t.l.smallman@ed.ac.uk)

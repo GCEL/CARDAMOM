@@ -3,6 +3,41 @@
 ## Function to read parameter chains info
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+# Exceptions are given within specific functions.
+
+dump_binary_files <-function(infile) {
+
+  # Function will read in the contents of a raw fortran binary file format and
+  # dump into a big vector for the user to sort out themselves
+
+  # Check file exists
+  if (file.exists(infile)) {
+
+      # open connection to the file 
+      # 'r' to read and 'b' for binary
+      bob = file(infile,'rb') ; nos_var = 1e6
+      # Read from the file, double() is the data type expected
+      set1 = readBin(bob, double(),nos_var) ; temp = 0
+      # keep reading until we have read all that can be read
+      while (length(temp) > 0) {
+         temp = readBin(bob, double(),nos_var)
+         set1 = append(set1,temp)
+      }
+      # now close this chain
+      close(bob)
+
+      # Tidy up
+      rm(temp)
+
+      # Back to user
+      return(set1)
+
+  } # file exists
+
+} # end function
+
 read_parameter_chains<- function(PROJECT_in,n,ndim) {
 
   # search for all output files

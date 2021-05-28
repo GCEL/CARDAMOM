@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -32,7 +43,7 @@ module MODEL_PARAMETERS
     ! declare parameters
     !
 
-    ! Fraction of GPP respired as autotrophic 
+    ! Fraction of GPP respired as autotrophic
     PI%parmin(1) = 0.20d0
     PI%parmax(1) = 0.80d0
 
@@ -40,12 +51,12 @@ module MODEL_PARAMETERS
     PI%parmin(2) = 0.01d0
     PI%parmax(2) = 0.5d0
 
-    ! Leaf Lifespan (yr) 
+    ! Leaf Lifespan (yr)
     ! Wright et al. (2004) 55 - 2922 days
-    PI%parmin(3) = 0.15d0 
+    PI%parmin(3) = 0.15d0
     PI%parmax(3) = 8d0
 
-    ! TOR wood + root 
+    ! TOR wood + root
     PI%parmin(4) = 0.000009d0 ! 304  years
     PI%parmax(4) = 0.01d0     ! 0.27 years
 
@@ -71,7 +82,7 @@ module MODEL_PARAMETERS
     !
 
     ! C foliar
-    PI%parmin(9) = 1d0 
+    PI%parmin(9) = 1d0
     PI%parmax(9) = 2000d0
 
     ! C root + wood
@@ -80,7 +91,7 @@ module MODEL_PARAMETERS
 
     ! C_som
     PI%parmin(11) = 1d0
-    PI%parmax(11) = 200000d0 
+    PI%parmax(11) = 200000d0
 
   end subroutine pars_info
   !

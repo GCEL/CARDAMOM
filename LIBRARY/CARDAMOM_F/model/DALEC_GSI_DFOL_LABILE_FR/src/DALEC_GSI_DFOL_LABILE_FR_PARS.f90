@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -9,7 +20,7 @@ module MODEL_PARAMETERS
   public :: pars_info
 
   contains
-  
+
   !
   !------------------------------------------------------------------
   !
@@ -31,9 +42,9 @@ module MODEL_PARAMETERS
 
     ! contains 6 fields with min max log for par and par
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
     ! Decomposition rate
     PI%parmin(1)=0.00001
@@ -102,12 +113,12 @@ module MODEL_PARAMETERS
     PI%parmax(16)=3600d0*10d0 ! 64800d0 ! 18 hours
 
     ! LMA
-    ! Kattge et al. 2011, 
+    ! Kattge et al. 2011,
     PI%parmin(17)=10d0 ! 10.
     PI%parmax(17)=200d0 ! 400.
 
     ! GSI max photoperiod threshold (sec)
-    PI%parmin(24)=3600d0 !21600d0 ! 6 hours 
+    PI%parmin(24)=3600d0 !21600d0 ! 6 hours
     PI%parmax(24)=64800d0 ! 18 hours
 
     ! GSI min VPD threshold (Pa)
@@ -130,7 +141,7 @@ module MODEL_PARAMETERS
     PI%parmin(29)=0.15
     PI%parmax(29)=0.45
 
-    ! GSI senstivity for leaf senescence 
+    ! GSI senstivity for leaf senescence
     PI%parmin(34)=0.96
     PI%parmax(34)=1.00
 
@@ -138,7 +149,7 @@ module MODEL_PARAMETERS
     PI%parmin(35)=0.50
     PI%parmax(35)=1.50
 
-    ! GSI - initial GSI value 
+    ! GSI - initial GSI value
     PI%parmin(36)=1.0
     PI%parmax(36)=2.0
 
@@ -150,7 +161,7 @@ module MODEL_PARAMETERS
     PI%parmin(38)=0.000001
     PI%parmax(38)=0.2
 
-    ! CWD turnover 
+    ! CWD turnover
     PI%parmin(43)=0.0001
     PI%parmax(43)=0.02
 
@@ -177,7 +188,7 @@ module MODEL_PARAMETERS
     ! C roots
     PI%parmin(20)=1.0
     PI%parmax(20)=1000.0
-    
+
     ! C_wood
     PI%parmin(21)=1.0
     PI%parmax(21)=20000.0
@@ -189,13 +200,13 @@ module MODEL_PARAMETERS
     ! C cwd
     PI%parmin(44)=1.0
     PI%parmax(44)=10000.0
- 
+
     ! C_som
     PI%parmin(23)=100.0
     PI%parmax(23)=200000.0
 
     !
-    ! Replanting pools values 
+    ! Replanting pools values
     !
 
     ! C foliar labile
@@ -214,14 +225,14 @@ module MODEL_PARAMETERS
     PI%parmin(31)=1.0
     PI%parmax(31)=1000.0
 
-    ! C roots 
+    ! C roots
     PI%parmin(32)=1.0
     PI%parmax(32)=1000.0
 
     ! C_wood
     PI%parmin(33)=1.0
     PI%parmax(33)=1000.0
- 
+
   end subroutine pars_info
 
   !

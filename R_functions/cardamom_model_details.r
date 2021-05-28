@@ -3,7 +3,11 @@
 ## Function which contains basic information about the models
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
+
   if (modelname == "ACM") {
     # information contains is
     # The model name
@@ -73,7 +77,7 @@ cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
     # Number of met parameters
     # Number of model parameters to be optimised
     nopools=array(8,dim=c(length(ctessel_pft)))
-    nopars=array(30,dim=c(length(ctessel_pft)))
+    nopars=array(34,dim=c(length(ctessel_pft)))
     nofluxes=array(33,dim=c(length(ctessel_pft)))
     cardamom_model_details=list(name="DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars)
   } else if (modelname == "DALEC_CDEA_no_lit_root") {
@@ -129,7 +133,7 @@ cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
     # Number of met parameters
     # Number of model parameters to be optimised
     nopools=array(8,dim=c(length(ctessel_pft)))
-    nopars=array(43,dim=c(length(ctessel_pft)))
+    nopars=array(46,dim=c(length(ctessel_pft)))
     nofluxes=array(25,dim=c(length(ctessel_pft)))
     if (specific_pft == "pft_specific") {nopars[which(ctessel_pft == 1)]=38 ; nofluxes[which(ctessel_pft == 1)]=21 ; nopools[which(ctessel_pft == 1)]=9}
     cardamom_model_details=list(name="DALEC_G5",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars)
@@ -293,5 +297,6 @@ cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
     nopars=array(53,dim=c(length(ctessel_pft)))
     nofluxes=array(28,dim=c(length(ctessel_pft)))
     cardamom_model_details=list(name="DALEC_GSI_DBio_FR",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars)
-  }
-}
+  } # If modelname == "..."
+
+} # end function cardamom_model_details

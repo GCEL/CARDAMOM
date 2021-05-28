@@ -2,6 +2,17 @@ module MODEL_PARAMETERS
 
   implicit none
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is based on the original C verion of the University of Edinburgh
+  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+  ! All code translation into Fortran, integration into the University of
+  ! Edinburgh CARDAMOM code and subsequent modifications by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   ! make all private
   private
 
@@ -9,7 +20,7 @@ module MODEL_PARAMETERS
   public :: pars_info
 
   contains
-  
+
   !
   !------------------------------------------------------------------
   !
@@ -63,7 +74,7 @@ module MODEL_PARAMETERS
        else if (DATAin%PFT == 19) then
           ! interupted forest
 
-       else 
+       else
           !  missing values
           write(*,*)"PFT for AT_DALEC with PFT specific parameters not found"
           write(*,*)"PFT asked for =",DATAin%PFT
@@ -84,16 +95,16 @@ module MODEL_PARAMETERS
   !
   subroutine at_dalec_parameters
 
-    ! Subroutine reads specific parameter ranges for the 
+    ! Subroutine reads specific parameter ranges for the
     ! generic AT_DALEC model
 
     use MCMCOPT, only: PI
 
     implicit none
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
 !    PI%npars=22;
 
@@ -190,7 +201,7 @@ module MODEL_PARAMETERS
     ! C_som
     PI%parmin(22)=100.0
     PI%parmax(22)=200000.0
- 
+
   end subroutine at_dalec_parameters
 
   !
@@ -198,16 +209,16 @@ module MODEL_PARAMETERS
   !
   subroutine at_dalec_pft1
 
-    ! Subroutine reads specific parameter ranges for the 
+    ! Subroutine reads specific parameter ranges for the
     ! generic AT_DALEC model
 
     use MCMCOPT, only: PI
 
     implicit none
 
-    ! 
+    !
     ! declare parameters
-    ! 
+    !
 
 !    PI%npars=34;
 
@@ -258,7 +269,7 @@ module MODEL_PARAMETERS
     ! LMA
     PI%parmin(17)=10d0 ; PI%parmax(17)=50d0
 
-    ! 
+    !
     ! NOTE number order not consistent
     !
 
@@ -282,7 +293,7 @@ module MODEL_PARAMETERS
     ! optimum temperature for vernalisation (oC)
     PI%parmin(31)=(2.9+273.15) ; PI%parmax(31)=(6.9+273.15)   ! -5,15
 
-    ! critical photoperiod for development (hrs) 
+    ! critical photoperiod for development (hrs)
     PI%parmin(32)=6d0 ; PI%parmax(32)=12d0
     ! photoperiod sensitivity
     PI%parmin(33)=0.10 ; PI%parmax(33)=0.35
@@ -385,4 +396,3 @@ module MODEL_PARAMETERS
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
 end module MODEL_PARAMETERS
-

@@ -12,6 +12,14 @@ subroutine rdalecnbucket(output_dim,aNPP_dim,met,pars,out_var,out_var2,lat &
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
 
+  !!!!!!!!!!!
+  ! Authorship contributions
+  !
+  ! This code is by:
+  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! See function / subroutine specific comments for exceptions and contributors
+  !!!!!!!!!!!
+
   implicit none
   interface
     subroutine crop_development_parameters(stock_seed_labile,DS_shoot,DS_root,fol_frac &

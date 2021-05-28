@@ -3,6 +3,8 @@
 ## Function determines all lat long coordinates needed for grid run mode
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 determine_lat_long_needed<- function(lat,long,resolution,grid_type,remove) {
 
     # check input data

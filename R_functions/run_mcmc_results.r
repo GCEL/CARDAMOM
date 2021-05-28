@@ -146,22 +146,27 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override,stage5modifiers) {
 
           # pass to local variable for saving
           site_ctessel_pft = PROJECT$ctessel_pft[n]
-          aNPP = states_all$aNPP ; MTT = states_all$MTT ; aMTT = states_all$aMTT ; SS = states_all$SS
+          aNPP = states_all$aNPP ; natMTT = states_all$natMTT; MTT = states_all$MTT ; aMTT = states_all$aMTT ; SS = states_all$SS
+          # Sanity check
+          if (length(which(is.na(as.vector(aNPP))) == TRUE) > 0) {
+              print(paste("NA value found in NPP for site ",PROJECT$site[n],sep="")) ; dummy = -1 ; return(dummy)
+          }
           print("processing and storing ensemble output")
           # store the results now in binary file
-          save(parameter_covariance,parameters,drivers,site_ctessel_pft,aNPP,MTT,aMTT,SS,file=outfile1)#, compress="gzip")
+          save(parameter_covariance,parameters,drivers,site_ctessel_pft,aNPP,natMTT,MTT,aMTT,SS,file=outfile1, compress="gzip")
           # determine whether this is a gridded run (or one with the override in place)
           if (PROJECT$spatial_type == "site" | grid_override == TRUE) {
               # ...if this is a site run save the full ensemble and everything else...
-              save(parameters,drivers,states_all,site_ctessel_pft,file=outfile)#, compress="gzip")
+              save(parameters,drivers,states_all,site_ctessel_pft,file=outfile, compress="gzip")
           } else {
               # ...otherwise this is a grid and we want straight forward reduced dataset of common stocks and fluxes
-              num_quantiles = c(0.025,0.05,0.25,0.5,0.75,0.95,0.975) ; num_quantiles_agg = seq(0.0,1, length = 100)
+              num_quantiles = c(0.025,0.05,0.25,0.5,0.75,0.95,0.975) ; num_quantiles_agg = seq(0.0,1, length = 1000)
               na_flag = TRUE
               # Estimate multiple use fluxes
               npp = states_all$gpp_gCm2day - states_all$rauto_gCm2day
               # Stocks first
-              site_output = list(labile_gCm2 = apply(states_all$lab_gCm2,2,quantile,prob=num_quantiles,na.rm=na_flag),
+              site_output = list(num_quantiles = num_quantiles,
+                                 labile_gCm2 = apply(states_all$lab_gCm2,2,quantile,prob=num_quantiles,na.rm=na_flag),
 #follab_gCm2 = apply(states_all$fol_gCm2+states_all$lab_gCm2,2,quantile,prob=num_quantiles,na.rm=na_flag),
                                  biomass_gCm2 = apply(states_all$bio_gCm2,2,quantile,prob=num_quantiles,na.rm=na_flag),
                                  lai_m2m2 = apply(states_all$lai_m2m2,2,quantile,prob=num_quantiles,na.rm=na_flag),
@@ -231,7 +236,7 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override,stage5modifiers) {
               }
               # Water cycle specific if available
               if (length(which(names(states_all) == "evap_kgH2Om2day")) > 0) {
-                  # current water in the soil surface layer (0-10 cm)
+                  # current water in the soil surface layer (0-30 cm)
                   site_output$SurfWater_kgH2Om2 = apply(states_all$sfc_water_mm,2,quantile,prob=num_quantiles,na.rm=na_flag)
                   # plant apparent soil water potential (MPa)
                   site_output$wSWP_MPa = apply(states_all$wSWP_MPa,2,quantile,prob=num_quantiles,na.rm=na_flag)
@@ -348,7 +353,7 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override,stage5modifiers) {
               site_output$fire_par_cor = states_all$fire_par_cor
 
               # save to pixel specific file for the moment... in "run_mcmc_results" these will be combined into a single grid
-              save(site_output,file=outfile2)
+              save(site_output,file=outfile2, compress = "gzip")
         }
 
         dummy = 0
@@ -439,6 +444,8 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       # Determine some useful information for the analysis below
       nos_years = (as.numeric(PROJECT$end_year) - as.numeric(PROJECT$start_year))+1
       steps_per_year = floor(dim(drivers$met)[1] / nos_years)
+      # Set number of final aggregated quantiles wanted
+      agg_quantiles_final = seq(0,1,length.out=100)
 
       if (file.exists(outfile_grid) == FALSE | repair == 1) {
 
@@ -454,7 +461,8 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
           # i.e. including areas not part of the analysis but within the spatail domain
           #
           # Mean stocks first
-          grid_output = list(mean_labile_gCm2 = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1])))
+          grid_output = list(num_quantiles = site_output$num_quantiles)
+          grid_output$mean_labile_gCm2 = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
           grid_output$mean_totalC_gCm2 = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
           grid_output$mean_dom_gCm2 = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
           grid_output$mean_biomass_gCm2 = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
@@ -704,6 +712,8 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
                if(slot_i == 0) {slot_i = PROJECT$long_dim} ; slot_j=ceiling(slot_j)
                # save for later
                grid_output$i_location[n] = slot_i ; grid_output$j_location[n] = slot_j
+               # Store a record of the quantiles extracted for the site data
+               grid_output$quantiles_wanted
 
                ## Begin aggregation to grid totals
 
@@ -921,8 +931,51 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
       } # looping through sites
 
+      # Mean stocks first
+      grid_output$agg_labile_TgC = quantile(grid_output$agg_labile_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_totalC_TgC = quantile(grid_output$agg_totalC_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dom_TgC = quantile(grid_output$agg_dom_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_biomass_TgC = quantile(grid_output$agg_biomass_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_foliage_TgC = quantile(grid_output$agg_foliage_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_roots_TgC = quantile(grid_output$agg_roots_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_wood_TgC = quantile(grid_output$agg_wood_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_lit_TgC = quantile(grid_output$agg_lit_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_som_TgC = quantile(grid_output$agg_som_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCtotalC_TgC = quantile(grid_output$agg_dCtotalC_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCdom_TgC = quantile(grid_output$agg_dCdom_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCbio_TgC = quantile(grid_output$agg_dCbio_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCfoliage_TgC = quantile(grid_output$agg_dCfoliage_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCroots_TgC = quantile(grid_output$agg_dCroots_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCwood_TgC = quantile(grid_output$agg_dCwood_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dClit_TgC = quantile(grid_output$agg_dClit_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_dCsom_TgC = quantile(grid_output$agg_dCsom_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      # Fluxes seconds
+      grid_output$agg_nee_TgCyr = quantile(grid_output$agg_nee_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_gpp_TgCyr = quantile(grid_output$agg_gpp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_rauto_TgCyr = quantile(grid_output$agg_rauto_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_rhet_TgCyr = quantile(grid_output$agg_rhet_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_reco_TgCyr = quantile(grid_output$agg_reco_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_npp_TgCyr = quantile(grid_output$agg_npp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_fnpp_TgCyr = quantile(grid_output$agg_fnpp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_rnpp_TgCyr = quantile(grid_output$agg_rnpp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_wnpp_TgCyr = quantile(grid_output$agg_wnpp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_harvest_TgCyr = quantile(grid_output$agg_harvest_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_fire_TgCyr = quantile(grid_output$agg_fire_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_nbe_TgCyr = quantile(grid_output$agg_nbe_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      grid_output$agg_nbp_TgCyr = quantile(grid_output$agg_nbp_TgCyr, prob = agg_quantiles_final, na.rm=TRUE)
+      # Models where we have a CWD pool and therefore a total dead organic matter combination also
+      if (length(which(names(grid_output) == "agg_litwood_TgC")) > 0) {
+          grid_output$agg_litwood_TgC = quantile(grid_output$agg_litwood_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+          grid_output$agg_dClitwood_TgC = quantile(grid_output$agg_dClitwood_TgC, prob = agg_quantiles_final, na.rm=TRUE)
+      }
+      # Finally water cycle specific if available
+      if (length(which(names(grid_output) == "agg_evap_PgH2Oyr")) > 0) {
+          # evapotranspiration (Etrans + Esoil + Ewetcanopy)
+          grid_output$agg_evap_PgH2Oyr = quantile(grid_output$agg_evap_PgH2Oyr, prob = agg_quantiles_final, na.rm=TRUE)
+      }
+
       # now save the combined grid file
-      save(grid_output, file=outfile_grid)
+      save(grid_output, file=outfile_grid, compress = "gzip")
 
   } # gridded run?
 

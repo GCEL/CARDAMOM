@@ -3,6 +3,9 @@
 ## Function to submit processes to eddie
 ###
 
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE) & J. F. Exbrayat (UoE).
+
 submit_processes_to_cluster<-function (PROJECT_in) {
 
     print('PREPARING TO SUBMIT MCMC TO ECDF')

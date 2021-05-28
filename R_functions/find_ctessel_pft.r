@@ -4,6 +4,8 @@
 ## are within the defined box
 ###
 
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 find_pft<- function (lat,long) {
 
     # check input data

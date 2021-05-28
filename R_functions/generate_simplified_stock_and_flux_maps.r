@@ -1,7 +1,9 @@
 
 ###
-## Function to extract state variables and direct the production of uncertainty plots for the key states and fluxes
+## Function to create generic stock and flux plots for gridded CARDAMOM analyses
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 generate_simplified_stock_and_flux_maps<-function(PROJECT) {
 
@@ -64,7 +66,7 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
       PROJECT$model$name == "DALEC_G5" | PROJECT$model$name == "DALEC_G6" |
       PROJECT$model$name == "DALEC_GSI_BUCKET" | PROJECT$model$name == "DALEC_BUCKET_CanAGE") {
 
-      jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+      jpeg(file=paste(PROJECT$figpath,"median_root_depth_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
       par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.6), omi=c(0.2, 0.2, 0.2, 0.40))
       root_biomass = (grid_output$mean_roots_gCm2[,,median_loc]+(grid_output$mean_wood_gCm2[,,median_loc]*grid_parameters$parameters[,,29,median_loc]))*2
       mean_rooting_depth = grid_parameters$parameters[,,40,median_loc] * root_biomass / (grid_parameters$parameters[,,39,median_loc] + root_biomass)
@@ -74,7 +76,7 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
       contour(landmask, add = TRUE, lwd=1.0, nlevels=1,axes=FALSE,drawlabels=FALSE,col="black")
       dev.off()
 
-      jpeg(file=paste(PROJECT$figpath,"median_max_root_depth_maps_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+      jpeg(file=paste(PROJECT$figpath,"median_max_root_depth_maps_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
       par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.6), omi=c(0.2, 0.2, 0.2, 0.40))
       root_biomass = (grid_output$annual_max_roots_gCm2[,,median_loc]+(grid_output$annual_max_wood_gCm2[,,median_loc]*grid_parameters$parameters[,,29,median_loc]))*2
       mean_rooting_depth = grid_parameters$parameters[,,40,median_loc] * root_biomass / (grid_parameters$parameters[,,39,median_loc] + root_biomass)
@@ -98,7 +100,7 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
        pp = which(names(grid_output) == par_names[p])
 
        # create maps
-       jpeg(file=paste(PROJECT$figpath,"grid_mean_map_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+       jpeg(file=paste(PROJECT$figpath,"grid_mean_map_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
        par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.8), omi=c(0.2, 0.2, 0.2, 0.40))
        info = " " # assume default is no header, but sometimes we add something extra...
        var1 = mean(grid_output[[pp]][,,median_loc], na.rm=TRUE)
@@ -113,7 +115,7 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
        dev.off()
 
        # create distribution information
-       jpeg(file=paste(PROJECT$figpath,"grid_mean_hist_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+       jpeg(file=paste(PROJECT$figpath,"grid_mean_hist_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
        par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.8), omi=c(0.2, 0.2, 0.2, 0.40))
        info = paste("Distribution of median estimates: ",par_names[p], sep="")
        hist(as.vector(grid_output[[pp]][,,median_loc]), main=info, col = "grey", cex.main=2.4, cex=1.5)
@@ -132,7 +134,7 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
        # determine position in grid_output list which contains the variable of interest
        pp = which(names(grid_output) == par_names[p])
 
-       jpeg(file=paste(PROJECT$figpath,"grid_final_map_",par_names[p],"_",PROJECT$name,".jpg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
+       jpeg(file=paste(PROJECT$figpath,"grid_final_map_",par_names[p],"_",PROJECT$name,".jpeg",sep=""), width=fig_width, height=fig_height, res=300, quality=100)
        par(mfrow=c(1,1), mar=c(1.2, 1.0, 2.2, 6.8), omi=c(0.2, 0.2, 0.2, 0.40))
        info = " " # assume default is no header, but sometimes we add something extra...
        var1 = mean(grid_output[[pp]][,,median_loc], na.rm=TRUE)

@@ -1,3 +1,12 @@
+
+###
+## Function extracts location specific information on leaf area index from a
+## globally gridded MODIS dataset that has already been loaded.
+###
+
+# This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
+# Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
 # declare function
 bintodec <- function(x) {
   sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
@@ -15,47 +24,28 @@ extract_modis_lai<- function(timestep_days,spatial_type,resolution,grid_type,lat
   # return long to 0-360
   if (length(check1) > 0) { lai_all$long[check1]=lai_all$long[check1]+360 }
 
-  #	# work out number of pixels to average over
-  #	#print("NOTE LAI values may be an average of many pixels")
-  #	if (spatial_type == "grid") {
-  #	    if (grid_type == "wgs84") {
-  #		# calculate pixel area and convert from m2 -> km2
-  #		area=calc_pixel_area(latlon_in[1],latlon_in[2],resolution)*1e-6
-  #		radius=ceiling(max(0,sqrt(area)*0.5) / 45) # ~45 km per degree
-  #		max_radius = radius+4
-  #		rm(area)
-  #	    } else if (grid_type == "UK") {
-  #		radius=max(0,floor(1*resolution*1e-3*0.5))
-  #		max_radius = radius+4
-  #	    } else {
-  #		stop("have not specified the grid used in this analysis")
-  #	    }
-  #	} else {
-  #	    radius=0
-  #	    max_radius=5
-  #	}
 
   # work out number of pixels to average over
   if (spatial_type == "grid") {
-    # resolution of the product
-    product_res = abs(lai_all$lat[1,2]-lai_all$lat[1,1])+abs(lai_all$long[2,1]-lai_all$long[1,1])
-    product_res = product_res * 0.5 # NOTE: averaging needed for line above
-    if (grid_type == "wgs84") {
-      # radius is ceiling of the ratio of the product vs analysis ratio
-      radius = round(resolution / product_res, digits=0)
-      max_radius = radius+4
-    } else if (grid_type == "UK") {
-      # Estimate radius for UK grid assuming radius is determine by the longitude size
-      # 6371e3 = mean earth radius (m)
-      radius = round(rad2deg(sqrt((resolution / 6371e3**2))) / product_res, digits=0)
-      #radius = max(0,floor(1*resolution*1e-3*0.5))
-      max_radius = radius+4
-    } else {
-      stop("have not specified the grid used in this analysis")
-    }
+      # resolution of the product
+      product_res = abs(lai_all$lat[1,2]-lai_all$lat[1,1])+abs(lai_all$long[2,1]-lai_all$long[1,1])
+      product_res = product_res * 0.5 # NOTE: averaging needed for line above
+      if (grid_type == "wgs84") {
+          # radius is ceiling of the ratio of the product vs analysis ratio
+          radius = floor(0.5*(resolution / product_res))
+          max_radius = radius+4
+      } else if (grid_type == "UK") {
+          # Estimate radius for UK grid assuming radius is determine by the longitude size
+          # 6371e3 = mean earth radius (m)
+          radius = round(rad2deg(sqrt((resolution / 6371e3**2))) / product_res, digits=0)
+          #radius = max(0,floor(1*resolution*1e-3*0.5))
+          max_radius = radius+4
+      } else {
+         stop("have not specified the grid used in this analysis")
+      }
   } else {
-    radius = 0
-    max_radius = 4
+      radius = 0
+      max_radius = 4
   }
 
   answer=NA

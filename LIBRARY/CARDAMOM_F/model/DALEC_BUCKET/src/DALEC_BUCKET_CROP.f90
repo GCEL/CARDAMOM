@@ -156,8 +156,8 @@ contains
                                ,min_root,top_soil_depth,max_depth,root_k,minlwp,min_layer                  &
                                ,soil_frac_clay,soil_frac_sand                                              &
                                ,co2comp_saturation,drythick,dayl_hours,dayl_seconds,dayl_seconds_1         & ! variables
-                               ,seconds_per_step,fine_root_biomass,mid_soil_depth,root_reach,previous_depth     &
-                               ,deltat_1,water_flux_mmolH2Om2s,layer_thickness,meant,stomatal_conductance             &
+                               ,seconds_per_step,fine_root_biomass,root_reach,previous_depth               &
+                               ,deltat_1,water_flux_mmolH2Om2s,layer_thickness,meant,stomatal_conductance  &
                                ,co2_half_sat,co2_comp_point,mint,maxt,swrad,co2,doy,leafT,ceff             &
                                ,wind_spd,vpd_kPa,lai,days_per_step,days_per_step_1,dayl_hours_fraction     &
                                ,wSWP,SWP,SWP_initial,wSWP_time,soil_waterfrac,soil_waterfrac_initial       &
@@ -435,10 +435,10 @@ contains
         root_biomass = fine_root_biomass
         root_reach = max_depth * root_biomass / (root_k + root_biomass)
         ! Determine initial soil layer thickness
-        layer_thickness(1) = top_soil_depth ; layer_thickness(2) = mid_soil_depth
-        layer_thickness(3) = max(min_layer,root_reach-sum(layer_thickness(1:2)))
-        layer_thickness(4) = max_depth - sum(layer_thickness(1:3))
-        layer_thickness(5) = top_soil_depth
+        layer_thickness(1) = top_soil_depth
+        layer_thickness(2) = max(min_layer,root_reach-top_soil_depth)
+        layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
+        layer_thickness(4) = top_soil_depth
         previous_depth = max(top_soil_depth,root_reach)
         ! needed to initialise soils
         call calculate_Rtot

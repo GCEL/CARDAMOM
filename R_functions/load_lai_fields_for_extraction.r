@@ -1,8 +1,9 @@
 
 ###
-## Function to load met data from global field ECMWF data
-## subsequently extracted in extract_met_drivers.txt
+## Function to load leaf area index from global databases
 ###
+
+# This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load) {
 
