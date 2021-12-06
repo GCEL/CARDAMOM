@@ -302,6 +302,11 @@ module MODEL_PARAMETERS
     ! turnover rate of autotrophic pool
     PI%parmin(35)=0.001 ; PI%parmax(35)=0.1
 
+	! slope of nitrogen dilution fit
+    PI%parmin(36)=-0.02  ; PI%parmax(36)=-0.08
+    ! intercept of nitrogen dilution fit
+    PI%parmin(37)=3. ; PI%parmax(37)=10.
+
     !
     ! INITIAL VALUES (gC.m-2) DECLARED HERE
     !
