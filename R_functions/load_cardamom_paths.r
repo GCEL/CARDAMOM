@@ -21,7 +21,7 @@ load_paths<- function() {
         outputsdir=paste(outputsdir,"/",sep="")
         ecdfdir=paste(ecdfdir,"/",sep="")
         # pretty much all this does
-        load_paths=list(user=username,cardamom=paste(getwd(),"/",sep="")
+        load_paths=list(user=username,cardamom=paste(path_to_cardamom,"/",sep="")
                        ,cardamom_library=paste(getwd(),"/LIBRARY/",sep="")
                        ,cardamom_projects=paste(getwd(),"/PROJECTS/",sep="")
                        ,cardamom_outputs=outputsdir

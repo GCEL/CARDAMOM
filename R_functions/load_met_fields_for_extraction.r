@@ -334,7 +334,7 @@ load_met_fields_for_extraction<-function(latlon_in,met_source,modelname,startyea
         # Assumed format, csv col 1 = year, 2 = month, 3 co2_ppm
         co2_background = read.csv(paste(path_to_co2,"/co2_monthly.csv",sep=""), header=TRUE)
         if (years_to_load[1] < co2_background$year[1] | years_to_load[length(years_to_load)] > co2_background$year[dim(co2_background)[1]]) {
-            stop("Available CO2 information in ./R_functions/co2_monthly.csv does not cover project time frame...")
+            stop(paste("Available CO2 information in ", path_to_co2, "/co2_monthly.csv does not cover project time frame...",sep=""))
         }
         for (yr in seq(1,length(years_to_load))) {
              # if this includes the extra year add it on to the beginning

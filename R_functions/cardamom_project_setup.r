@@ -217,11 +217,12 @@ cardamom_project_setup <- function (paths,PROJECT) {
     } else if (project_src == "Fortran") {
 
         # store current working directory so that we can leave it briefly but return later
-        cwd=getwd()
+        #cwd=getwd()
         # Move to the directory containing the source ode
-        setwd(paste(paths$cardamom,"LIBRARY/CARDAMOM_F/executable/",sep=""))
+        #setwd(paste(paths$cardamom,"LIBRARY/CARDAMOM_F/executable/",sep=""))
         # Remove the evidence of the previuos compilation
-        system("rm *.mod") # depends on being in executable directory
+        #system("rm *.mod") # depends on being in executable directory
+        system(paste("rm ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/*.mod",sep="")) 
 
         if (request_compile_server == FALSE | request_compile_local == TRUE) {
             # compiler options
@@ -232,10 +233,20 @@ cardamom_project_setup <- function (paths,PROJECT) {
             #if (file.exists(paste(paths$cardamom,"LIBRARY/CARDAMOM_F/executable/cardamom.exe",sep=""))) { system(paste("rm cardamom.exe")) }
             if (file.exists(paste(exepath,"/",exe,sep=""))) {system(paste("rm ",exepath,"/",exe,sep=""))}
             # issue compile commands
-            system(paste(compiler," -O2 ",compiler_options," ../misc/math_functions.f90 ../misc/oksofar.f90 ../model/",modelname,"/src/",modelname,".f90",
-                         " ../general/cardamom_structures.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC_STRUCTURES.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC_StressTests.f90",
-                         " ../model/",modelname,"/src/",modelname,"_PARS.f90 ../general/cardamom_io.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC.f90",
-                         " ../model/",modelname,"/likelihood/MODEL_LIKELIHOOD.f90 ../general/cardamom_main.f90 -o cardamom.exe",sep=""))
+            system(paste(compiler," -O2 ",compiler_options," ",paths$cardamom,"LIBRARY/CARDAMOM_F/misc/math_functions.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/misc/oksofar.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,".f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,"_CROP.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/general/cardamom_structures.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/method/MHMCMC/MCMC_FUN/MHMCMC_STRUCTURES.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/method/MHMCMC/MCMC_FUN/MHMCMC_StressTests.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,"_PARS.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/general/cardamom_io.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/method/MHMCMC/MCMC_FUN/MHMCMC.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/likelihood/MODEL_LIKELIHOOD.f90",
+                         " ",paths$cardamom,"LIBRARY/CARDAMOM_F/general/cardamom_main.f90",
+                         " -module ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/",
+                         " -o ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/cardamom.exe",sep=""))
 #            print(paste(compiler," -O2 ",compiler_options," ../misc/math_functions.f90 ../misc/oksofar.f90 ../model/",modelname,"/src/",modelname,".f90",
 #                         " ../general/cardamom_structures.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC_STRUCTURES.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC_StressTests.f90",
 #                         " ../model/",modelname,"/src/",modelname,"_PARS.f90 ../general/cardamom_io.f90 ../method/MHMCMC/MCMC_FUN/MHMCMC.f90",
@@ -246,15 +257,19 @@ cardamom_project_setup <- function (paths,PROJECT) {
         # Generate the shared library needed later by R
         #print(paste("gfortran -fcheck=all -O2 -shared ../model/",modelname,"/src/",modelname,".f90 ",
         #             "../model/",modelname,"/src/",modelname,"_R_interface.f90 ","-o dalec.so -fPIC",sep=""))
-        system(paste("gfortran -fcheck=all -O2 -shared ../model/",modelname,"/src/",modelname,".f90 ",
-                     "../model/",modelname,"/src/",modelname,"_R_interface.f90 ","-o dalec.so -fPIC",sep=""))
+        #system(paste("gfortran -fcheck=all -O2 -shared ../model/",modelname,"/src/",modelname,".f90 ",
+        #             "../model/",modelname,"/src/",modelname,"_R_interface.f90 ","-o dalec.so -fPIC",sep=""))
+        system(paste("gfortran -O2 -shared ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,".f90",
+                #" ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,"_CROP.f90",
+                " ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/",modelname,"_R_interface.f90",
+                " -o ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/dalec.so -fPIC",sep=""))
         system(paste("cp ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/dalec.so ",exepath,"/dalec.so",sep=""))
         # Copy crop development file into position
         if (modelname == "DALEC_CROP_BUCKET" | modelname == "DALEC_CROP") {
              system(paste("cp ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",exepath,"/",sep=""))
         } #
         # return to original working directory
-        setwd(cwd)
+        #setwd(cwd)
 
     } else {
 
