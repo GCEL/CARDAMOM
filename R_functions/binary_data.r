@@ -24,55 +24,55 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
   # set model ID
   if (modelname == "ACM") {
     modelid = 0
-  } else if (modelname == "DALEC.D1.F2.") {
+  } else if (modelname == "DALEC.D1.F2") {
     modelid = 1
-  } else if (modelname == "DALEC.C1.D1.F2.P1."){
+  } else if (modelname == "DALEC.C1.D1.F2.P1"){
     modelid = 2
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H1.P1."){
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H1.P1"){
     modelid = 3
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1."){
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1"){
     modelid = 4
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.R1.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.R1") {
     modelid = 5
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P1.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P1.R1") {
     modelid = 6
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R1") {
     modelid = 7
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P3.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P3.R1") {
     modelid = 8
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P3.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P3.R1") {
     modelid = 9
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P4.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P4.R2") {
     modelid = 10
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P4.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P4.R2") {
     modelid = 11
-  } else if (modelname == "DALEC.C4.D1.F2.") {
+  } else if (modelname == "DALEC.C4.D1.F2") {
     modelid = 12
-  } else if (modelname == "DALEC.C5.D1.F2.P1.") {
+  } else if (modelname == "DALEC.C5.D1.F2.P1") {
     modelid = 13
-  } else if (modelname == "DALEC.C3.M1.") {
+  } else if (modelname == "DALEC.C3.M1") {
     modelid = 14
-  } else if (modelname == "DALEC.A1.C3.H2.M1.") {
+  } else if (modelname == "DALEC.A1.C3.H2.M1") {
     modelid = 15
-  } else if (modelname == "DALEC.M2.") {
+  } else if (modelname == "DALEC.M2") {
     modelid = 16
-  } else if (modelname == "DALEC.A1.H2.M2."){
+  } else if (modelname == "DALEC.A1.H2.M2"){
     modelid = 17
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P2."){
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P2"){
     modelid = 18
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R3."){
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R3"){
     modelid = 19
-  } else if (modelname == "DALEC.A2.C1.D2.F2.H2.P1."){
+  } else if (modelname == "DALEC.A2.C1.D2.F2.H2.P1"){
     modelid = 20
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P5.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P5") {
     modelid = 21
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P6.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P6") {
     modelid = 22
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P7.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P7.R2") {
     modelid = 23
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P8.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P8.R2") {
     modelid = 24
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P9.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P9.R2") {
     modelid = 25
   } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P10.R2.") {
     modelid = 26
@@ -254,7 +254,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
   ###
 
   # Assign model specific parameter priors
-  if (modelname == "DALEC.C1.D1.F2.P1.") {
+  if (modelname == "DALEC.C1.D1.F2.P1") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[11]=16.9                   ; PARPRIORUNC[11]=7.502147 # Ceff: derived from multiple trait values from Kattge et al., (2011)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_un
@@ -269,7 +269,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[27] = 0.01                 ; PARPRIORUNC[27] = 0.05 # Soil combustion completeness
       # Other priors
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.C3.M1.") {
+  } else if (modelname == "DALEC.C3.M1") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[11]=16.9                   ; PARPRIORUNC[11]=7.502147 # Ceff: derived from multiple trait values from Kattge et al., (2011)
       PARPRIORS[12]=OBS$plant              ; PARPRIORUNC[12]=OBS$plant_range
@@ -280,7 +280,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[21]=OBS$Cwood_initial      ; if (OBS$Cwood_initial != -9999) {PARPRIORUNC[21]=OBS$Cwood_initial_unc} # Cwood prior
       PARPRIORS[22]=OBS$Clit_initial       ; if (OBS$Clit_initial != -9999) {PARPRIORUNC[22]=OBS$Clit_initial_unc} # Clitter prior
       PARPRIORS[23]=OBS$Csom_initial       ; if (OBS$Csom_initial != -9999) {PARPRIORUNC[23]=OBS$Csom_initial_unc} # Csom prior
-  } else if (modelname == "DALEC.A1.C3.H2.M1.") {
+  } else if (modelname == "DALEC.A1.C3.H2.M1") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871*0.5 # log10 avg foliar N (gN.m-2)
       PARPRIORS[12]=OBS$plant              ; PARPRIORUNC[12]=OBS$plant_range
@@ -313,7 +313,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[23]=OBS$Csom_initial       ; if (OBS$Csom_initial != -9999) {PARPRIORUNC[23]=OBS$Csom_initial_unc} # Csom prior
       # Other priors
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H1.P1.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H1.P1") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                              # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -334,7 +334,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[27] = 0.01                 ; PARPRIORUNC[27] = 0.05 # Soil combustion completeness
       # Other priors
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1") {
       PARPRIORS[2] = 0.46                  ; PARPRIORUNC[2] = 0.12 #; PARPRIORWEIGHT[2] = noyears # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                            # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -359,7 +359,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 ; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A2.C1.D2.F2.H2.P1.") {
+  } else if (modelname == "DALEC.A2.C1.D2.F2.H2.P1") {
       PARPRIORS[2] = 0.46                  ; PARPRIORUNC[2] = 0.12 #; PARPRIORWEIGHT[2] = noyears # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                            # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -388,7 +388,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 ; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P5.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P5") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -411,7 +411,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P6.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P6") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735         ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -435,7 +435,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P2.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P2") {
       PARPRIORS[2] =0.46                   ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -458,7 +458,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.R1.") {
+  } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.R1") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -508,7 +508,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #NOTUSE      OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R1") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -533,7 +533,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #NOTUSE      OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R3.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R3") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                     # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC
@@ -558,7 +558,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #NOTUSE      OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
- } else if (modelname == "DALEC.D1.F2.") {
+ } else if (modelname == "DALEC.D1.F2") {
       PARPRIORS[2] = 0.46                  ; PARPRIORUNC[2]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[11] = 16.9                 ; PARPRIORUNC[11]=7.502147 # Ceff: derived from multiple trait values from Kattge et al., (2011)
       PARPRIORS[13] = OBS$Cfol_initial     ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[13] = OBS$Cfol_initial_unc} # Cfoliar prior
@@ -568,19 +568,19 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[17] = OBS$Csom_initial     ; if (OBS$Csom_initial != -9999) {PARPRIORUNC[17] = OBS$Csom_initial_unc} # Csom prior
       # Other priors
 #      OTHERPRIORS[5] =                    ; OTHERPRIORUNC[5] = # Steady state attractor for wood
-  } else if (modelname == "DALEC.C5.D1.F2.P1.") {
+  } else if (modelname == "DALEC.C5.D1.F2.P1") {
       PARPRIORS[1] = 0.46                  ; PARPRIORUNC[1]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[7] = 16.9                  ; PARPRIORUNC[7]=7.502147 # Ceff: derived from multiple trait values from Kattge et al., (2011)
       PARPRIORS[15] = OBS$Cfol_initial     ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[15] = OBS$Cfol_initial_unc} # Cfoliar prior
       PARPRIORS[16] = OBS$Cwood_initial    ; if (OBS$Cwood_initial != -9999) {PARPRIORUNC[16] = OBS$Cwood_initial_unc} # Croot + Cwood prior
       PARPRIORS[17] = OBS$Csom_initial     ; if (OBS$Csom_initial != -9999) {PARPRIORUNC[17] = OBS$Csom_initial_unc} # Csom + Clitter prior
-  } else if (modelname == "DALEC.C4.D1.F2.") {
+  } else if (modelname == "DALEC.C4.D1.F2") {
       PARPRIORS[1] = 0.46                  ; PARPRIORUNC[1]=0.12  # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
       PARPRIORS[7] = 16.9                  ; PARPRIORUNC[7]=7.502147 # Ceff: derived from multiple trait values from Kattge et al., (2011)
       PARPRIORS[9] = OBS$Cfol_initial      ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[9] = OBS$Cfol_initial_unc} # Cfoliar prior
       PARPRIORS[10] = OBS$Cwood_initial    ; if (OBS$Cwood_initial != -9999) {PARPRIORUNC[10] = OBS$Cwood_initial_unc} # Croot + Cwood prior
       PARPRIORS[11] = OBS$Csom_initial     ; if (OBS$Csom_initial != -9999) {PARPRIORUNC[11] = OBS$Csom_initial_unc} # Csom + Clitter prior
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P3.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P3.R1") {
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871 # log10 avg foliar N (gN.m-2)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc
       PARPRIORS[19]=OBS$Cfol_initial       ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[19]=OBS$Cfol_initial_unc} # Cfoliar prior
@@ -599,7 +599,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       # POSITION 2 used for water which does not apply here
 #      OTHERPRIORS[3] = 27.295 ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P4.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P4.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871*0.5 # log10 avg foliar N (gN.m-2)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc
@@ -619,7 +619,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #NOT IN USE      OTHERPRIORS[2] = OBS$soilwater ; OTHERPRIORUNC[2] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
 #      OTHERPRIORS[3] = 27.295              ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P4.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P4.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871*0.5 # log10 avg foliar N (gN.m-2)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc
@@ -641,7 +641,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
 
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P7.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P7.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871 # log10 avg foliar N (gN.m-2)
       PARPRIORS[14]=0                      ; PARPRIORUNC[14]=5  # minimum CGI temperature
@@ -666,7 +666,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
       OTHERPRIORS[6] = 0.5                 ; OTHERPRIORUNC[6] = 0.05 # Rleaf:Rauto ratio See Atkin et al., various for approximate ratio
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P8.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P8.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871 # log10 avg foliar N (gN.m-2)
       PARPRIORS[14]=0                      ; PARPRIORUNC[14]=5  # minimum CGI temperature
@@ -691,7 +691,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
       OTHERPRIORS[6] = 0.5                 ; OTHERPRIORUNC[6] = 0.05 # Rleaf:Rauto ratio See Atkin et al., various for approximate ratio
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P9.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P9.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871 # log10 avg foliar N (gN.m-2)
       PARPRIORS[14]=0                      ; PARPRIORUNC[14]=5  # minimum CGI temperature
@@ -716,7 +716,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
       OTHERPRIORS[6] = 0.5                 ; OTHERPRIORUNC[6] = 0.05 # Rleaf:Rauto ratio See Atkin et al., various for approximate ratio
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P10.R2.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P10.R2") {
       PARPRIORS[1]=0.5                     ; PARPRIORUNC[1]=0.125 # fraction of litter decomposition to Csom
       PARPRIORS[11]=0.2764618              ; PARPRIORUNC[11]=0.2014871 # log10 avg foliar N (gN.m-2)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc
@@ -737,7 +737,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
 #      OTHERPRIORS[3] = 27.295              ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P3.R1.") {
+  } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P3.R1") {
       PARPRIORS[11]=0.2764618	             ; PARPRIORUNC[11]=0.2014871*0.5 # log10 avg foliar N (gN.m-2)
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc
 #      PARPRIORS[17]=35.5                   ; PARPRIORUNC[17]=35.5*0.23 # Kiuic LCA prior
