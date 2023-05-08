@@ -1022,9 +1022,10 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, obs, model, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	integer, dimension(DATAin%nodays) :: fol_hak
 
 !    ! Debugging print statement
 !    print*,"likelihood: "
@@ -1354,6 +1355,30 @@ module model_likelihood_module
         tot_exp = DATAin%otherpriorweight(5) * ((tot_exp-DATAin%otherpriors(5))/DATAin%otherpriorunc(5))**2
         likelihood = likelihood-tot_exp
     endif
+	
+	! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+	end if
+	
+	
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -1392,10 +1417,11 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
-
+	integer, dimension(DATAin%nodays) :: fol_hak
+	
 !    ! Debugging print statement
 !    print*,"scale_likelihood: "
 
@@ -1735,6 +1761,29 @@ module model_likelihood_module
         tot_exp = DATAin%otherpriorweight(5) * ((tot_exp-DATAin%otherpriors(5))/DATAin%otherpriorunc(5))**2
         scale_likelihood = scale_likelihood-tot_exp
     endif
+	
+	! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		scale_likelihood = scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+	end if
+	
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across

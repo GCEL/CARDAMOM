@@ -85,6 +85,19 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
    # clean up
    rm(i1,j1,lai,i,a) ; gc(reset=TRUE,verbose=FALSE)
 
+   # HACK: to remove winter time LAI estimates - assumes NH location and monthly time step (1 = January below)
+   #lai_out[seq(1,length(lai_out),12)] = -9999 ;lai_unc_out[seq(1,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(2,length(lai_out),12)] = -9999 ;lai_unc_out[seq(2,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(3,length(lai_out),12)] = -9999 ;lai_unc_out[seq(3,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(4,length(lai_out),12)] = -9999 ;lai_unc_out[seq(4,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(5,length(lai_out),12)] = -9999 ;lai_unc_out[seq(5,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(9,length(lai_out),12)] = -9999 ;lai_unc_out[seq(9,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(10,length(lai_out),12)] = -9999 ;lai_unc_out[seq(10,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(11,length(lai_out),12)] = -9999 ;lai_unc_out[seq(11,length(lai_unc_out),12)] = -9999
+   #lai_out[seq(12,length(lai_out),12)] = -9999 ;lai_unc_out[seq(12,length(lai_unc_out),12)] = -9999
+
+
+
    # CARDAMOM works best if the uncertainties are the same across each LAI observation as the framework tends towards lower LAI values
    # Therefore, to make use of the uncertainty information we take the mean for this site and apply it across each value.
    # NOTE: we put a book end the upper uncertainty linked to half the mean LAI estimate to ensure that there is some constraint

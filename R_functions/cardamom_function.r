@@ -8,7 +8,7 @@
 # Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 cardamom <-function (projname,model,method,stage) {
-stage = 2 ; repair = 1 ; use_parallel = TRUE
+#stage = 2 ; repair = 1 ; use_parallel = TRUE
   ## load needed functions into R environment
   paths = load_paths()
 
@@ -296,6 +296,8 @@ stage = 2 ; repair = 1 ; use_parallel = TRUE
           lca_all = load_lca_maps_for_extraction(latlon,lca_source,cardamom_ext,PROJECT$spatial_type)
           Cwood_inc_all = load_wood_productivity_maps_for_extraction(Cwood_inc_source,cardamom_ext,PROJECT$spatial_type,latlon,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days)
           Cwood_mortality_all = load_wood_mortality_maps_for_extraction(Cwood_mortality_source,cardamom_ext,PROJECT$spatial_type,latlon,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days)
+		  lifespan_all = load_lifespan_maps_for_extraction(latlon,lifespan_source,cardamom_ext,PROJECT$spatial_type)
+		  leaf_fall_period_all = load_leaf_fall_period_maps_for_extraction(latlon,leaf_fall_period_source,cardamom_ext,PROJECT$spatial_type)
       } # # if (PROJECT$model$name != "ACM")
 
       # Update user
@@ -332,7 +334,7 @@ stage = 2 ; repair = 1 ; use_parallel = TRUE
                   obs = extract_obs(grid_long_loc,grid_lat_loc,latlon[n,],lai_all,Csom_all,forest_all
                                    ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                                    ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                                   ,nbe_all, lca_all, gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
+                                   ,nbe_all, lca_all, lifespan_all, leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
                                    ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                                    ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
 
@@ -382,7 +384,7 @@ stage = 2 ; repair = 1 ; use_parallel = TRUE
                    obs = extract_obs(grid_long_loc,grid_lat_loc,latlon[n,],lai_all,Csom_all,forest_all
                                     ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                                     ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                                    ,nbe_all, lca_all, gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
+                                    ,nbe_all, lca_all, lifespan_all,leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
                                     ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                                     ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
 

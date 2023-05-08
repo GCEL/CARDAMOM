@@ -341,6 +341,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[11]=21.1491                ; PARPRIORUNC[11]=8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values from Kattge et al., (2011)
                                                                       # Note that this prior is difference from DALEC_CDEA_LU_FIRES
                                                                       # due to the different temperature response functions used in ACM2 vs ACM 1
+	  PARPRIORS[16]=OBS$leaf_fall_period   ; PARPRIORUNC[16]=OBS$leaf_fall_period_unc #TG OBS$leaf_fall_period. leaf fall period for pine and decid =60, unc = 5
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc #; PARPRIORWEIGHT[17] = noyears
       PARPRIORS[19]=OBS$Cfol_initial       ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[19]=OBS$Cfol_initial_unc} # Cfoliar prior
       PARPRIORS[20]=OBS$Croots_initial     ; if (OBS$Croots_initial != -9999) {PARPRIORUNC[20]=OBS$Croots_initial_unc} # Croots prior
@@ -356,6 +357,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[1] = OBS$soilwater       ; OTHERPRIORUNC[1] = OBS$soilwater_unc # Initial soil water fraction (GLEAM v3.1a)
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 ; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
+	  OTHERPRIORS[7] = OBS$lifespan                #; OTHERPRIORUNC[7] = 1 #TG OBS$lifespan
   } else if (modelname == "DALEC_CDEA_ACM_FARQUHAR_BUCKET") {
       PARPRIORS[2] = 0.46                  ; PARPRIORUNC[2] = 0.12 #; PARPRIORWEIGHT[2] = noyears # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.

@@ -60,7 +60,7 @@ module MODEL_PARAMETERS
     ! Leaf Lifespan (yr)
     ! Wright et al. 2004
     PI%parmin(5) = 1.001d0
-    PI%parmax(5) = 6d0 !8d0
+    PI%parmax(5) = 13d0 !8d0
 
     ! TOR wood* - 1% loss per year value
     PI%parmin(6) = 0.000009d0 ! 304  years
@@ -94,8 +94,8 @@ module MODEL_PARAMETERS
     PI%parmax(11) = 100d0 !42d0 !50d0
 
     ! max bud burst day
-    PI%parmin(12) = 365.25d0
-    PI%parmax(12) = 365.25d0*4d0
+    PI%parmin(12) = 90.0d0 !365.25d0 
+    PI%parmax(12) = 180.0d0 !365.25d0*4d0 
 
     ! Fraction to Clab*/
     PI%parmin(13) = 0.01d0
@@ -106,12 +106,12 @@ module MODEL_PARAMETERS
     PI%parmax(14) = 100d0
 
     ! max leaf fall day
-    PI%parmin(15) = 365.25d0
-    PI%parmax(15) = 365.25d0*4d0
+    PI%parmin(15) = 180.0d0 !365.25d0 
+    PI%parmax(15) = 365.25d0 !365.25d0*4d0 
 
     ! Leaf fall period
     PI%parmin(16) = 20d0
-    PI%parmax(16) = 150d0
+    PI%parmax(16) = 365.25d0
 
     ! LMA (gC.m-2)
     ! Kattge et al. 2011

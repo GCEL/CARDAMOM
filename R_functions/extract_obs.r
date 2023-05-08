@@ -9,7 +9,8 @@
 extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,forest_all
                      ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                      ,sand_clay_all,crop_man_all,burnt_all,soilwater_all,nbe_all
-                     ,lca_all,gpp_all,Cwood_inc_all,Cwood_mortality_all,fire_all
+                     ,lca_all,lifespan_all,leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all
+					 ,fire_all
                      ,ctessel_pft,site_name,start_year,end_year
                      ,timestep_days,spatial_type,resolution,grid_type,modelname) {
 
@@ -820,6 +821,46 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         # assume no data available
         lca = -9999 ; lca_unc = -9999
     }
+	
+	 ###
+    ## Get leaf_fall_period information
+    ###
+
+    if (leaf_fall_period_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        lifespan=read_site_specific_obs("leaf_fall_period",infile)
+        lifespan_unc=read_site_specific_obs("leaf_fall_period_unc",infile)
+    } else if (leaf_fall_period_source == "TG") {
+        # 
+        output = extract_leaf_fall_period_prior(grid_long_loc,grid_lat_loc,spatial_type,resolution,
+                                   grid_type,latlon_wanted,leaf_fall_period_all)
+        leaf_fall_period = output$leaf_fall_period
+        #leaf_fall_period_unc = output$leaf_fall_period_unc_days
+    } else {
+        # assume no data available
+        leaf_fall_period = -9999 #; leaf_fall_period_unc = -9999
+    }
+	
+	
+	
+	    ###
+    ## Get lifespan/MRT ("natural") fol information
+    ###
+
+    if (lifespan_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        lifespan=read_site_specific_obs("lifespan",infile)
+        lifespan_unc=read_site_specific_obs("lifespan_unc",infile)
+    } else if (lifespan_source == "Tupek") {
+        # 
+        output = extract_lifespan_prior(grid_long_loc,grid_lat_loc,spatial_type,resolution,
+                                   grid_type,latlon_wanted,lifespan_all)
+        lifespan = output$lifespan
+        #lifespan_unc = output$lifespan_unc_yrs
+    } else {
+        # assume no data available
+        lifespan = -9999 #; lifespan_unc = -9999
+    }
     # Assumed uncertainty structure as agreed with Anthony Bloom
     # NOTE minimum uncertainty bound irrespective of the dataset estimates
     #lca_unc[lca_unc >= 0] = pmax(10,sqrt(lca_unc[lca_unc >= 0]**2 + (0.1*mean(lca[lca > 0]))**2))
@@ -841,7 +882,8 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                ,SWE = SWE, SWE_unc = SWE_unc, soilwater = soilwater, soilwater_unc = soilwater_unc, nbe = nbe, nbe_unc = nbe_unc
                ,Cwood_potential = Cwood_potential, Cwood_potential_unc = Cwood_potential_unc, lca = lca, lca_unc = lca_unc
                ,Cwood_inc = Cwood_inc, Cwood_inc_unc = Cwood_inc_unc, Cwood_inc_lag = Cwood_inc_lag
-               ,Cwood_mortality = Cwood_mortality, Cwood_mortality_unc = Cwood_mortality_unc, Cwood_mortality_lag = Cwood_mortality_lag))
+               ,Cwood_mortality = Cwood_mortality, Cwood_mortality_unc = Cwood_mortality_unc, Cwood_mortality_lag = Cwood_mortality_lag
+			   , lifespan = lifespan, leaf_fall_period = leaf_fall_period))#, lifespan_unc = lifespan_unc))
 
 
 } # end function extract_obs
