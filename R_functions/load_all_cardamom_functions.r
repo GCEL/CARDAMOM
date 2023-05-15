@@ -8,21 +8,35 @@
 
 load_r_libraries<-function(){
     # load all needed libraries first
-    require(chron)
-    require(fields)
-    require(gplots)
-    require(ncdf4)
-    require(parallel)
-    #require(rgdal)
-    require(raster)
-    #require(rhdf5) # from bioconductor - not currently used
-    require(sp)
-    require(zoo)
-    require(apcluster)
-    require(compiler)
-    require(RColorBrewer)
-    require(colorspace)
-    require(maps)
+    if(!require(chron)) {install.packages("chron")} # Check if installed
+    library(chron)                                  # Load installed library
+    if(!require(fields)) {install.packages("fields")}
+    library(fields)
+    if(!require(gplots)) {install.packages("gplots")}
+    library(gplots)
+    if(!require(ncdf4)) {install.packages("ncdf4")}
+    library(ncdf4)
+    if(!require(parallel)) {install.packages("parallel")}
+    library(parallel)
+    #if(!require(rgdal)) {install.packages("rgdal")}
+    #library(rgdal)
+    if(!require(raster)) {install.packages("raster")}
+    library(raster)
+    #library(rhdf5) # from bioconductor - not currently used
+    if(!require(sp)) {install.packages("sp")}
+    library(sp)
+    if(!require(zoo)) {install.packages("zoo")}
+    library(zoo)
+    if(!require(apcluster)) {install.packages("apcluster")}
+    library(apcluster)
+    if(!require(compiler)) {install.packages("compiler")}
+    library(compiler)
+    if(!require(RColorBrewer)) {install.packages("RColorBrewer")}
+    library(RColorBrewer)
+    if(!require(colorspace)) {install.packages("colorspace")}
+    library(colorspace)
+    if(!require(maps)) {install.packages("maps")}
+    library(maps)
     # Set error options to output line number for broken calls
     #options(error = utils::recover)
 } # function to load all libraries needed by the system

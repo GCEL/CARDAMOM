@@ -129,7 +129,7 @@ generate_parameter_maps<-function(PROJECT) {
                tmp=append(tmp,preferenceRange(negDistMat(par_array_tmp[sample(1:dim(par_array_tmp)[1],0.05*dim(par_array_tmp)[1], replace=FALSE),],r=2))[1])
           } ; preference_input=max(mean(tmp[-1]),median(tmp[-1]))
 
-          grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1,sweeps=5, p=preference_input,maxits=1000, convits=100)
+          grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1,sweeps=4, p=preference_input,maxits=1000, convits=100)
           #grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1, sweeps=10, q=0.05, maxits=1000, convits=100)
           grid_output$nos_pars_clusters=length(grid_output$cluster_analysis@clusters) ; clusters_exemplars=grid_output$cluster_analysis@exemplars
           grid_output$pars_clusters=array(NA,dim=c(dim(par_array_median_normalised)[1:2]))
@@ -168,7 +168,7 @@ generate_parameter_maps<-function(PROJECT) {
                tmp=append(tmp,preferenceRange(negDistMat(par_array_tmp[sample(1:dim(par_array_tmp)[1],0.05*dim(par_array_tmp)[1], replace=FALSE),],r=2))[1])
           } ; preference_input=max(mean(tmp[-1]),median(tmp[-1]))
 
-          grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1,sweeps=5, p=preference_input,maxits=1000, convits=100)
+          grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1,sweeps=4, p=preference_input,maxits=1000, convits=100)
           #grid_output$cluster_analysis=apclusterL(negDistMat(r=2),par_array_tmp,frac=0.1, sweeps=10, q=0.05, maxits=1000, convits=100)
           grid_output$nos_clusters=length(grid_output$cluster_analysis@clusters) ; clusters_exemplars=grid_output$cluster_analysis@exemplars
           grid_output$clusters=array(NA,dim=c(dim(par_array_median_normalised)[1:2]))

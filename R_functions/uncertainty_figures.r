@@ -32,75 +32,76 @@ uncertainty_figures<-function(n,PROJECT,load_file) {
 
    # Plot rooting depth information
    plot_root_depth = FALSE
-   if (PROJECT$model$name == "DALEC_CROP_BUCKET") {
+   if (PROJECT$model$name == "DALEC.A1.C3.H2.M1.#") {
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        var = t(states_all$roots_gCm2)
        # parameter numbers adjusted for crop model
        var = as.vector(parameters[37,,]) * (var*2) / (as.vector(parameters[36,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_BUCKET" | PROJECT$model$name == "DALEC" |
-       PROJECT$model$name == "DALEC_G5" | PROJECT$model$name == "DALEC_G6" |
-       PROJECT$model$name == "DALEC_GSI_BUCKET" | PROJECT$model$name == "DALEC_BUCKET_CanAGE"){
+   }  else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P4.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P4.R2.#" |
+       PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P7.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P8.R2.#" |
+       PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P3.R1.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#" |
+       PROJECR$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[29,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[40,,]) * (var*2) / (as.vector(parameters[39,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET"){
+   }  else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P1.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_CDEA_ACM_FARQUHAR_BUCKET"){
+   }  else if (PROJECT$model$name == "DALEC.A2.C1.D2.F2.H2.P1.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg"){
+   }  else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P1.R1.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD"){
+   }  else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT") {
+   } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#") {
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmHeskel_Rg_CWD_wMRT") {
+   } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R3.#") {
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_LAB"){
+   } else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P5.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
-   }  else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_LAB_wMRT"){
+   }  else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P6.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[25,,])
        var = t(states_all$roots_gCm2) + tmp
-       # Now estimate the rooting depth based on the equation imbedded in DALEC_GSI_BUCKET
+       # Now estimate the rooting depth based on the equation imbedded in DALEC.A1.C2.D2.F2.H2.P3.R1.
        var = as.vector(parameters[27,,]) * (var*2) / (as.vector(parameters[26,,]) + (var*2))
        plot_root_depth = TRUE
    } # model specific plotting for root depth
@@ -825,6 +826,78 @@ uncertainty_figures<-function(n,PROJECT,load_file) {
         dev.off()
 
    }  # biomass_gCm2
+
+   # Canopy growth index (CGI; 0-1)
+   if (exists(x = "ncce_gCm2day", where = states_all)) {
+
+       # structure needed by function is dim=c(time,iter)
+       # flip it to get the right shape
+       var=t(states_all$ncce_gCm2day)
+
+       jpeg(file=paste(PROJECT$figpath,"timeseries_NCCE_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""),
+            width=7200, height=4000, res=280, quality=100)
+       # now create the plotting area
+       par(mfrow=c(1,1), mar=c(5,5,3,1))
+       plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)),
+            cex=0.8,ylab="NCCE (gC/m2/day)",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8,
+            main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
+       axis(1, at=time_vector[seq(1,length(time_vector),interval)],
+            labels=round(year_vector[seq(1,length(time_vector),interval)], digits=1),tck=-0.02, padj=+0.15, cex.axis=1.9)
+       # add the confidence intervals
+       plotconfidence(var)
+       # calculate and draw the median values, could be mean instead or other
+       lines(apply(var[1:(dim(var)[1]-1),],1,median,na.rm=TRUE), pch=1, col="red")
+       dev.off()
+
+   } # ncce_gCm2day
+
+   # Canopy growth index (CGI; 0-1)
+   if (exists(x = "cgi", where = states_all)) {
+
+       # structure needed by function is dim=c(time,iter)
+       # flip it to get the right shape
+       var=t(states_all$cgi)
+
+       jpeg(file=paste(PROJECT$figpath,"timeseries_CGI_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""),
+            width=7200, height=4000, res=280, quality=100)
+       # now create the plotting area
+       par(mfrow=c(1,1), mar=c(5,5,3,1))
+       plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)),
+            cex=0.8,ylab="CGI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8,
+            main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
+       axis(1, at=time_vector[seq(1,length(time_vector),interval)],
+            labels=round(year_vector[seq(1,length(time_vector),interval)], digits=1),tck=-0.02, padj=+0.15, cex.axis=1.9)
+       # add the confidence intervals
+       plotconfidence(var)
+       # calculate and draw the median values, could be mean instead or other
+       lines(apply(var[1:(dim(var)[1]-1),],1,median,na.rm=TRUE), pch=1, col="red")
+       dev.off()
+
+   } # cgi
+
+   # Canopy mortality index (CMI; 0-1)
+   if (exists(x = "cmi", where = states_all)) {
+
+       # structure needed by function is dim=c(time,iter)
+       # flip it to get the right shape
+       var=t(states_all$cmi)
+
+       jpeg(file=paste(PROJECT$figpath,"timeseries_CMI_",PROJECT$sites[n],"_",PROJECT$name,".jpeg",sep=""),
+            width=7200, height=4000, res=280, quality=100)
+       # now create the plotting area
+       par(mfrow=c(1,1), mar=c(5,5,3,1))
+       plot(rep(-9999,dim(var)[1]),xaxt="n", pch=16, ylim=c(0,quantile(as.vector(var), prob=c(0.999), na.rm=TRUE)),
+            cex=0.8,ylab="CMI",xlab="Time (Year)", cex.lab=1.8, cex.axis=1.8, cex.main=1.8,
+            main=paste(PROJECT$sites[n]," - ",PROJECT$name, sep=""))
+       axis(1, at=time_vector[seq(1,length(time_vector),interval)],
+            labels=round(year_vector[seq(1,length(time_vector),interval)], digits=1),tck=-0.02, padj=+0.15, cex.axis=1.9)
+       # add the confidence intervals
+       plotconfidence(var)
+       # calculate and draw the median values, could be mean instead or other
+       lines(apply(var[1:(dim(var)[1]-1),],1,median,na.rm=TRUE), pch=1, col="red")
+       dev.off()
+
+   } # cmi
 
    # Growing season index (GSI; 0-1)
    if (exists(x = "gsi", where = states_all)) {

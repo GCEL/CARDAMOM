@@ -66,7 +66,7 @@ extract_gpp<- function(i1,j1,timestep_days,spatial_type,resolution,grid_type,
       gpp_agg = array(NA,dim=length(run_day_selector))
       gpp_unc_agg = array(NA, dim=length(run_day_selector))
       for (y in seq(1,length(run_day_selector))) {
-           pick = (run_day_selector[y]-timestep_days[y]):run_day_selector[y]
+           pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
            gpp_agg[y] = mean(gpp_out[pick],na.rm=TRUE)
            gpp_unc_agg[y] = mean(gpp_unc_out[pick],na.rm=TRUE)
       }

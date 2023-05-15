@@ -65,7 +65,7 @@ extract_nbe<- function(i1,j1,timestep_days,spatial_type,resolution,grid_type,lat
       nbe_agg = array(NA,dim=length(run_day_selector))
       nbe_unc_agg = array(NA, dim=length(run_day_selector))
       for (y in seq(1,length(run_day_selector))) {
-           pick = (run_day_selector[y]-timestep_days[y]):run_day_selector[y]
+           pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
            nbe_agg[y] = mean(nbe_out[pick],na.rm=TRUE)
            nbe_unc_agg[y] = mean(nbe_unc_out[pick],na.rm=TRUE)
       }

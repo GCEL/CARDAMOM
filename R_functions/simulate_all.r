@@ -53,13 +53,13 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       gs_demand_supply = output[,,7], gs_total_canopy = output[,,8],
                       APAR_MJm2day = output[,,9], gb_total_canopy = output[,,10],
                       CiCa = output[,,11])
-  } else if (model_name == "DALEC_CROP_BUCKET") {
+  } else if (model_name == "DALEC.C3.M1.#") {
 # THIS CODE AND THE R INTERFACE NEED UPDATING TO MAKE OPTIMAL USE OF THE VARIABLES HERE
       output_dim=28
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       crop_file_location=paste(PROJECT$exepath,"winter_wheat_development.csv", sep="")
       if (parameter_type == "pft_specific") {pft_specific = 1} else {pft_specific = 0}
-      tmp=.Fortran( "rdaleccropbucket",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
+      tmp=.Fortran( "rdalec14",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
                                       ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
                                       ,fire_dim=as.integer(fire_dim)
                                       ,met=as.double(t(met)),pars=as.double(pars_in)
@@ -113,32 +113,92 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$reco_gCm2day = states_all$rauto_gCm2day + states_all$rhet_gCm2day
       # Final tidy
       rm(output,MTT_gCm2,SS_gCm2)
-  } else if (model_name == "DALEC_BUCKET") {
+  } else if (model_name == "DALEC.A1.C3.H2.M1.#") {
+# THIS CODE AND THE R INTERFACE NEED UPDATING TO MAKE OPTIMAL USE OF THE VARIABLES HERE
+      output_dim=28
+      dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
+      crop_file_location=paste(PROJECT$exepath,"winter_wheat_development.csv", sep="")
+      if (parameter_type == "pft_specific") {pft_specific = 1} else {pft_specific = 0}
+      tmp=.Fortran( "rdalec15",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
+                                      ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                                      ,fire_dim=as.integer(fire_dim)
+                                      ,met=as.double(t(met)),pars=as.double(pars_in)
+                                      ,out_var=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                                      ,out_var2=as.double(array(0,dim=c(nos_iter,aNPP_dim)))
+                                      ,out_var3=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                                      ,out_var4=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                                      ,out_var5=as.double(array(0,dim=c(nos_iter,MTT_dim,noyears)))
+                                      ,out_var6=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                                      ,out_var7=as.double(array(0,dim=c(nos_iter,fire_dim,noyears)))
+                                      ,out_var8=as.double(array(0,dim=c(nos_iter,fire_dim,noyears)))
+                                      ,out_var9=as.double(array(0,dim=c(nos_iter,fire_dim,noyears)))
+                                      ,lat=as.double(lat),nopars=as.integer(PROJECT$model$nopars[site])
+                                      ,nomet=as.integer(dim(met)[2]),nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                                      ,nopools=as.integer(PROJECT$model$nopools[site]),pft=as.integer(pft)
+                                      ,pft_specific=as.integer(pft_specific),nodays=as.integer(dim(met)[1])
+                                      ,noyears=as.integer(noyears)
+                                      ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                                      ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                                      ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3)))
+                                      ,exepath=as.character(crop_file_location),pathlength=as.integer(nchar(crop_file_location)))
+      output = tmp$out_var   ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
+      aNPP = tmp$out_var2    ; aNPP = array(aNPP, dim=c(nos_iter,aNPP_dim))
+      MTT = tmp$out_var3     ; MTT = array(MTT, dim=c(nos_iter,MTT_dim))
+      SS_gCm2 = tmp$out_var4 ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
+      aMTT = tmp$out_var5    ; aMTT = array(aMTT, dim=c(nos_iter,MTT_dim,noyears))
+      MTTnat = tmp$out_var6  ; MTTnat = array(MTTnat, dim=c(nos_iter,MTT_dim))
+      FIREemiss = tmp$out_var7; FIREemiss = array(FIREemiss, dim=c(nos_iter,fire_dim,noyears))
+      FIRElit = tmp$out_var8  ; FIRElit = array(FIRElit, dim=c(nos_iter,fire_dim,noyears))
+      outflux_nat = tmp$out_var9  ; outflux_nat = array(outflux_nat, dim=c(nos_iter,fire_dim,noyears))
+      dyn.unload(paste(PROJECT$exepath,"/dalec.so", sep=""))
+      rm(tmp) ; gc()
+      # create output object (14,15,16,17 unused)
+      states_all=list(lai_m2m2 = output[,,1], gpp_gCm2day = output[,,2],
+                      rauto_gCm2day = output[,,3], rhet_gCm2day = output[,,4],
+                      nee_gCm2day = output[,,5], wood_gCm2 = output[,,6],
+                      som_gCm2 = output[,,7], bio_gCm2 = output[,,8],
+                      root_gCm2 = output[,,9], litter_gCm2 = output[,,10],
+                      labile_gCm2 = output[,,11], foliage_gCm2 = output[,,12],
+                      harvest_gCm2day = output[,,13], ET_kgH2Om2day = output[,,18],
+                      SurfWater_kgH2Om2 = output[,,19], wSWP_MPa = output[,,20],
+                      woodlitter_gCm2 = output[,,21], auto_gCm2 = output[,,22],
+                      fire_gCm2day = output[,,23],
+                      gs_demand_supply = output[,,24], gs_total_canopy = output[,,25],
+                      APAR_MJm2day = output[,,26], gb_total_canopy = output[,,27],
+                      CiCa = output[,,28],
+                      aNPP = aNPP, MTT = MTT, SS_gCm2 = SS_gCm2, aMTT = aMTT, natMTT = MTTnat,
+                      FIREemiss_gCm2yr = FIREemiss, FIRElit_gCm2yr = FIRElit,
+                      NAToutflux_gCm2yr = outflux_nat)
+      # add newly calculated variables
+      states_all$reco_gCm2day = states_all$rauto_gCm2day + states_all$rhet_gCm2day
+      # Final tidy
+      rm(output,MTT_gCm2,SS_gCm2)
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P4.R2.#") {
     output_dim = 62 ; MTT_dim = 7 ; SS_dim = 7
     # Load the required dalec shared object
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-    tmp=.Fortran( "rdalecbucket",output_dim=as.integer(output_dim)
-                                ,aNPP_dim=as.integer(aNPP_dim)
-                                ,MTT_dim=as.integer(MTT_dim)
-                                ,SS_dim = as.integer(SS_dim)
-                                ,fire_dim=as.integer(fire_dim)
-                                ,met=as.double(t(met))
-                                ,pars=as.double(pars_in)
-                                ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                ,lat=as.double(lat)
-                                ,nopars=as.integer(PROJECT$model$nopars[site])
-                                ,nomet=as.integer(dim(met)[2])
-                                ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                                ,nopools=as.integer(PROJECT$model$nopools[site])
-                                ,pft=as.integer(pft)
-                                ,nodays=as.integer(dim(met)[1])
-                                ,noyears=as.integer(noyears)
-                                ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
-                                ,nos_iter=as.integer(nos_iter)
-                                ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+    tmp=.Fortran( "rdalec11",output_dim=as.integer(output_dim)
+                            ,aNPP_dim=as.integer(aNPP_dim)
+                            ,MTT_dim=as.integer(MTT_dim)
+                            ,SS_dim = as.integer(SS_dim)
+                            ,fire_dim=as.integer(fire_dim)
+                            ,met=as.double(t(met))
+                            ,pars=as.double(pars_in)
+                            ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                            ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                            ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                            ,lat=as.double(lat)
+                            ,nopars=as.integer(PROJECT$model$nopars[site])
+                            ,nomet=as.integer(dim(met)[2])
+                            ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                            ,nopools=as.integer(PROJECT$model$nopools[site])
+                            ,pft=as.integer(pft)
+                            ,nodays=as.integer(dim(met)[1])
+                            ,noyears=as.integer(noyears)
+                            ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
+                            ,nos_iter=as.integer(nos_iter)
+                            ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                            ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
     # Extract the different output variables
     output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
     MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
@@ -247,10 +307,10 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     states_all$NPP_wood_fraction = NPP_fraction[,3]
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_G5") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P7.R2.#") {
       output_dim = 59 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdalecg5",output_dim=as.integer(output_dim)
+      tmp=.Fortran( "rdalec23",output_dim=as.integer(output_dim)
                               ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
                               ,met=as.double(t(met))
                               ,pars=as.double(pars_in)
@@ -368,10 +428,10 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_G6") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P8.R2.#") {
       output_dim = 60 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdalecg6",output_dim=as.integer(output_dim)
+      tmp=.Fortran( "rdalec24",output_dim=as.integer(output_dim)
                               ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
                               ,met=as.double(t(met))
                               ,pars=as.double(pars_in)
@@ -490,29 +550,151 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_BUCKET_CanAGE") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P9.R2.#") {
+      output_dim = 60 ; MTT_dim = 7 ; SS_dim = 7
+      dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
+      tmp=.Fortran( "rdalec25",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                              ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
+      MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
+      SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
+      # Unload the current dalec shared object
+      dyn.unload(paste(PROJECT$exepath,"/dalec.so", sep=""))
+      rm(tmp) ; gc()
+      # create output object
+      states_all=list(# Ecosystem fluxes
+                      gpp_gCm2day = output[,,1],
+                      rauto_gCm2day = output[,,2],
+                      rhet_litter_gCm2day = output[,,3],
+                      rhet_som_gCm2day = output[,,4],
+                      rhet_woodlitter_gCm2day = output[,,5],
+                      fire_gCm2day = output[,,6],
+                      harvest_gCm2day = output[,,7],
+                      # Internal fluxes
+                      alloc_labile_gCm2day = output[,,8],
+                      alloc_roots_gCm2day = output[,,9],
+                      alloc_wood_gCm2day = output[,,10],
+                      labile_to_foliage_gCm2day = output[,,11],
+                      foliage_to_litter_gCm2day = output[,,12],
+                      roots_to_litter_gCm2day = output[,,13],
+                      wood_to_litter_gCm2day = output[,,14],
+                      litter_to_som_gCm2day = output[,,15],
+                      woodlitter_to_som_gCm2day = output[,,16],
+                      # Disturbance fluxes
+                      FIREemiss_labile_gCm2day = output[,,17],
+                      FIRElitter_labile_gCm2day = output[,,18],
+                      FIREemiss_foliage_gCm2day = output[,,19],
+                      FIRElitter_foliage_gCm2day = output[,,20],
+                      FIREemiss_roots_gCm2day = output[,,21],
+                      FIRElitter_roots_gCm2day = output[,,22],
+                      FIREemiss_wood_gCm2day = output[,,23],
+                      FIRElitter_wood_gCm2day = output[,,24],
+                      FIREemiss_litter_gCm2day = output[,,25],
+                      FIRElitter_litter_gCm2day = output[,,26],
+                      FIREemiss_woodlitter_gCm2day = output[,,27],
+                      FIRElitter_woodlitter_gCm2day = output[,,28],
+                      FIREemiss_som_gCm2day = output[,,29],
+                      HARVESTextracted_labile_gCm2day = output[,,30],
+                      HARVESTextracted_foliage_gCm2day = output[,,31],
+                      HARVESTextracted_roots_gCm2day = output[,,32],
+                      HARVESTextracted_wood_gCm2day = output[,,33],
+                      HARVESTextracted_litter_gCm2day = output[,,34],
+                      HARVESTextracted_woodlitter_gCm2day = output[,,35],
+                      HARVESTextracted_som_gCm2day = output[,,36],
+                      HARVESTlitter_labile_gCm2day = output[,,37],
+                      HARVESTlitter_foliage_gCm2day = output[,,38],
+                      HARVESTlitter_roots_gCm2day = output[,,39],
+                      HARVESTlitter_wood_gCm2day = output[,,40],
+                      # C pools (gC/m2)
+                      labile_gCm2 = output[,,41],
+                      foliage_gCm2 = output[,,42],
+                      roots_gCm2 = output[,,43],
+                      wood_gCm2 = output[,,44],
+                      litter_gCm2 = output[,,45],
+                      woodlitter_gCm2 = output[,,46],
+                      som_gCm2 = output[,,47],
+                      # Water cycle related
+                      ET_kgH2Om2day = output[,,48],
+                      SurfWater_kgH2Om2 = output[,,49],
+                      wSWP_MPa = output[,,50],
+                      # Canopy (phenology) properties
+                      lai_m2m2 = output[,,51],
+                      cgi = output[,,52],
+                      cmi = output[,,53],
+                      ncce_gCm2day = output[,,54],
+                      # Photosynthesis / C~water coupling related
+                      gs_demand_supply_ratio = output[,,55],
+                      gs_mmolH2Om2s = output[,,56],
+                      APAR_MJm2day = output[,,57],
+                      gb_mmolH2Om2s = output[,,58],
+                      CiCa = output[,,59],
+                      # Misc
+                      RootDepth_m = output[,,60],
+                      ## Aggregated variables
+                      # Mean Transit times
+                      MTT_labile_years = MTT_years[,1],
+                      MTT_foliage_years = MTT_years[,2],
+                      MTT_roots_years = MTT_years[,3],
+                      MTT_wood_years = MTT_years[,4],
+                      MTT_litter_years = MTT_years[,5],
+                      MTT_woodlitter_years = MTT_years[,6],
+                      MTT_som_years = MTT_years[,7],
+                      # Steady state estimates
+                      SS_labile_gCm2 = SS_gCm2[,1],
+                      SS_foliage_gCm2 = SS_gCm2[,2],
+                      SS_roots_gCm2 = SS_gCm2[,3],
+                      SS_wood_gCm2 = SS_gCm2[,4],
+                      SS_litter_gCm2 = SS_gCm2[,5],
+                      SS_woodlitter_gCm2 = SS_gCm2[,6],
+                      SS_som_gCm2 = SS_gCm2[,7])
+      # Determine the NPP fraction of expressed NPP
+      # i.e. actual growth not GPP-Ra
+      NPP_fraction = apply(states_all$labile_to_foliage_gCm2day +
+                           states_all$alloc_roots_gCm2day +
+                           states_all$alloc_wood_gCm2day,1,mean)
+      NPP_fraction = cbind(apply(states_all$labile_to_foliage_gCm2day,1,mean),
+                           apply(states_all$alloc_roots_gCm2day,1,mean),
+                           apply(states_all$alloc_wood_gCm2day,1,mean)) / NPP_fraction
+      states_all$NPP_foliage_fraction = NPP_fraction[,1]
+      states_all$NPP_roots_fraction = NPP_fraction[,2]
+      states_all$NPP_wood_fraction = NPP_fraction[,3]
+      # Tidy up variables
+      rm(output,MTT_years,SS_gCm2)
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#") {
       output_dim=28
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       crop_file_location=paste(PROJECT$exepath,"winter_wheat_development.csv", sep="")
       if (parameter_type == "pft_specific") {pft_specific = 1} else {pft_specific = 0}
-      tmp=.Fortran( "rdalecbucketcanage",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
-                                     ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                     ,met=as.double(t(met)),pars=as.double(pars_in)
-                                     ,out_var=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                     ,out_var2=as.double(array(0,dim=c(nos_iter,aNPP_dim)))
-                                     ,out_var3=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                     ,out_var4=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                     ,out_var5=as.double(array(0,dim=c(nos_iter,MTT_dim,noyears)))
-                                     ,out_var6=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                     ,lat=as.double(lat),nopars=as.integer(PROJECT$model$nopars[site])
-                                     ,nomet=as.integer(dim(met)[2]),nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                                     ,nopools=as.integer(PROJECT$model$nopools[site]),pft=as.integer(pft)
-                                     ,pft_specific=as.integer(pft_specific),nodays=as.integer(dim(met)[1])
-                                     ,noyears=as.integer(noyears)
-                                     ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                     ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                     ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3)))
-                                     ,exepath=as.character(crop_file_location),pathlength=as.integer(nchar(crop_file_location)))
+      tmp=.Fortran( "rdalec26",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met)),pars=as.double(pars_in)
+                              ,out_var=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,aNPP_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var4=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,out_var5=as.double(array(0,dim=c(nos_iter,MTT_dim,noyears)))
+                              ,out_var6=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,lat=as.double(lat),nopars=as.integer(PROJECT$model$nopars[site])
+                              ,nomet=as.integer(dim(met)[2]),nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                              ,nopools=as.integer(PROJECT$model$nopools[site]),pft=as.integer(pft)
+                              ,pft_specific=as.integer(pft_specific),nodays=as.integer(dim(met)[1])
+                              ,noyears=as.integer(noyears)
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3)))
+                              ,exepath=as.character(crop_file_location),pathlength=as.integer(nchar(crop_file_location)))
       output = tmp$out_var   ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       aNPP = tmp$out_var2    ; aNPP = array(aNPP, dim=c(nos_iter,aNPP_dim))
       MTT = tmp$out_var3     ; MTT = array(MTT, dim=c(nos_iter,MTT_dim))
@@ -541,30 +723,30 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$reco_gCm2day = states_all$rauto_gCm2day + states_all$rhet_gCm2day
       # Final tidy
       rm(output,MTT_gCm2,SS_gCm2)
-  } else if (model_name == "DALEC") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H1.P4.R2.#") {
     output_dim = 59 ; MTT_dim = 7 ; SS_dim = 7
     # Load the required dalec shared object
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-    tmp=.Fortran( "rdalec",output_dim=as.integer(output_dim)
-                          ,aNPP_dim=as.integer(aNPP_dim)
-                          ,MTT_dim=as.integer(MTT_dim)
-                          ,SS_dim = as.integer(SS_dim)
-                          ,fire_dim=as.integer(fire_dim)
-                          ,met=as.double(t(met))
-                          ,pars=as.double(pars_in)
-                          ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                          ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                          ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                          ,lat=as.double(lat)
-                          ,nopars=as.integer(PROJECT$model$nopars[site])
-                          ,nomet=as.integer(dim(met)[2])
-                          ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                          ,nopools=as.integer(PROJECT$model$nopools[site])
-                          ,pft=as.integer(pft)
-                          ,nodays=as.integer(dim(met)[1])
-                          ,noyears=as.integer(noyears)
-                          ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
-                          ,nos_iter=as.integer(nos_iter))
+    tmp=.Fortran( "rdalec10",output_dim=as.integer(output_dim)
+                            ,aNPP_dim=as.integer(aNPP_dim)
+                            ,MTT_dim=as.integer(MTT_dim)
+                            ,SS_dim = as.integer(SS_dim)
+                            ,fire_dim=as.integer(fire_dim)
+                            ,met=as.double(t(met))
+                            ,pars=as.double(pars_in)
+                            ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                            ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                            ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                            ,lat=as.double(lat)
+                            ,nopars=as.integer(PROJECT$model$nopars[site])
+                            ,nomet=as.integer(dim(met)[2])
+                            ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                            ,nopools=as.integer(PROJECT$model$nopools[site])
+                            ,pft=as.integer(pft)
+                            ,nodays=as.integer(dim(met)[1])
+                            ,noyears=as.integer(noyears)
+                            ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
+                            ,nos_iter=as.integer(nos_iter))
     # Extract the different output variables
     output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
     MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
@@ -669,11 +851,11 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     states_all$NPP_wood_fraction = NPP_fraction[,3]
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_GSI_BUCKET") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P3.R1.#") {
       output_dim = 62 ; MTT_dim = 7 ; SS_dim = 7
       # Load the required dalec shared object
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdalecgsibucket",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
+      tmp=.Fortran( "rdalec9",output_dim=as.integer(output_dim),aNPP_dim=as.integer(aNPP_dim)
                                      ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
                                      ,fire_dim=as.integer(fire_dim)
                                      ,met=as.double(t(met)),pars=as.double(pars_in)
@@ -796,10 +978,10 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_LU_FIRES") {
+  } else if (model_name == "DALEC.C1.D1.F2.P1.#") {
       output_dim = 44 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdealufires",output_dim=as.integer(output_dim)
+      tmp=.Fortran( "rdalec2",output_dim=as.integer(output_dim)
                                           ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
                                           ,met=as.double(t(met))
                                           ,pars=as.double(pars_in)
@@ -1112,24 +1294,24 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Final tidy
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H1.P1.#") {
       output_dim = 48 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2",output_dim=as.integer(output_dim)
-                                    ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                    ,met=as.double(t(met))
-                                    ,pars=as.double(pars_in)
-                                    ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                    ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                    ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                    ,lat=as.double(lat)
-                                    ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                    ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                    ,nodays=as.integer(dim(met)[1])
-                                    ,noyears=as.integer(noyears)
-                                    ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                    ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                    ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+      tmp=.Fortran( "rdalec3",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,noyears=as.integer(noyears)
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                             ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                             ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1220,23 +1402,23 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P1.#") {
       output_dim = 58 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucket",output_dim=as.integer(output_dim)
-                                          ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                          ,met=as.double(t(met))
-                                          ,pars=as.double(pars_in)
-                                          ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                          ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                          ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                          ,lat=as.double(lat)
-                                          ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                          ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                          ,nodays=as.integer(dim(met)[1])
-                                          ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                          ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
-                                          ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      tmp=.Fortran( "rdalec4",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                             ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                             ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1339,23 +1521,23 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM_FARQUHAR_BUCKET") {
+  } else if (model_name == "DALEC.A2.C1.D2.F2.H2.P1.#") {
       output_dim = 58 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacmfarquharbucket",output_dim=as.integer(output_dim)
-                                          ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                          ,met=as.double(t(met))
-                                          ,pars=as.double(pars_in)
-                                          ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                          ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                          ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                          ,lat=as.double(lat)
-                                          ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                          ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                          ,nodays=as.integer(dim(met)[1])
-                                          ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                          ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
-                                          ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      tmp=.Fortran( "rdalec20",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                              ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1458,24 +1640,24 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_wMRT") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P2.#") {
       output_dim = 51 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketwmrt",output_dim=as.integer(output_dim)
-                                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                              ,met=as.double(t(met))
-                                              ,pars=as.double(pars_in)
-                                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                              ,lat=as.double(lat)
-                                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                              ,nodays=as.integer(dim(met)[1])
-                                              ,noyears=as.integer(noyears)
-                                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+      tmp=.Fortran( "rdalec18",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,noyears=as.integer(noyears)
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1570,24 +1752,24 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_LAB") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P5.#") {
       output_dim = 52 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketlab",output_dim=as.integer(output_dim)
-                                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                             ,met=as.double(t(met))
-                                             ,pars=as.double(pars_in)
-                                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                             ,lat=as.double(lat)
-                                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                             ,nodays=as.integer(dim(met)[1])
-                                             ,noyears=as.integer(noyears)
-                                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                             ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                             ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+      tmp=.Fortran( "rdalec21",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,noyears=as.integer(noyears)
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1682,24 +1864,24 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_LAB_wMRT") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P6.#") {
       output_dim = 51 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketlabwmrt",output_dim=as.integer(output_dim)
-                                                 ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                                 ,met=as.double(t(met))
-                                                 ,pars=as.double(pars_in)
-                                                 ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                                 ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                                 ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                                 ,lat=as.double(lat)
-                                                 ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                                 ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                                 ,nodays=as.integer(dim(met)[1])
-                                                 ,noyears=as.integer(noyears)
-                                                 ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                                 ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                                 ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+      tmp=.Fortran( "rdalec22",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,noyears=as.integer(noyears)
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1794,24 +1976,24 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_RmRg") {
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P1.R1.#") {
       output_dim = 51 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketrmrg",output_dim=as.integer(output_dim)
-                                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                              ,met=as.double(t(met))
-                                              ,pars=as.double(pars_in)
-                                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                              ,lat=as.double(lat)
-                                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                              ,nodays=as.integer(dim(met)[1])
-                                              ,noyears=as.integer(noyears)
-                                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                              ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
-                                              ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
+      tmp=.Fortran( "rdalec5",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,noyears=as.integer(noyears)
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                             ,soil_frac_clay_in=as.double(array(c(soil_info[3],soil_info[4],soil_info[4]),dim=c(3)))
+                             ,soil_frac_sand_in=as.double(array(c(soil_info[1],soil_info[2],soil_info[2]),dim=c(3))))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -1906,23 +2088,23 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#") {
       output_dim = 57 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketrmrgcwd",output_dim=as.integer(output_dim)
-                                                 ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                                 ,met=as.double(t(met))
-                                                 ,pars=as.double(pars_in)
-                                                 ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                                 ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                                 ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                                 ,lat=as.double(lat)
-                                                 ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                                 ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                                 ,nodays=as.integer(dim(met)[1])
-                                                 ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                                 ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
-                                                 ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      tmp=.Fortran( "rdalec6",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                             ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                             ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2025,23 +2207,23 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#") {
       output_dim = 57 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketrmrgcwdwmrt",output_dim=as.integer(output_dim)
-                                                     ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                                     ,met=as.double(t(met))
-                                                     ,pars=as.double(pars_in)
-                                                     ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                                     ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                                     ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                                     ,lat=as.double(lat)
-                                                     ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                                     ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                                     ,nodays=as.integer(dim(met)[1])
-                                                     ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                                     ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
-                                                     ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      tmp=.Fortran( "rdalec7",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                             ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                             ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2144,23 +2326,23 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_ACM2_BUCKET_RmHeskel_Rg_CWD_wMRT") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P2.R3.#") {
       output_dim = 57 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdaleccdeaacm2bucketrmheskelrgcwdwmrt",output_dim=as.integer(output_dim)
-                                                           ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                                           ,met=as.double(t(met))
-                                                           ,pars=as.double(pars_in)
-                                                           ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                                           ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                                           ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                                           ,lat=as.double(lat)
-                                                           ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                                           ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                                           ,nodays=as.integer(dim(met)[1])
-                                                           ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
-                                                           ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
-                                                           ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+      tmp=.Fortran( "rdalec19",output_dim=as.integer(output_dim)
+                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                              ,met=as.double(t(met))
+                              ,pars=as.double(pars_in)
+                              ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                              ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                              ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                              ,lat=as.double(lat)
+                              ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                              ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                              ,nodays=as.integer(dim(met)[1])
+                              ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                              ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                              ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2263,26 +2445,26 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_CDEA_no_lit_root") {
+  } else if (model_name == "DALEC.C5.D1.F2.P1.#") {
     output_dim = 22 ; MTT_dim = 4 ; SS_dim = 4
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-    tmp=.Fortran( "rdaleccdeanolitroot",output_dim=as.integer(output_dim)
-                                       ,MTT_dim=as.integer(MTT_dim)
-                                       ,SS_dim = as.integer(SS_dim)
-                                       ,met=as.double(t(met))
-                                       ,pars=as.double(pars_in)
-                                       ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                       ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                       ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                       ,lat=as.double(lat)
-                                       ,nopars=as.integer(PROJECT$model$nopars[site])
-                                       ,nomet=as.integer(dim(met)[2])
-                                       ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                                       ,nopools=as.integer(PROJECT$model$nopools[site])
-                                       ,nodays=as.integer(dim(met)[1])
-                                       ,noyears=as.integer(noyears)
-                                       ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
-                                       ,nos_iter=as.integer(nos_iter) )
+    tmp=.Fortran( "rdalec13",output_dim=as.integer(output_dim)
+                            ,MTT_dim=as.integer(MTT_dim)
+                            ,SS_dim = as.integer(SS_dim)
+                            ,met=as.double(t(met))
+                            ,pars=as.double(pars_in)
+                            ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                            ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                            ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                            ,lat=as.double(lat)
+                            ,nopars=as.integer(PROJECT$model$nopars[site])
+                            ,nomet=as.integer(dim(met)[2])
+                            ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                            ,nopools=as.integer(PROJECT$model$nopools[site])
+                            ,nodays=as.integer(dim(met)[1])
+                            ,noyears=as.integer(noyears)
+                            ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
+                            ,nos_iter=as.integer(nos_iter) )
     output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
     MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
     SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2339,22 +2521,22 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     states_all$NPP_roots_wood_fraction = NPP_fraction[,2]
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_EVERGREEN") {
+  } else if (model_name == "DALEC.D1.F2.#") {
       output_dim = 36 ; MTT_dim = 5 ; SS_dim = 5
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-      tmp=.Fortran( "rdalecevergreen",output_dim=as.integer(output_dim)
-                                     ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
-                                     ,met=as.double(t(met))
-                                     ,pars=as.double(pars_in)
-                                     ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                     ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                     ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                     ,lat=as.double(lat)
-                                     ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
-                                     ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
-                                     ,nodays=as.integer(dim(met)[1])
-                                     ,noyears=as.integer(noyears)
-                                     ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter))
+      tmp=.Fortran( "rdalec1",output_dim=as.integer(output_dim)
+                             ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                             ,met=as.double(t(met))
+                             ,pars=as.double(pars_in)
+                             ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                             ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                             ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                             ,lat=as.double(lat)
+                             ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                             ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                             ,nodays=as.integer(dim(met)[1])
+                             ,noyears=as.integer(noyears)
+                             ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter))
       output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
       MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
       SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2429,26 +2611,26 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Final tidy
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_EVERGREEN_no_lit_root") {
+  } else if (model_name == "DALEC.C4.D1.F2.#") {
     output_dim = 23 ; MTT_dim = 3 ; SS_dim = 3
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-    tmp=.Fortran( "rdalecevergreennolitroot",output_dim=as.integer(output_dim)
-                                            ,MTT_dim=as.integer(MTT_dim)
-                                            ,SS_dim = as.integer(SS_dim)
-                                            ,met=as.double(t(met))
-                                            ,pars=as.double(pars_in)
-                                            ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                            ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                            ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                            ,lat=as.double(lat)
-                                            ,nopars=as.integer(PROJECT$model$nopars[site])
-                                            ,nomet=as.integer(dim(met)[2])
-                                            ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                                            ,nopools=as.integer(PROJECT$model$nopools[site])
-                                            ,nodays=as.integer(dim(met)[1])
-                                            ,noyears=as.integer(noyears)
-                                            ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
-                                            ,nos_iter=as.integer(nos_iter) )
+    tmp=.Fortran( "rdalec12",output_dim=as.integer(output_dim)
+                            ,MTT_dim=as.integer(MTT_dim)
+                            ,SS_dim = as.integer(SS_dim)
+                            ,met=as.double(t(met))
+                            ,pars=as.double(pars_in)
+                            ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                            ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                            ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                            ,lat=as.double(lat)
+                            ,nopars=as.integer(PROJECT$model$nopars[site])
+                            ,nomet=as.integer(dim(met)[2])
+                            ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                            ,nopools=as.integer(PROJECT$model$nopools[site])
+                            ,nodays=as.integer(dim(met)[1])
+                            ,noyears=as.integer(noyears)
+                            ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
+                            ,nos_iter=as.integer(nos_iter) )
     output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
     MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
     SS_gCm2 = tmp$out_var3   ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
@@ -2503,29 +2685,29 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     states_all$NPP_roots_wood_fraction = NPP_fraction[,2]
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC_GSI_DFOL_CWD_FR") {
+  } else if (model_name == "DALEC.A1.C2.D2.F2.H1.P3.R1.#") {
     output_dim = 59 ; MTT_dim = 7 ; SS_dim = 7
     # Load the required dalec shared object
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
-    tmp=.Fortran( "rdalecgsidfolcwdfr",output_dim=as.integer(output_dim)
-                                      ,aNPP_dim=as.integer(aNPP_dim)
-                                      ,MTT_dim=as.integer(MTT_dim)
-                                      ,SS_dim = as.integer(SS_dim)
-                                      ,fire_dim=as.integer(fire_dim)
-                                      ,met=as.double(t(met))
-                                      ,pars=as.double(pars_in)
-                                      ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
-                                      ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
-                                      ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
-                                      ,lat=as.double(lat)
-                                      ,nopars=as.integer(PROJECT$model$nopars[site])
-                                      ,nomet=as.integer(dim(met)[2])
-                                      ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
-                                      ,nopools=as.integer(PROJECT$model$nopools[site])
-                                      ,pft=as.integer(pft)
-                                      ,nodays=as.integer(dim(met)[1])
-                                      ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
-                                      ,nos_iter=as.integer(nos_iter))
+    tmp=.Fortran( "rdalec8",output_dim=as.integer(output_dim)
+                           ,aNPP_dim=as.integer(aNPP_dim)
+                           ,MTT_dim=as.integer(MTT_dim)
+                           ,SS_dim = as.integer(SS_dim)
+                           ,fire_dim=as.integer(fire_dim)
+                           ,met=as.double(t(met))
+                           ,pars=as.double(pars_in)
+                           ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                           ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                           ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                           ,lat=as.double(lat)
+                           ,nopars=as.integer(PROJECT$model$nopars[site])
+                           ,nomet=as.integer(dim(met)[2])
+                           ,nofluxes=as.integer(PROJECT$model$nofluxes[site])
+                           ,nopools=as.integer(PROJECT$model$nopools[site])
+                           ,pft=as.integer(pft)
+                           ,nodays=as.integer(dim(met)[1])
+                           ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1]))))
+                           ,nos_iter=as.integer(nos_iter))
     # Extract the different output variables
     output = tmp$out_var1    ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
     MTT_years = tmp$out_var2 ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))

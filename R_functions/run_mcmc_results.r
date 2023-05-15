@@ -44,6 +44,8 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
       # otherwise load the existing but incomplete version from file
       if (file.exists(outfile_grid) == FALSE | repair == 1) {
 
+          print("Creating new grid_output object")
+
           #
           # Generate the summary information
           # Time invariant but contain uncertainty, shaped into the full spatial grid
@@ -703,11 +705,11 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
 
           # Time and uncertainty invarient information,
           # this is the correlation between ensemble members for parameter and C-cycle flux variables
-          grid_output$nee_par_cor = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
-          grid_output$gpp_par_cor = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
-          grid_output$rauto_par_cor = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
-          grid_output$rhet_par_cor = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
-          grid_output$fire_par_cor = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          grid_output$nee_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          grid_output$gpp_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          grid_output$rauto_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          grid_output$rhet_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          grid_output$fire_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
 
           #
           # Generate the spatial information needed to relate i,j within the grid to long / lat and the summary vs detailed output
@@ -723,9 +725,9 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           grid_output$long = array(output$long,dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
           # Determine grid area (m2)
-          grid_output$area_m2 = calc_pixel_area(grid_output$lat,grid_output$long,PROJECT$resolution)
+          grid_output$area_m2 = calc_pixel_area(grid_output$long,grid_output$lat)
           # this output is in vector form and we need matching array shapes so...
-          grid_output$area_m2 = array(grid_output$area_m2, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+#          grid_output$area_m2 = array(grid_output$area_m2, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
           # Load the land mask and land fraction, assuming it exists
           grid_output$landmask=array(PROJECT$landsea, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
@@ -752,7 +754,7 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
   # Define the output file names
   outfile_site         = paste(PROJECT$results_processedpath,PROJECT$sites[n],".RData",sep="")
   outfile_parameters   = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_parameters.RData",sep="")
-  #outfile_stock_fluxes = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
+  outfile_stock_fluxes = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
 
   # Set dummy output variable, the value may be changes by the code below
   dummy = 0
@@ -917,15 +919,15 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
           ## Post-hoc calculation of parameter correlations with key C-cycle variables
 
           tmp = t(array(as.vector(parameters[1:PROJECT$model$nopars[n],,]),dim=c(PROJECT$model$nopars[n],prod(dim(parameters)[2:3]))))
-          states_all$nee_par_cor = cor(tmp,rowMeans(states_all$nee_gCm2day))
-          states_all$gpp_par_cor = cor(tmp,rowMeans(states_all$gpp_gCm2day))
-          states_all$rauto_par_cor = cor(tmp,rowMeans(states_all$rauto_gCm2day))
-          states_all$rhet_par_cor = cor(tmp,rowMeans(states_all$rhet_gCm2day))
+          states_all$nee_parameter_correlation = cor(tmp,rowMeans(states_all$nee_gCm2day))
+          states_all$gpp_parameter_correlation = cor(tmp,rowMeans(states_all$gpp_gCm2day))
+          states_all$rauto_parameter_correlation = cor(tmp,rowMeans(states_all$rauto_gCm2day))
+          states_all$rhet_parameter_correlation = cor(tmp,rowMeans(states_all$rhet_gCm2day))
           # Avoid error flag when no fire
           if (max(as.vector(states_all$fire_gCm2day)) > 0) {
-              states_all$fire_par_cor = cor(tmp,rowMeans(states_all$fire_gCm2day))
+              states_all$fire_parameter_correlation = cor(tmp,rowMeans(states_all$fire_gCm2day))
           } else {
-              states_all$fire_par_cor = array(0, dim = c(PROJECT$model$nopars[n],1))
+              states_all$fire_parameter_correlation = array(0, dim = c(PROJECT$model$nopars[n],1))
           }
 
           ###
@@ -1009,6 +1011,33 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
                    states_all$nee_assim_data_overlap_fraction = states_all$nee_assim_data_overlap_fraction / nobs
                } else {
                    states_all$nee_assim_data_overlap_fraction = 0
+               }
+          } # was the obs assimilated?
+
+          ## Reco (gC/m2/day)
+          obs_id = 9 ; unc_id = obs_id+1
+          if (length(which(drivers$obs[,obs_id] != -9999)) > 0) {
+              # Loop through time to assess model overlap with observations
+              nobs = 0 ; states_all$reco_assim_data_overlap_fraction = 0
+              to_do = which(drivers$obs[,obs_id] != -9999)
+              for (a in seq(1, length(to_do))) {
+                   # Assign correct time step
+                   t = to_do[a]
+                   # Estimate the min / max values for the observations
+                   obs_max = drivers$obs[t,obs_id] + drivers$obs[t,unc_id]
+                   obs_min = drivers$obs[t,obs_id] - drivers$obs[t,unc_id]
+                   # Create list object containing each observations distributions
+                   hist_list = list(o = c(obs_min,obs_max), m = states_all$nee_gCm2day[,t])
+                   # Estimate average model ensemble within observated range
+                   tmp2 = (ensemble_within_range(hist_list$o,hist_list$m))
+                   states_all$reco_assim_data_overlap_fraction = states_all$reco_assim_data_overlap_fraction + tmp2
+                   nobs = nobs + 1
+               } # time loop
+               # Average the overlap
+               if (nobs > 0) {
+                   states_all$reco_assim_data_overlap_fraction = states_all$reco_assim_data_overlap_fraction / nobs
+               } else {
+                   states_all$reco_assim_data_overlap_fraction = 0
                }
           } # was the obs assimilated?
 
@@ -2344,20 +2373,20 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
           }
 
           # C-cycle flux correlation with parameters
-          site_output$nee_par_cor = states_all$nee_par_cor
-          site_output$gpp_par_cor = states_all$gpp_par_cor
-          site_output$rauto_par_cor = states_all$rauto_par_cor
-          site_output$rhet_par_cor = states_all$rhet_par_cor
-          site_output$fire_par_cor = states_all$fire_par_cor
+          site_output$nee_parameter_correlation = states_all$nee_parameter_correlation
+          site_output$gpp_parameter_correlation = states_all$gpp_parameter_correlation
+          site_output$rauto_parameter_correlation = states_all$rauto_parameter_correlation
+          site_output$rhet_parameter_correlation = states_all$rhet_parameter_correlation
+          site_output$fire_parameter_correlation = states_all$fire_parameter_correlation
 
           # Tidy local environment
           rm(states_all,drivers) ; gc()
 
           # save to pixel specific file for the moment... in "run_mcmc_results" these will be combined into a single grid
-          #save(site_output,file=outfile_stock_fluxes, compress = "gzip", compression_level = 6)
+          save(site_output,file=outfile_stock_fluxes, compress = "gzip", compression_level = 6)
 
           # Return the site_output list object for subsequent slotting into the wider grid
-          dummy = 0 ; return(site_output)
+          dummy = 0 ; return(outfile_stock_fluxes)#; return(site_output)
 
       } # gridded run?
 
@@ -2402,12 +2431,11 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
   # now check which ones we need to calculate, but only if override not in play
   if (repair != 1) {
       # Inform the user
-# NEED TO CHANGE THIS TO DETERMINE ALREADY PROCESSED SITES IN ANOTHER WAY AS NO LONGER CREATE THESE FILES...for gridded runs...
       print("...beginning filterings for sites we have already processed")
       keep_list = 0
       for (i in seq(1, length(nos_plots))) {
-           outfile_parameters = paste(PROJECT$results_processedpath,PROJECT$sites[i],"_parameters.RData",sep="")
-           if (file.exists(outfile_parameters) == FALSE) {keep_list=append(keep_list,i)}
+           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
+           if (file.exists(outfile_stocks) == FALSE) {keep_list=append(keep_list,i)}
       }
       # filter out the sites we already have then
       keep_list = keep_list[-1] ; print(paste("......removing ",length(nos_plots)-length(keep_list)," sites out of ",length(nos_plots)," from the analysis",sep=""))
@@ -2453,22 +2481,33 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       # Load individual site information into the combined grid
 
       if (file.exists(outfile_grid) == FALSE | repair == 1) {
-          # Extract the first of the completed site_output list to great the grid_output
+#          # Extract the first of the completed site_output list to great the grid_output
+#          n = 0 ; site_output = -1
+#          while (class(site_output) != "list" & n < length(site_output_all)) {
+#                 n = n + 1
+#                 site_output = site_output_all[[n]]
+#          }
+          # Load the first completed site_output file to great the grid_output
           n = 0 ; site_output = -1
-          while (class(site_output) != "list" & n < length(site_output_all)) {
+          while (class(site_output) != "character") {
                  n = n + 1
                  site_output = site_output_all[[n]]
           }
           # Check if the loop has finished with error
-          if (n == length(site_output_all) & class(site_output_all[[n]]) != "list") {
+          if (n == length(site_output_all) & class(site_output_all[[n]]) != "character") {
+#          if (n == length(site_output_all) & class(site_output_all[[n]]) != "list") {
               # Difficult to say what will come out of here, so dump it all!
               print(site_output_all)
               print("Above error from run_mcmc_results.r L2462, problem with site_output_all")
               return(c(-1))
           }
           # Now assuming this has worked correctly, we can create the grid_output
-          # list object
+          # First by loading the selected file
+          load(site_output)
+          # then creating the list object
           grid_output = define_grid_output(PROJECT,repair,outfile_grid,site_output)
+          # tidy up
+          rm(site_output)
       } else {
           # Load the existing file
           load(outfile_grid)
@@ -2483,10 +2522,16 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
            # Determine the correct site number for the current location
            n = nos_plots[i]
-           # Extract current site from output object
+           # Extract current site file name from output object
            site_output = site_output_all[[i]]
 
-           if (class(site_output) == "list") {
+           # Check that the file name is a character string, and we will assume it
+           # exists
+           if (class(site_output) == "character") {
+
+               # Load the file
+               load(site_output)
+
                # determine the lat / long location within the grid
                slot_j=as.numeric(PROJECT$sites[n])/PROJECT$long_dim
                slot_i=as.numeric(PROJECT$sites[n])-(floor(slot_j)*PROJECT$long_dim)
@@ -3131,11 +3176,14 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
                   grid_output$fire_assim_data_overlap_fraction[slot_i,slot_j] = site_output$fire_assim_data_overlap_fraction
                }
                # Parameter vs C-cycle flux correlation across ensemble member
-               grid_output$nee_par_cor[slot_i,slot_j,] = site_output$nee_par_cor
-               grid_output$gpp_par_cor[slot_i,slot_j,] = site_output$gpp_par_cor
-               grid_output$rauto_par_cor[slot_i,slot_j,] = site_output$rauto_par_cor
-               grid_output$rhet_par_cor[slot_i,slot_j,] = site_output$rhet_par_cor
-               grid_output$fire_par_cor[slot_i,slot_j,] = site_output$fire_par_cor
+               grid_output$nee_parameter_correlation[slot_i,slot_j,] = site_output$nee_parameter_correlation
+               grid_output$gpp_parameter_correlation[slot_i,slot_j,] = site_output$gpp_parameter_correlation
+               grid_output$rauto_parameter_correlation[slot_i,slot_j,] = site_output$rauto_parameter_correlation
+               grid_output$rhet_parameter_correlation[slot_i,slot_j,] = site_output$rhet_parameter_correlation
+               grid_output$fire_parameter_correlation[slot_i,slot_j,] = site_output$fire_parameter_correlation
+
+               # Tidy up
+               rm(site_output) ; file.remove(site_output_all[[i]])
 
            } # Does the current site have processed output?
 
@@ -3148,7 +3196,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       save(grid_output, file=outfile_grid, compress = "gzip", compression_level = 9)
 
       # Tidy up
-      rm(site_output,grid_output) ; gc(reset=TRUE)
+      rm(grid_output) ; gc(reset=TRUE)
 
   } # gridded run?
 

@@ -60,7 +60,7 @@ extract_burnt_area_information<- function(i1,j1,latlon_in,timestep_days,spatial_
       burnt_area_agg = array(NA,dim=length(run_day_selector))
       # As far is an absolute event we sum all events within the time period not average!
       for (y in seq(1,length(run_day_selector))) {
-           burnt_area_agg[y] = sum(burnt_area_out[(run_day_selector[y]-timestep_days[y]):run_day_selector[y]],na.rm=TRUE)
+           burnt_area_agg[y] = sum(burnt_area_out[(run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]],na.rm=TRUE)
       }
       # update with new output information
       burnt_area_out = burnt_area_agg

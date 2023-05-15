@@ -135,8 +135,10 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
         area = array(PROJECT$resolution**2, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
     } else if (grid_type=="wgs84") {
         output = generate_wgs84_grid(lat,long,resolution)
+        grid_lat = array(output$lat, dim=c(output$long_dim,output$lat_dim))
+        grid_long = array(output$long,dim=c(output$long_dim,output$lat_dim))
         # then generate the area estimates for each pixel
-        area = calc_pixel_area(output$lat,output$long,resolution)
+        area = calc_pixel_area(grid_long,grid_lat)
     } else {
         stop('have selected invalid grid type, the valid options are "UK" and "wgs84"')
     }

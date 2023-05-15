@@ -68,7 +68,7 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
        lai_unc_agg = array(NA,dim=length(run_day_selector))
        # Loop through
        for (y in seq(1,length(run_day_selector))) {
-            pick = (run_day_selector[y]-timestep_days[y]):run_day_selector[y]
+            pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
             lai_agg[y] = mean(lai_out[pick], na.rm=TRUE)
             lai_unc_agg[y] = mean(lai_unc_out[pick], na.rm=TRUE)
        }

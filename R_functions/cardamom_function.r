@@ -19,6 +19,11 @@ cardamom <-function (projname,model,method,stage) {
   if (exists("path_to_co2") == FALSE) {path_to_co2 <<- "./R_functions/"}
   if (exists("request_extended_mcmc") == FALSE) {request_extended_mcmc <<- FALSE}
 
+  # Use this function to ensure that if the short model name has been provided that we translate
+  # this into the full internal code version
+  tmp = cardamom_model_details(model,"global",1)
+  model = tmp$name
+
   # define file name for PROJECT file
   # this file will contain all information relating the the PROJECT
   PROJECTfile = paste(paths$cardamom_outputs,model,"_",method,"/",projname,"/infofile.RData",sep="")
@@ -200,6 +205,9 @@ cardamom <-function (projname,model,method,stage) {
       return(paste("CARDAMOM Report: ",stage," completed", sep=""))
 
   } else {
+
+      # Inform the user
+      print(paste("Loading the infofile = ",PROJECTfile,sep=""))
 
       # load PROJECT file from binary file
       load(PROJECTfile)

@@ -189,7 +189,7 @@ cardamom_project_setup <- function (paths,PROJECT) {
                               " ../model/",modelname,"/likelihood/MODEL_LIKELIHOOD.f90 ../general/cardamom_main.f90 -o cardamom.exe",sep="")
                        ,paste("cp ",ecdf_source,"CARDAMOM_F/executable/cardamom.exe ",eexepath,"/",exe,sep="")))
             # If a crop model the copy the crop development files into place too
-            if (modelname == "DALEC_CROP_BUCKET" | modelname == "DALEC_CROP") {
+            if (modelname == "DALEC.A1.C3.H2.M1." | modelname == "DALEC.C3.M1.") {
                 commands=append(commands,paste("cp ",ecdf_source,"CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",eexepath,"/",sep=""))
                 system(paste("cp ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",exepath,"/",sep=""))
             } #
@@ -250,7 +250,7 @@ cardamom_project_setup <- function (paths,PROJECT) {
                      "../model/",modelname,"/src/",modelname,"_R_interface.f90 ","-o dalec.so -fPIC",sep=""))
         system(paste("cp ",paths$cardamom,"LIBRARY/CARDAMOM_F/executable/dalec.so ",exepath,"/dalec.so",sep=""))
         # Copy crop development file into position
-        if (modelname == "DALEC_CROP_BUCKET" | modelname == "DALEC_CROP") {
+        if (modelname == "DALEC.A1.C3.H2.M1." | modelname == "DALEC.C3.M1.") {
              system(paste("cp ",paths$cardamom,"LIBRARY/CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",exepath,"/",sep=""))
         } #
         # return to original working directory

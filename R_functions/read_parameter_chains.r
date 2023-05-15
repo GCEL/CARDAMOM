@@ -141,13 +141,15 @@ read_parameter_chains<- function(PROJECT_in,n) {
       param_sets_out = array(param_sets_out, dim=c(dim(param_sets_out)[1:2],length(chains)))
   }
 
-  if (PROJECT_in$model$name == "DALEC_CDEA" || PROJECT_in$model$name == "DALEC_CDEA_LU_FIRES" ||
-      PROJECT_in$model$name == "DALEC_CDEA_ACM2" || PROJECT_in$model$name == "DALEC_CDEA_ACM2_BUCKET" ||
-      PROJECT_in$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg" || PROJECT_in$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg" ||
-      PROJECT_in$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT" || PROJECT_in$model$name == "DALEC_CDEA_ACM_FARQUHAR_BUCKET") {
+  if (PROJECT_in$model$name == "DALEC_1005" || PROJECT_in$model$name == "DALEC_1005a" ||
+      PROJECT_in$model$name == "DALEC.C1.D1.F2.P1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R3.#" ||
+      PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H1.P1.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.#" ||
+      PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.R1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#" ||
+      PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#" || PROJECT_in$model$name == "DALEC.A2.C1.D2.F2.H2.P1.#" ||
+      PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P5.#") {
       param_sets_out[c(12,15),,] = ((param_sets_out[c(12,15),,]-1)%%365.25)+1
   }
-  if (PROJECT_in$model$name == "DALEC_CDEA_no_lit_root") {
+  if (PROJECT_in$model$name == "DALEC.C5.D1.F2.P1.#") {
       param_sets_out[c(8,11),,] = ((param_sets_out[c(8,11),,]-1)%%365.25)+1
   }
 

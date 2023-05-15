@@ -66,7 +66,7 @@ extract_fire<- function(i1,j1,timestep_days,spatial_type,resolution,grid_type,
       fire_agg = array(NA,dim=length(run_day_selector))
       fire_unc_agg = array(NA, dim=length(run_day_selector))
       for (y in seq(1,length(run_day_selector))) {
-           pick = (run_day_selector[y]-timestep_days[y]):run_day_selector[y]
+           pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
            fire_agg[y] = mean(fire_out[pick],na.rm=TRUE)
            fire_unc_agg[y] = mean(fire_unc_out[pick],na.rm=TRUE)
       }

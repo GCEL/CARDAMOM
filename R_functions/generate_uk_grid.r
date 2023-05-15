@@ -7,7 +7,7 @@
 generate_uk_grid<-function(lat,long,resolution) {
 
     # Check whether we have two values for the resolution (longitude, latitude), (x,y)
-    if (length(resolution) == 1) {tmp = rep(resolution, length.out = 2)} else {resolution = tmp}
+    if (length(resolution) == 1) {tmp = rep(resolution, length.out = 2)} else {tmp = resolution}
 
     # Convert lat / long corners into OSGB36 format
     pt=data.frame(x=long,y=lat)
@@ -20,7 +20,7 @@ generate_uk_grid<-function(lat,long,resolution) {
     pt=spTransform(pt,CRS("+init=epsg:27700"))
 
     # Create extent in GB grid
-    pt = raster(vals = 1, resolution = resolution, ext = extent(pt), crs = "+init=epsg:27700")
+    pt = raster(vals = 1, resolution = tmp, ext = extent(pt), crs = "+init=epsg:27700")
     # Reproject onto the WGS84 grid
     pt = projectRaster(pt,crs = CRS("+init=epsg:4326"), method = "ngb")
     # extract the spatial information needed else where

@@ -8,11 +8,11 @@
 generate_wgs84_grid<-function(lat,long,resolution) {
 
     # Check whether we have two values for the resolution (longitude, latitude)
-    if (length(resolution) == 1) {tmp = rep(resolution, length.out = 2)} else {resolution = tmp}
+    if (length(resolution) == 1) {tmp = rep(resolution, length.out = 2)} else {tmp = resolution}
 
     # pt create raster of our desired resolution (in degrees) with the spatial extent set in the control file.
     # This function makes use of the WGS-84 coordinate system
-    pt = raster(vals = 1, resolution = resolution, xmn = long[1], xmx = long[2], ymn = lat[1], ymx = lat[2], crs = "+init=epsg:4326")
+    pt = raster(vals = 1, resolution = tmp, xmn = long[1], xmx = long[2], ymn = lat[1], ymx = lat[2], crs = "+init=epsg:4326")
 
     # extract the spatial information needed else where
     dims = dim(pt) ; lat_dim = dims[1] ; long_dim = dims[2]
