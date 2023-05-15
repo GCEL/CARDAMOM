@@ -828,8 +828,8 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
 
     if (leaf_fall_period_source == "site_specific") {
         infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
-        lifespan=read_site_specific_obs("leaf_fall_period",infile)
-        lifespan_unc=read_site_specific_obs("leaf_fall_period_unc",infile)
+        leaf_fall_period=read_site_specific_obs("leaf_fall_period",infile)
+        leaf_fall_period_unc=read_site_specific_obs("leaf_fall_period_unc",infile)
     } else if (leaf_fall_period_source == "TG") {
         # 
         output = extract_leaf_fall_period_prior(grid_long_loc,grid_lat_loc,spatial_type,resolution,
@@ -850,7 +850,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     if (lifespan_source == "site_specific") {
         infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
         lifespan=read_site_specific_obs("lifespan",infile)
-        lifespan_unc=read_site_specific_obs("lifespan_unc",infile)
+        #lifespan_unc=read_site_specific_obs("lifespan_unc",infile)
     } else if (lifespan_source == "Tupek") {
         # 
         output = extract_lifespan_prior(grid_long_loc,grid_lat_loc,spatial_type,resolution,

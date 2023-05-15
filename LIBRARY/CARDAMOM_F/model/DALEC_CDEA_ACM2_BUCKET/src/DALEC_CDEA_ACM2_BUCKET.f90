@@ -118,10 +118,10 @@ module CARBON_MODEL_MOD
 
   ! ACM-GPP-ET parameters
   double precision, parameter :: &
-                   pn_max_temp = 6.842942d+01,  & ! Maximum daily max temperature for photosynthesis (oC)
-                   pn_min_temp = -1d+06      ,  & ! Minimum daily max temperature for photosynthesis (oC)
-                   pn_opt_temp = 3.155960d+01,  & ! Optimum daily max temperature for photosynthesis (oC)
-                   pn_kurtosis = 1.889026d-01,  & ! Kurtosis of photosynthesis temperature response
+                   pn_max_temp = 5.9d+01,  & ! Maximum daily max temperature for photosynthesis (oC) 6.842942d+01 TG V2
+                   pn_min_temp = -1d+06     ,  & ! Minimum daily max temperature for photosynthesis (oC) -1d+06 TG V2
+                   pn_opt_temp = 3.155960d+01,  & ! Optimum daily max temperature for photosynthesis (oC) 3.155960d+01  TG V2
+                   pn_kurtosis = 0.8d-01,  & ! Kurtosis of photosynthesis temperature response 1.889026d-01 TG V2
 !bespoke                   pn_max_temp = 59d0,          & ! Maximum daily max temperature for photosynthesis (oC)
 !                   pn_min_temp = -4d0,          & ! Minimum daily max temperature for photosynthesis (oC)
 !                   pn_opt_temp = 30d0,          & ! Optimum daily max temperature for photosynthesis (oC)

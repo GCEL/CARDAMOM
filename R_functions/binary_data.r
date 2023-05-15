@@ -341,7 +341,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       PARPRIORS[11]=21.1491                ; PARPRIORUNC[11]=8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values from Kattge et al., (2011)
                                                                       # Note that this prior is difference from DALEC_CDEA_LU_FIRES
                                                                       # due to the different temperature response functions used in ACM2 vs ACM 1
-	  PARPRIORS[16]=OBS$leaf_fall_period   ; PARPRIORUNC[16]=OBS$leaf_fall_period_unc #TG OBS$leaf_fall_period. leaf fall period for pine and decid =60, unc = 5
+	  PARPRIORS[16]=OBS$leaf_fall_period   ; PARPRIORUNC[16]=5.0 #TG OBS$leaf_fall_period_unc. leaf fall period for pine and decid =60, unc = 5
       PARPRIORS[17]=OBS$lca                ; PARPRIORUNC[17]=OBS$lca_unc #; PARPRIORWEIGHT[17] = noyears
       PARPRIORS[19]=OBS$Cfol_initial       ; if (OBS$Cfol_initial != -9999) {PARPRIORUNC[19]=OBS$Cfol_initial_unc} # Cfoliar prior
       PARPRIORS[20]=OBS$Croots_initial     ; if (OBS$Croots_initial != -9999) {PARPRIORUNC[20]=OBS$Croots_initial_unc} # Croots prior
