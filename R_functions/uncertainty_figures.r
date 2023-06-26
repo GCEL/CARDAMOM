@@ -41,7 +41,7 @@ uncertainty_figures<-function(n,PROJECT,load_file) {
    }  else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P4.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P4.R2.#" |
        PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P7.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P8.R2.#" |
        PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P3.R1.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#" |
-       PROJECR$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#"){
+       PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#"){
        # These models assume rooting depth is controlled by coarse root, which is a fraction of the woody pool!
        tmp = t(states_all$wood_gCm2)*as.vector(parameters[29,,])
        var = t(states_all$roots_gCm2) + tmp

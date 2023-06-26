@@ -2434,7 +2434,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       print("...beginning filterings for sites we have already processed")
       keep_list = 0
       for (i in seq(1, length(nos_plots))) {
-           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
+           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[i],"_stock_fluxes.RData",sep="")
            if (file.exists(outfile_stocks) == FALSE) {keep_list=append(keep_list,i)}
       }
       # filter out the sites we already have then
