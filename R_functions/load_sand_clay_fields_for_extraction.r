@@ -35,22 +35,19 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         # Trim the extent of the overall grid to the analysis domain
         top_sand = crop(top_sand,cardamom_ext) ; bot_sand = crop(bot_sand,cardamom_ext)
         top_clay = crop(top_clay,cardamom_ext) ; bot_clay = crop(bot_clay,cardamom_ext)
-        # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here
-        # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
-        #if (spatial_type == "grid") {
-            if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
+        # Adjust spatial resolution of the datasets, this occurs in all cases
+        if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
-                # Create raster with the target resolution
-                target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            # Create raster with the target resolution
+            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
 
-                # Resample to correct grid
-                top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-                bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-                top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
-                bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            # Resample to correct grid
+            top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
+            bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
+            top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
 
-            } # Aggrgeate to resolution
-        #} # spatial_type == "grid"
+        } # Aggrgeate to resolution
 
         # Extract dimension information for the grid.
         # Note 1) the axis switching between raster and actual array
@@ -115,22 +112,20 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         # Trim the extent of the overall grid to the analysis domain
         top_sand = crop(top_sand,cardamom_ext) ; bot_sand = crop(bot_sand,cardamom_ext)
         top_clay = crop(top_clay,cardamom_ext) ; bot_clay = crop(bot_clay,cardamom_ext)
-        # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here
-        # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
-        #if (spatial_type == "grid") {
-            if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
-                # Create raster with the target resolution
-                target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+        # Adjust spatial resolution of the datasets, this occurs in all cases
+        if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
-                # Resample to correct grid
-                top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-                bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-                top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
-                bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            # Create raster with the target resolution
+            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
 
-            } # Aggrgeate to resolution
-        #} # spatial_type == "grid"
+            # Resample to correct grid
+            top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
+            bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
+            top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+
+        } # Aggrgeate to resolution
 
         # Extract dimension information for the grid.
         # Note 1) the axis switching between raster and actual array

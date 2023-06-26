@@ -361,8 +361,7 @@ binary_data<-function(met,OBS,file,EDC,latlon_in,ctessel_pft,modelname,parameter
       OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 ; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
       OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
 	  OTHERPRIORS[7] = OBS$lifespan                #; OTHERPRIORUNC[7] = 1 #TG OBS$lifespan
-  } else if (modelname == "DALEC_CDEA_ACM_FARQUHAR_BUCKET") {
-
+  } else if (modelname == "DALEC.A2.C1.D2.F2.H2.P1.#") {
       PARPRIORS[2] = 0.46                  ; PARPRIORUNC[2] = 0.12 #; PARPRIORWEIGHT[2] = noyears # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
 #      PARPRIORS[11]=1.89*14.77735          ; PARPRIORUNC[11]=1.89*0.4696238 # Derived from ACM2 recalibration.
                                                                            # Note despite having the same name as ecosystem property of Amax per gN or SPA's kappaC

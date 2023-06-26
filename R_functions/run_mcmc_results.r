@@ -711,6 +711,22 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           grid_output$rhet_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
           grid_output$fire_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
 
+          # If Mean transit time for wood correlation exists, ensure we store it for the gridded run too
+          if (exists(x = "MTT_wood_years_parameter_correlation", where = site_output)) {
+              grid_output$MTT_wood_years_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+          # If Mean mean allocation to wood correlation exists, ensure we store it for the gridded run too
+          if (exists(x = "NPP_wood_gCm2day_parameter_correlation", where = site_output)) {
+              grid_output$NPP_wood_gCm2day_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+          # If the combined correlation between wood MTT and wood allocation has been calculated
+          if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = site_output)) {
+              grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          } 
+          # Quantify the mean absolute magnitude of correlations between parameters
+          grid_output$absolute_mean_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+
+
           #
           # Generate the spatial information needed to relate i,j within the grid to long / lat and the summary vs detailed output
           #
@@ -918,7 +934,16 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
           ###
           ## Post-hoc calculation of parameter correlations with key C-cycle variables
 
+          # Construct and rearrange array of parameter suitable for correlation determination
           tmp = t(array(as.vector(parameters[1:PROJECT$model$nopars[n],,]),dim=c(PROJECT$model$nopars[n],prod(dim(parameters)[2:3]))))
+
+          # Determine the correlation matrix between all parameters
+          states_all$absolute_mean_parameter_correlation = cor(tmp)
+          # Determine the mean of the absolute correlations from the matrix
+          states_all$absolute_mean_parameter_correlation = mean(abs(states_all$absolute_mean_parameter_correlation[lower.tri(states_all$absolute_mean_parameter_correlation,diag=FALSE)]))
+
+          # Determine correlations between parameter values and various state variables
+
           states_all$nee_parameter_correlation = cor(tmp,rowMeans(states_all$nee_gCm2day))
           states_all$gpp_parameter_correlation = cor(tmp,rowMeans(states_all$gpp_gCm2day))
           states_all$rauto_parameter_correlation = cor(tmp,rowMeans(states_all$rauto_gCm2day))
@@ -929,6 +954,27 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
           } else {
               states_all$fire_parameter_correlation = array(0, dim = c(PROJECT$model$nopars[n],1))
           }
+          # Determine whether have have both mean transit time and allocation to wood
+          if (exists(x = "MTT_wood_years", where = states_all) & exists(x = "alloc_wood_gCm2day", where = states_all)) {
+              # As both exist determine their correlations with parameters...
+              states_all$MTT_wood_years_parameter_correlation = cor(tmp,states_all$MTT_wood_years)
+              states_all$NPP_wood_gCm2day_parameter_correlation = cor(tmp,rowMeans(states_all$alloc_wood_gCm2day))
+              # ...and with each other
+              states_all$MTT_wood_years_to_NPP_wood_gCm2day_correlation = cor(states_all$MTT_wood_years,rowMeans(states_all$alloc_wood_gCm2day))
+          } else {
+
+              # Both are not present, so we will determine whether we can generate one of the correlation estimates
+
+              # If Mean transit time for wood is provided generate a correlation estimate
+              if (exists(x = "MTT_wood_years", where = states_all)) {
+                  states_all$MTT_wood_years_parameter_correlation = cor(tmp,states_all$MTT_wood_years)
+              }
+              # If Mean mean allocation to wood is provided generate a correlation estimate
+              if (exists(x = "alloc_wood_gCm2day", where = states_all)) {
+                  states_all$NPP_wood_gCm2day_parameter_correlation = cor(tmp,rowMeans(states_all$alloc_wood_gCm2day))
+              }
+    
+          } # Both MTT wood and alloc_wood present?
 
           ###
           ## Comparison with assimilated observation - to what extent does the ensemble overlap?
@@ -2372,12 +2418,28 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
               site_output$fire_assim_data_overlap_fraction = states_all$fire_assim_data_overlap_fraction
           }
 
+          # Store mean absolute parameter correlation information
+          site_output$absolute_mean_parameter_correlation = states_all$absolute_mean_parameter_correlation
           # C-cycle flux correlation with parameters
           site_output$nee_parameter_correlation = states_all$nee_parameter_correlation
           site_output$gpp_parameter_correlation = states_all$gpp_parameter_correlation
           site_output$rauto_parameter_correlation = states_all$rauto_parameter_correlation
           site_output$rhet_parameter_correlation = states_all$rhet_parameter_correlation
           site_output$fire_parameter_correlation = states_all$fire_parameter_correlation
+
+          # If Mean transit time for wood correlation exists, ensure we store it for the gridded run too
+          if (exists(x = "MTT_wood_years_parameter_correlation", where = states_all)) {
+              site_output$MTT_wood_years_parameter_correlation = states_all$MTT_wood_years_parameter_correlation
+          }
+          # If Mean mean allocation to wood correlation exists, ensure we store it for the gridded run too
+          if (exists(x = "NPP_wood_gCm2day_parameter_correlation", where = states_all)) {
+              site_output$NPP_wood_gCm2day_parameter_correlation = states_all$NPP_wood_gCm2day_parameter_correlation
+          }
+          # If the correlation between wood MTT and wood allocation have been determined
+          if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = states_all)) {
+              site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = states_all$MTT_wood_years_to_NPP_wood_gCm2day_correlation
+          } 
+          
 
           # Tidy local environment
           rm(states_all,drivers) ; gc()
@@ -2429,16 +2491,21 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
   outfile_grid = paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep="")
 
   # now check which ones we need to calculate, but only if override not in play
+  keep_list = 0 ; existing_list = 0 ; existing_files = rep(NA, length(nos_plots))
   if (repair != 1) {
       # Inform the user
       print("...beginning filterings for sites we have already processed")
-      keep_list = 0
-      for (i in seq(1, length(nos_plots))) {
-           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[i],"_stock_fluxes.RData",sep="")
-           if (file.exists(outfile_stocks) == FALSE) {keep_list=append(keep_list,i)}
+      for (n in seq(1, length(nos_plots))) {
+           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
+           if (file.exists(outfile_stocks) == FALSE) {
+               keep_list=append(keep_list,n)
+           } else {
+               existing_list = append(existing_list,n) ; existing_files[n] = outfile_stocks
+           }
       }
       # filter out the sites we already have then
-      keep_list = keep_list[-1] ; print(paste("......removing ",length(nos_plots)-length(keep_list)," sites out of ",length(nos_plots)," from the analysis",sep=""))
+      keep_list = keep_list[-1] ; existing_list = existing_list[-1]
+      print(paste("......removing ",length(nos_plots)-length(keep_list)," sites out of ",length(nos_plots)," from the analysis",sep=""))
       nos_plots = nos_plots[keep_list]
   }
 
@@ -2460,7 +2527,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
       print("...finished parallel operations")
 
-  } else {
+  } else if (length(nos_plots) > 0) {
 
       # or use serial
 
@@ -2473,7 +2540,20 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
       print("...finished serial operations")
 
+  } else {
+  
+      # Create empty output object into which to insert the required file names from the existing files
+      site_output_all = vector("list", PROJECT$nosites)
+
   } # parallel option
+
+  # Check whether we have some existing files...
+  if (existing_list[1] > 0 | length(existing_list) > 1) {
+      # ...then insert them into the overall output file list
+      for (n in seq(1, length(existing_list))) {
+           site_output_all[[existing_list[n]]] = existing_files[existing_list[n]]
+      }
+  }
 
   # now if this is a gridded run we want to take out individual site specific summary files and combine them into a single file
   if (PROJECT$spatial_type == "grid" & grid_override == FALSE) {
@@ -2489,7 +2569,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 #          }
           # Load the first completed site_output file to great the grid_output
           n = 0 ; site_output = -1
-          while (class(site_output) != "character") {
+          while (class(site_output) != "character" & n < length(site_output_all)) {
                  n = n + 1
                  site_output = site_output_all[[n]]
           }
@@ -2518,12 +2598,9 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       ###
 
       # Loop through all sites
-      for (i in seq(1, length(nos_plots))) {
-
-           # Determine the correct site number for the current location
-           n = nos_plots[i]
+      for (n in seq(1, PROJECT$nosites)) {
            # Extract current site file name from output object
-           site_output = site_output_all[[i]]
+           site_output = site_output_all[[n]]
 
            # Check that the file name is a character string, and we will assume it
            # exists
@@ -2533,9 +2610,9 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
                load(site_output)
 
                # determine the lat / long location within the grid
-               slot_j=as.numeric(PROJECT$sites[n])/PROJECT$long_dim
-               slot_i=as.numeric(PROJECT$sites[n])-(floor(slot_j)*PROJECT$long_dim)
-               if(slot_i == 0) {slot_i = PROJECT$long_dim} ; slot_j=ceiling(slot_j)
+               slot_j = as.numeric(PROJECT$sites[n])/PROJECT$long_dim
+               slot_i = as.numeric(PROJECT$sites[n])-(floor(slot_j)*PROJECT$long_dim)
+               if(slot_i == 0) {slot_i = PROJECT$long_dim} ; slot_j = ceiling(slot_j)
                # save for later
                grid_output$i_location[n] = slot_i ; grid_output$j_location[n] = slot_j
 
@@ -3175,15 +3252,31 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
                if (exists(x = "fire_assim_data_overlap_fraction", where = site_output)) {
                   grid_output$fire_assim_data_overlap_fraction[slot_i,slot_j] = site_output$fire_assim_data_overlap_fraction
                }
+               
+               # Store mean absolute parameter correlation information
+               grid_output$absolute_mean_parameter_correlation[slot_i,slot_j] = site_output$absolute_mean_parameter_correlation
                # Parameter vs C-cycle flux correlation across ensemble member
                grid_output$nee_parameter_correlation[slot_i,slot_j,] = site_output$nee_parameter_correlation
                grid_output$gpp_parameter_correlation[slot_i,slot_j,] = site_output$gpp_parameter_correlation
                grid_output$rauto_parameter_correlation[slot_i,slot_j,] = site_output$rauto_parameter_correlation
                grid_output$rhet_parameter_correlation[slot_i,slot_j,] = site_output$rhet_parameter_correlation
                grid_output$fire_parameter_correlation[slot_i,slot_j,] = site_output$fire_parameter_correlation
+			   
+               # If Mean transit time for wood correlation exists, ensure we store it for the gridded run too
+               if (exists(x = "MTT_wood_years_parameter_correlation", where = site_output)) {
+                   grid_output$MTT_wood_years_parameter_correlation[slot_i,slot_j,] = site_output$MTT_wood_years_parameter_correlation
+               }
+               # If Mean mean allocation to wood correlation exists, ensure we store it for the gridded run too
+               if (exists(x = "NPP_wood_gCm2day_parameter_correlation", where = site_output)) {
+                   grid_output$NPP_wood_gCm2day_parameter_correlation[slot_i,slot_j,] = site_output$NPP_wood_gCm2day_parameter_correlation
+               }
+               # If the correlation between wood MTT and wood allocation have been determined
+               if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = site_output)) {
+                   grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation[slot_i,slot_j] = site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation
+               }        
 
                # Tidy up
-               rm(site_output) ; file.remove(site_output_all[[i]])
+               rm(site_output) ; file.remove(site_output_all[[n]])
 
            } # Does the current site have processed output?
 

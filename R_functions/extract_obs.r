@@ -40,7 +40,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     ## Get some NBE information (gC/m2/day); negative is sink
     ###
 
-    if (nbe_source == "GEOSCHEM" | nbe_source == "Global_Combined") {
+    if (nbe_source == "GEOSCHEM" | nbe_source == "Global_Combined" | nbe_source == "OCO2MIP") {
 
       # Extract NBE and uncertainty information
       # NOTE: assume default uncertainty (+/- scale)
@@ -543,7 +543,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                Cwood_stock_source == "INPE_Avitabile" | Cwood_stock_source == "Avitabile" |
                Cwood_stock_source == "Rainfor" | Cwood_stock_source == "Rainfor_annual" |
                Cwood_stock_source == "McNicol" | Cwood_stock_source == "Biomass_maps_Africa_UoL" |
-               Cwood_stock_source == "ESA_CCI_Biomass") {
+               Cwood_stock_source == "ESA_CCI_Biomass" | Cwood_stock_source == "Saatchi_2021") {
 
         # All maps converted into common format, therefore a common extraction subroutine can be used
         if (max(Cwood_stock_all$place_obs_in_step) > 0) {

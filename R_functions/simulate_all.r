@@ -3,6 +3,23 @@
 ## Function to generate mean state variable information by running the parameters and model choice
 ###
 
+# Function to actually restrict values of a double precision numeric into single precision allowed range
+# Note: modified from "readBrukerFlexData" library
+double2single <-function(x) {
+
+    # Ensure the incoming variable is a double precision variable
+    stopifnot(is.double(x))
+    # Create a virtual connection which we will use to write / read the single precision variable version
+    virtualCon = raw()
+    # Write out to virtual connection in 4L (i.e. 4 byte single precision)
+    virtualCon = writeBin(object = x, con = virtualCon, size = 4L) # 4L defines single precision
+    # Read back into the new variable. what = double() as R does not have a format for single precision
+    y = readBin(con = virtualCon, what = double(), size = 4L, n = length(x))
+    # Return back to user
+    return(y)
+
+} # end function double2single
+
 # This function is based on an original Matlab function development by A. A. Bloom (UoE, now at the Jet Propulsion Laboratory).
 # Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
@@ -672,6 +689,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
+
   } else if (model_name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#") {
       output_dim=28
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))

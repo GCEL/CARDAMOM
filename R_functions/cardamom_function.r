@@ -8,7 +8,7 @@
 # Translation to R and subsequent modifications by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
 cardamom <-function (projname,model,method,stage) {
-#stage = 2 ; repair = 1 ; use_parallel = TRUE
+#stage <<- 1 ; repair <<- 1 ; use_parallel <<- FALSE
   ## load needed functions into R environment
   paths = load_paths()
 
@@ -18,6 +18,12 @@ cardamom <-function (projname,model,method,stage) {
   if (exists("request_compile_local") == FALSE) {request_compile_local <<- FALSE}
   if (exists("path_to_co2") == FALSE) {path_to_co2 <<- "./R_functions/"}
   if (exists("request_extended_mcmc") == FALSE) {request_extended_mcmc <<- FALSE}
+  if (exists("request_cost_function_scaling") == FALSE) {request_cost_function_scaling <<- 0} # set as default approach
+
+  # Use this function to ensure that if the short model name has been provided that we translate
+  # this into the full internal code version
+  tmp = cardamom_model_details(model,"global",1)
+  model = tmp$name
 
   # Use this function to ensure that if the short model name has been provided that we translate
   # this into the full internal code version
@@ -48,7 +54,11 @@ cardamom <-function (projname,model,method,stage) {
   if (file.exists(PROJECTfile) == FALSE | stage == -1){
 
       # load data for passing to list
-      PROJECT=list(name=projname,type=PROJECTtype,source=language,paths=paths)
+      PROJECT=list(name=projname,
+                   type=PROJECTtype,
+                   source=language,
+                   paths=paths,
+                   request_cost_function_scaling = request_cost_function_scaling)
 
       # create sites names file name
       if (cardamom_type == "site") {
@@ -124,16 +134,7 @@ cardamom <-function (projname,model,method,stage) {
       # Create parameter file name
       PROJECT$Rparfile=paste(paths$cardamom_PROJECTs,"/",PROJECT$type,"/","parfile.csv",sep="")
 
-      # write out PROJECT info
-#      cardamom_write_project_info(PROJECT)
-#      print("Project info written to text document")
-
-#      bob=readline("Freeze / backup project (y/n)")
-#      if (bob != "y" | bob != "n") {bob=readline("Freeze / backup project (y/n)")}
-      # create a tar.gz of the project for later use
-#      if (bob == "y") {cardamom_freeze_code(PROJECT)}
-
-      # save spatial type
+      # Save spatial type
       if (cardamom_type == "grid") {
           PROJECT$spatial_type = "grid"
           PROJECT$resolution = cardamom_resolution
@@ -275,8 +276,8 @@ cardamom <-function (projname,model,method,stage) {
           latlon = cbind(PROJECT$latitude,PROJECT$longitude)
           # However we still need a reduced area domain for extracting the site level analyses. +c(-0.5,0.5) allows buffer
           output = determine_lat_long_needed(lat = range(PROJECT$latitude)+c(-0.5,0.5), long = range(PROJECT$longitude)+c(-0.5,0.5)
-                                            ,resolution = 0.125, grid_type = "wgs84", remove = 0)
-          cardamom_ext = output$cardamom_ext ; gc(reset=TRUE,verbose=FALSE)
+                                            ,resolution = 0.125*0.5, grid_type = "wgs84", remove = NULL)
+          cardamom_ext = output$cardamom_ext
           # Extract the lat / long grids designed for determining the extraction locations for the gridded observation datasets
           obs_long_grid = output$obs_long_grid ; obs_lat_grid = output$obs_lat_grid
           # Tidy up

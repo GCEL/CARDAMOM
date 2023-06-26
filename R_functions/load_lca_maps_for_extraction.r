@@ -46,20 +46,17 @@ load_lca_maps_for_extraction<-function(latlon_in,lca_source,cardamom_ext,spatial
         # now remove the ones that are actual missing data
         lca_gCm2[which(as.vector(lca_gCm2) < 0)] = NA
         lca_uncertainty_gCm2[which(as.vector(lca_uncertainty_gCm2) < 0)] = NA
-        # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here
-        # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
-        #if (spatial_type == "grid") {
-            if (res(lca_gCm2)[1] != res(cardamom_ext)[1] | res(lca_gCm2)[2] != res(cardamom_ext)[2]) {
+        # Adjust spatial resolution of the datasets, this occurs in all cases
+        if (res(lca_gCm2)[1] != res(cardamom_ext)[1] | res(lca_gCm2)[2] != res(cardamom_ext)[2]) {
 
-                # Create raster with the target resolution
-                target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            # Create raster with the target resolution
+            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
 
-                # Resample to correct grid
-                lca_gCm2 = resample(lca_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
-                lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
+            # Resample to correct grid
+            lca_gCm2 = resample(lca_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
+            lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
 
-            } # Aggrgeate to resolution
-        #} # spatial_type == "grid"
+        } # Aggrgeate to resolution
 
         # extract dimension information for the grid, note the axis switching between raster and actual array
         xdim = dim(lca_gCm2)[2] ; ydim = dim(lca_gCm2)[1]

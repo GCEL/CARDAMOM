@@ -89,20 +89,17 @@ load_wood_productivity_maps_for_extraction<-function(Cwood_inc_source,cardamom_e
                  # now remove the ones that are actual missing data
                  Cwood_increment[which(as.vector(Cwood_increment) < 0)] = NA
                  Cwood_increment_uncertainty[which(as.vector(Cwood_increment_uncertainty) < 0)] = NA
-                 # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here
-                 # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
-                 #if (spatial_type == "grid") {
-                     if (res(Cwood_increment)[1] != res(cardamom_ext)[1] | res(Cwood_increment)[2] != res(cardamom_ext)[2]) {
+                 # Adjust spatial resolution of the datasets, this occurs in all cases
+                 if (res(Cwood_increment)[1] != res(cardamom_ext)[1] | res(Cwood_increment)[2] != res(cardamom_ext)[2]) {
 
-                         # Create raster with the target resolution
-                         target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                      # Create raster with the target resolution
+                      target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
 
-                         # Resample to correct grid
-                         Cwood_increment = resample(Cwood_increment, target, method="bilinear") ; gc() ; removeTmpFiles()
-                         Cwood_increment_uncertainty = resample(Cwood_increment_uncertainty, target, method="bilinear") ; gc() ; removeTmpFiles()
+                      # Resample to correct grid
+                      Cwood_increment = resample(Cwood_increment, target, method="bilinear") ; gc() ; removeTmpFiles()
+                      Cwood_increment_uncertainty = resample(Cwood_increment_uncertainty, target, method="bilinear") ; gc() ; removeTmpFiles()
 
-                     } # Aggrgeate to resolution
-                 #} # spatial_type == "grid"
+                 } # Aggrgeate to resolution
 
                  # If the first file to be read extract the lat / long information
                  if (done_lat == FALSE) {

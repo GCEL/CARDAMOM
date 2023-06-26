@@ -13,10 +13,6 @@ extract_burnt_area_information<- function(i1,j1,latlon_in,timestep_days,spatial_
   # Update the user
   if (use_parallel == FALSE) {print(paste("Beginning burned fraction data extraction for current location ",Sys.time(),sep=""))}
 
-#  # find the nearest location
-#  output = closest2d_2(1,burnt_all$lat,burnt_all$long,latlon_in[1],latlon_in[2])
-#  i1 = unlist(output, use.names=FALSE)[1] ; j1 = unlist(output, use.names=FALSE)[2]
-
   # Extract location specific information to a local variable
   burnt_area = burnt_all$burnt_area[i1,j1,]
 

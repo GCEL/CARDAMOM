@@ -11,10 +11,6 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
    # Update the user
    if (use_parallel == FALSE) {print(paste("LAI data extracted for current location ",Sys.time(),sep=""))}
 
-#   # find the nearest location
-#   output = closest2d_2(1,lai_all$lat,lai_all$long,latlon_in[1],latlon_in[2])
-#   i1 = unlist(output, use.names=FALSE)[1] ; j1=unlist(output, use.names=FALSE)[2]
-
    # Extract current location to local variable
    lai = lai_all$lai_all[i1,j1,]
    lai_unc = lai_all$lai_unc_all[i1,j1,]
@@ -100,8 +96,8 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
 
    # CARDAMOM works best if the uncertainties are the same across each LAI observation as the framework tends towards lower LAI values
    # Therefore, to make use of the uncertainty information we take the mean for this site and apply it across each value.
-   # NOTE: we put a book end the upper uncertainty linked to half the mean LAI estimate to ensure that there is some constraint
-   lai_unc_out[lai_out >= 0] = max(0.25,min(mean(lai_unc_out[lai_out >= 0]), 0.5*mean(lai_out[lai_out >= 0])))
+   # NOTE: we put a book end the upper uncertainty linked to the max LAI estimate to ensure that there is some constraint
+   lai_unc_out[lai_out >= 0] = max(0.25,min(mean(lai_unc_out[lai_out >= 0]), max(lai_out[lai_out >= 0])))
 
    # pass the information back
    output = list(lai = lai_out, lai_unc = lai_unc_out)

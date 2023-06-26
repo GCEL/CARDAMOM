@@ -19,8 +19,8 @@ single_site_plotting_control<-function(n,PROJECT) {
        # Determine whether chains have converged (true/false)
        converged = have_chains_converged(parameters)
        plot_parameters(PROJECT,parameters,converged,n)
-     	 # generate file name of the output file created in stage 3
-	     loadfile=paste(PROJECT$results_processedpath,PROJECT$sites[n],".RData",sep="")
+       # generate file name of the output file created in stage 3
+       loadfile=paste(PROJECT$results_processedpath,PROJECT$sites[n],".RData",sep="")
        if (file.exists(loadfile)) {
            # model state and flux plotting with uncertainty
            uncertainty_figures(n,PROJECT,loadfile)
@@ -35,21 +35,21 @@ generate_uncertainty_figures<-function(PROJECT) {
    # approaches to generating site specific plots of retrieved parameter
    # ensembles and time series information on ecosystem states and fluxes
 
- 	 # Request the creation of the plots
+   # Request the creation of the plots
    if (use_parallel & PROJECT$nosites > 1) {
-	     cl <- makeCluster(min(PROJECT$nosites,numWorkers), type = "PSOCK")
-	     # load R libraries in cluster
-	     clusterExport(cl,c("load_r_libraries","rmse","have_chains_converged",
+       cl <- makeCluster(min(PROJECT$nosites,numWorkers), type = "PSOCK")
+       # load R libraries in cluster
+       clusterExport(cl,c("load_r_libraries","rmse","have_chains_converged",
                           "read_parameter_chains","plotconfidence","psrf",
                           "uncertainty_figures","plot_parameters",
                           "use_parallel"))
-	     clusterEvalQ(cl, load_r_libraries())
-	     dummy = parLapply(cl,1:PROJECT$nosites,fun=single_site_plotting_control,PROJECT=PROJECT)
-	     stopCluster(cl)
-	 } else {
-	     # or use serial
-	     dummy = lapply(1:PROJECT$nosites,FUN=single_site_plotting_control,PROJECT=PROJECT)
-	 } # parallel option
+       clusterEvalQ(cl, load_r_libraries())
+       dummy = parLapply(cl,1:PROJECT$nosites,fun=single_site_plotting_control,PROJECT=PROJECT)
+       stopCluster(cl)
+   } else {
+       # or use serial
+       dummy = lapply(1:PROJECT$nosites,FUN=single_site_plotting_control,PROJECT=PROJECT)
+   } # parallel option
 
 } # end function generate_uncertainty_figures
 ## Use byte compile

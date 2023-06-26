@@ -87,19 +87,15 @@ load_fire_emission_fields_for_extraction<-function(latlon_in,fire_source,start_y
                        # Trim the extent of the overall grid to the analysis domain
                        var1 = crop(var1,cardamom_ext) ; var2 = crop(var2,cardamom_ext)
 
-                       # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here.
-                       # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
-                       #if (spatial_type == "grid") {
-                           if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
+                       # Adjust spatial resolution of the datasets, this occurs in all cases
+                       if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
 
-                               # Create raster with the target resolution
-                               target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
-                               # Resample to correct grid
-                               var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                               var2 = resample(var2, target, method="bilinear") ; gc() ; removeTmpFiles()
-
-                          } # Aggrgeate to resolution
-                       #} # spatial_type == "grid"
+                           # Create raster with the target resolution
+                           target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                           # Resample to correct grid
+                           var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
+                           var2 = resample(var2, target, method="bilinear") ; gc() ; removeTmpFiles()
+                       } # Aggrgeate to resolution
 
                        if (lat_done == FALSE) {
                            # extract dimension information for the grid, note the axis switching between raster and actual array

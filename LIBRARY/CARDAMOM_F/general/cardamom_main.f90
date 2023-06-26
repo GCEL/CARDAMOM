@@ -12,7 +12,7 @@ program cardamom_framework
  use MHMCMC_StressTests, only: StressTest_likelihood, StressTest_sublikelihood, prepare_for_stress_test
  use model_likelihood_module, only: model_likelihood, &
                                     find_edc_initial_values, &
-                                    sub_model_likelihood
+                                    sub_model_likelihood, sqrt_model_likelihood, log_model_likelihood
 
  !!!!!!!!!!!
  ! Authorship contributions
@@ -35,6 +35,7 @@ program cardamom_framework
  !            : Following Haario et al., (2001, 2006) and Roberts & Rosenthal (2009).
  ! Version 1.4: Pre-APMCMC phase using normalised likelihoods added by T. L. Smallman
  !            : Pre-APMCMC allows for rapidly moving towards observations from very bad starting points.
+ ! Version 1.5: Added options for varied scaling approaches for the cost function (e.g. division by sample size (i.e. n), sqrt(n), 1+log(n))
  ! Specific citations for developments included in the code.
 
  ! This is the main subroutine for the CARDAMOM framework. The specific model
@@ -49,14 +50,15 @@ program cardamom_framework
  ! 4) print-to-screen frequency
  ! 5) write-to-file frequency
  ! 6) 0 / 1 flag to use normalised log-likelihood pre-mcmc
+ ! 7) Flag to select the cost function normalisation approach
 
  implicit none
 
  ! declare local variables
  character(350) :: infile, outfile, solution_wanted_char, freq_print_char, &
-                   freq_write_char, do_inflate_char
+                   freq_write_char, do_inflate_char, cost_func_scaling_char
  integer :: solution_wanted, freq_print, freq_write, time1, time2, time3, n, &
-            nOUT_save, do_inflate_dble
+            nOUT_save, do_inflate_dble, cost_func_scaling_dble
  logical :: do_inflate = .false.
 
  ! user update
@@ -69,6 +71,7 @@ program cardamom_framework
  call get_command_argument(4 ,freq_print_char)
  call get_command_argument(5 ,freq_write_char)
  call get_command_argument(6 ,do_inflate_char)
+ call get_command_argument(7 ,cost_func_scaling_char)
 
  ! now convert relevant ones to integeter
  ! Note: that I10 is the maximum allowed with the default integer kind (kind = 4).
@@ -77,9 +80,33 @@ program cardamom_framework
  read(freq_print_char,'(I10)') freq_print
  read(freq_write_char,'(I10)') freq_write
  read(do_inflate_char,'(I10)') do_inflate_dble
+ read(cost_func_scaling_char,'(I10)') cost_func_scaling_dble
 
  ! Assign inflate logical condition
  if (do_inflate_dble == 1) do_inflate = .true.
+ ! Sanity check of the cost_function_scaling_char
+ if (cost_func_scaling_dble > -1 .and. cost_func_scaling_dble < 4) then
+     ! All is well
+ else
+     ! All is not well - complain
+     print*, "ERROR: Command line argument to specify the cost function is incorrect."
+     print*, "Command line should have 7 arguments (in addition to the cardamom.exe)."
+     print*, "These are: "
+     print*, "1) input file path."
+     print*, "2) output file path - note that PARS, STEP, COV, COVINFO will be appended to this name path outfile."
+     print*, "3) No. of parameter proposals to make."
+     print*, "4) Iteration freq. for printing to screen (main MCMC phase only)."
+     print*, "5) Iteration freq. for writing results to files."
+     print*, "6) do sample size normalisation phase - "
+     print*, "  0 = FALSE"
+     print*, "  1 = TRUE"
+     print*, "7) Select likelihood cost function - "
+     print*, "  0 = no scaling"
+     print*, "  1 = scaling by sample size (n)"
+     print*, "  2 = scaling by sqrt(n)"
+     print*, "  3 = scaling by log(n)"
+     stop
+ end if
 
  ! user update
  write(*,*)"Command line options read, moving on now"
@@ -303,8 +330,22 @@ program cardamom_framework
      ! Update the user
      write(*,*)"Beginning parameter search in real likelihoods"
      write(*,*)"Nos iterations to be proposed = ",MCO%nOUT
+
      ! Call the main MCMC
-     call MHMCMC(1d0,model_likelihood,model_likelihood)
+     ! The specific normalisation of the cost function is determined here.
+     ! But to avoid getting through the EDC do_inflate sections before finding
+     ! out that the cost_function_scaling has not been set correctly, 
+     ! ensure code after the command line read (above) has been correctly maintained
+     if (cost_func_scaling_dble == 0) then
+         call MHMCMC(1d0,model_likelihood,model_likelihood)
+     else if (cost_func_scaling_dble == 1) then
+         call MHMCMC(1d0,model_likelihood,sub_model_likelihood)
+     else if (cost_func_scaling_dble == 2) then
+         call MHMCMC(1d0,model_likelihood,sqrt_model_likelihood)
+     else if (cost_func_scaling_dble == 3) then
+         call MHMCMC(1d0,model_likelihood,log_model_likelihood)
+     end if ! cost_func_scaling_dble == 
+     
      ! Let the user know we are done
      write(*,*)"AP-MCMC done now, moving on ..."
 

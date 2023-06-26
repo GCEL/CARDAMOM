@@ -11,7 +11,7 @@ submit_processes_to_cluster<-function (PROJECT_in) {
     print('PREPARING TO SUBMIT MCMC TO ECDF')
     print('This function should be valid for all CARDAMOM compatible DALEC MCMC functions')
 
-    # Assume MCMC withh use pre-mcmc where lielihoods are normalised by sample size
+    # Assume MCMC withh use pre-mcmc where likelihoods are normalised by sample size
     pre_mcmc = 1
     # Combined the default set of parameter proposals with the extended run number
     # if this is an extened run
@@ -20,6 +20,12 @@ submit_processes_to_cluster<-function (PROJECT_in) {
         nsamples = nsamples + request_nos_extended_samples
         # Assume pre-mcmc is not to be used if this is an extended run
         pre_mcmc = 0
+    }
+    
+    # Check presence of PROJECT_in$cost_function_scaling
+    if (exists(x = "cost_function_scaling", where = PROJECT_in) == FALSE) {
+        # If not, assume default cost function
+        PROJECT_in$cost_function_scaling = 0
     }
 
     # create the new file name in the correct location
@@ -32,10 +38,24 @@ submit_processes_to_cluster<-function (PROJECT_in) {
               infile=paste(PROJECT_in$edatapath,PROJECT_in$name,"_",PROJECT_in$sites[n],".bin",sep="")
               output=paste(PROJECT_in$eresultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c,"_",sep="")
               if (first_pass) {
-                  write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",infile," ",output," ",as.integer(nsamples)," 0 ",as.integer(PROJECT_in$samplerate)," ",as.integer(pre_mcmc),sep=""),sep=" ", ncolumn=1,file=outfile,append="F")
+                  write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",
+                              infile," ",
+                              output," ",
+                              as.integer(nsamples),
+                              " 0 ",
+                              as.integer(PROJECT_in$samplerate)," ",
+                              as.integer(pre_mcmc)," ",
+                              as.integer(PROJECT_in$cost_function_scaling),sep=""),sep=" ", ncolumn=1,file=outfile,append="F")
                   first_pass=FALSE
               } else {
-                  write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",infile," ",output," ",as.integer(nsamples)," 0 ",as.integer(PROJECT_in$samplerate)," ",as.integer(pre_mcmc),sep=""),sep=" ", ncolumn=1,file=outfile,append="T")
+                  write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",
+                              infile," ",
+                              output," ",
+                              as.integer(nsamples),
+                              " 0 ",
+                              as.integer(PROJECT_in$samplerate)," ",
+                              as.integer(pre_mcmc)," ",
+                              as.integer(PROJECT_in$cost_function_scaling),sep=""),sep=" ", ncolumn=1,file=outfile,append="T")
               }
          } # chain no
     } # nosite
