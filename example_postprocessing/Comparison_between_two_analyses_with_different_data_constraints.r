@@ -89,14 +89,14 @@ mid_quant = 4 ; low_quant = 2 ; high_quant = 6
 wanted_quant = c(low_quant,3,mid_quant,5,high_quant)
 
 # Set output directory
-out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/LTSS_CARBON_INTEGRATION/InternationalScience/figures_africa_one_vs_all/"
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
-outsuffix = "_original_vs_alternate"
+#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/LTSS_CARBON_INTEGRATION/InternationalScience/figures_africa_one_vs_all/"
+out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
+outsuffix = "_singleAGB_vs_repeatAGB"
 
 # Assign the baseline analysis - the original
 # Original AGB assimilated (2003)
-load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/ODA_extension_Africa_one_agb/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_2_2.5deg_C7_GCP_AGB/infofile.RData")
+#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/ODA_extension_Africa_one_agb/infofile.RData")
+load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_2_2.5deg_C7_GCP_one_AGB/infofile.RData")
 load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
 orig_PROJECT = PROJECT ; orig_grid_output = grid_output
 #orig_name = "Baseline"
@@ -104,8 +104,8 @@ orig_name = "Single" # used in labelling figures
 #orig_name = "-GPP" # used in labelling figures
 # Assign the alternate analysis - the new data constraint
 # Repeat AGB assimilated (2003-2019)
-load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/ODA_extension_Africa_agb/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_2_2.5deg_C7_GCP_AGB_GPP/infofile.RData")
+#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/ODA_extension_Africa_agb/infofile.RData")
+load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_2_2.5deg_C7_GCP_AGB/infofile.RData")
 load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
 alt_PROJECT = PROJECT ; alt_grid_output = grid_output 
 alt_name = "Repeat" # used in labelling figures
@@ -142,8 +142,8 @@ landmask = shapefile("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/R_functions
 landmask = spTransform(landmask,crs(cardamom_ext))
 # subset by continent (could also do by country)
 #landmask = subset(landmask, CONTINENT == "South America") # Change continent to target area or comment out if spanning zones
-landmask = subset(landmask, CONTINENT == "Africa") # Change continent to target area or comment out if spanning zones
 
+#landmask = subset(landmask, CONTINENT == "Africa") # Change continent to target area or comment out if spanning zones
 # Clip and/or extend to the extent of the CARDAMOM analysis
 landmask@bbox = as.matrix(extent(cardamom_ext)) # polygon workaround
 #landmask = crop(landmask, cardamom_ext)
@@ -1803,24 +1803,13 @@ obs_gpp_mean_gCm2yr = obs_gpp_mean_gCm2yr[,dim(obs_gpp_mean_gCm2yr)[2]:1,]
 #obs_gpp_max_gCm2yr = obs_gpp_max_gCm2yr[,dim(obs_gpp_max_gCm2yr)[2]:1,]
 
 # Create domain averaged values for each year and data source, note that aggregation MUST happen within product type before across products
-obs_gpp_ensemble_gCm2yr = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*orig_grid_output$land_fraction, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
-# Generate aggregate values at the domain level - these must come from the raw product specific variables
-obs_gpp_mean_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,mean, na.rm=TRUE)
-obs_gpp_min_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,min, na.rm=TRUE)
-obs_gpp_max_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,max, na.rm=TRUE)
+tmp = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*orig_grid_output$land_fraction, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
 # where the whole grid is zero can lead to zero being introduced - remove these
-obs_gpp_mean_domain_TgCyr[which(obs_gpp_mean_domain_TgCyr == 0)] = NA 
-obs_gpp_min_domain_TgCyr[which(obs_gpp_min_domain_TgCyr == 0)] = NA
-obs_gpp_max_domain_TgCyr[which(obs_gpp_max_domain_TgCyr == 0)] = NA
-
-## Generate aggregate values at the domain level - these must come from the raw product specific variables
-#obs_gpp_mean_domain_TgCyr = apply(obs_gpp_mean_gCm2yr*array(landmask_area, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_mean_gCm2yr)[3]))*1e-12,c(3),sum, na.rm=TRUE)
-#obs_gpp_min_domain_TgCyr = apply(obs_gpp_min_gCm2yr*array(landmask_area, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_mean_gCm2yr)[3]))*1e-12,c(3),sum, na.rm=TRUE)
-#obs_gpp_max_domain_TgCyr = apply(obs_gpp_max_gCm2yr*array(landmask_area, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_mean_gCm2yr)[3]))*1e-12,c(3),sum, na.rm=TRUE)
-## where the whole grid is zero can lead to zero being introduced - remove these
-#obs_gpp_mean_domain_TgCyr[which(obs_gpp_mean_domain_TgCyr == 0)] = NA 
-#obs_gpp_min_domain_TgCyr[which(obs_gpp_min_domain_TgCyr == 0)] = NA
-#obs_gpp_max_domain_TgCyr[which(obs_gpp_max_domain_TgCyr == 0)] = NA
+tmp[which(tmp == 0)] = NA 
+# Generate aggregate values at the domain level - these must come from the raw product specific variables
+obs_gpp_mean_domain_TgCyr = apply(tmp,1,mean, na.rm=TRUE)
+obs_gpp_min_domain_TgCyr = apply(tmp,1,min, na.rm=TRUE)
+obs_gpp_max_domain_TgCyr = apply(tmp,1,max, na.rm=TRUE)
 
 ###
 ## Independent fire emissions estimate
@@ -1926,6 +1915,15 @@ obs_fire_max_domain_TgCyr = apply(obs_fire_max_gCm2yr*array(orig_grid_output$lan
 obs_fire_mean_domain_TgCyr[which(obs_fire_mean_domain_TgCyr == 0)] = NA 
 obs_fire_min_domain_TgCyr[which(obs_fire_min_domain_TgCyr == 0)] = NA
 obs_fire_max_domain_TgCyr[which(obs_fire_max_domain_TgCyr == 0)] = NA
+
+# Create domain averaged values for each year and data source, note that aggregation MUST happen within product type before across products
+tmp = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*orig_grid_output$land_fraction, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
+# where the whole grid is zero can lead to zero being introduced - remove these
+tmp[which(tmp == 0)] = NA 
+# Generate aggregate values at the domain level - these must come from the raw product specific variables
+obs_gpp_mean_domain_TgCyr = apply(tmp,1,mean, na.rm=TRUE)
+obs_gpp_min_domain_TgCyr = apply(tmp,1,min, na.rm=TRUE)
+obs_gpp_max_domain_TgCyr = apply(tmp,1,max, na.rm=TRUE)
 
 ###
 ## Plot Observations
@@ -2068,12 +2066,12 @@ png(file = paste(out_dir,"/",gsub("%","_",orig_PROJECT$name),"_NBE_GPP_Fire_time
 par(mfrow=c(3,1),mai=c(0.3,0.65,0.3,0.2),omi=c(0.2,0.2,0.3,0.005))
 # Now plot NBE, annual time series TgC/yr
 dims = dim(cte_nbe_gCm2yr)
-var1  = c(apply(cte_nbe_gCm2yr * array(cte_m2, dim=dims),c(3),sum, na.rm=TRUE) * 1e-12)
-var2  = cbind(cbind(c(obs_nbe_mean_domain_TgCyr),c(obs_nbe_min_domain_TgCyr)),c(obs_nbe_max_domain_TgCyr))
-var3  = orig_nbe_TgCyr ; var4  = orig_nbe_lower_TgCyr ; var5  = orig_nbe_upper_TgCyr
-var6  = alt_nbe_TgCyr ; var7  = alt_nbe_lower_TgCyr ; var8  = alt_nbe_upper_TgCyr
+var1  = c(apply(cte_nbe_gCm2yr * array(cte_m2, dim=dims),c(3),sum, na.rm=TRUE) * 1e-15)
+var2  = cbind(cbind(c(obs_nbe_mean_domain_TgCyr),c(obs_nbe_min_domain_TgCyr)),c(obs_nbe_max_domain_TgCyr))*1e-3
+var3  = orig_nbe_TgCyr*1e-3 ; var4  = orig_nbe_lower_TgCyr*1e-3 ; var5  = orig_nbe_upper_TgCyr*1e-3
+var6  = alt_nbe_TgCyr*1e-3 ; var7  = alt_nbe_lower_TgCyr*1e-3 ; var8  = alt_nbe_upper_TgCyr*1e-3
 zrange = range(c(var1,var2,var3,var4,var5,var6,var7,var8), na.rm=TRUE)
-zrange[2] = zrange[2] + 500
+zrange[2] = zrange[2] + 0.5
 plot(var3~run_years, main="", cex.lab=2, cex.main=2, cex.axis=1.8, ylim=zrange,
       col=model_colours[1], type="l", lwd=4, ylab="", xlab="", lty=1)
 plotconfidence(var2,run_years,2,obs_colours[1])
@@ -2086,13 +2084,13 @@ lines(var8~run_years, col=model_colours[2], lwd=3, lty = 2) #; points(var8~run_y
 abline(0,0,col="grey", lwd=2)
 legend("topleft", legend = c(obs_flags,model_flags), col = c(obs_colours[1:3],model_colours), 
        lty = c(rep(1,length(obs_flags)),rep(1,length(model_flags))), pch=rep(NA,length(c(obs_flags,model_flags))), horiz = FALSE, bty = "n", cex=1.8, lwd=3, ncol = 2)
-mtext(expression(paste("Net Biome Exchange (TgC y",r^-1,")",sep="")), side=2, padj=-2.65,cex=1.5)
+mtext(expression(paste("Net Biome Exchange (PgC y",r^-1,")",sep="")), side=2, padj=-1.60,cex=1.5)
 #mtext("Year", side=1, padj=2.0,cex=1.6)
 
 # Now plot GPP
-var3  = cbind(cbind(c(obs_gpp_mean_domain_TgCyr),c(obs_gpp_min_domain_TgCyr)),c(obs_gpp_max_domain_TgCyr))
-var4  = orig_gpp_TgCyr ; var5  = orig_gpp_lower_TgCyr ; var6  = orig_gpp_upper_TgCyr   
-var7  = alt_gpp_TgCyr ; var8  = alt_gpp_lower_TgCyr ; var9  = alt_gpp_upper_TgCyr   
+var3  = cbind(cbind(c(obs_gpp_mean_domain_TgCyr),c(obs_gpp_min_domain_TgCyr)),c(obs_gpp_max_domain_TgCyr))*1e-3
+var4  = orig_gpp_TgCyr*1e-3 ; var5  = orig_gpp_lower_TgCyr*1e-3 ; var6  = orig_gpp_upper_TgCyr *1e-3  
+var7  = alt_gpp_TgCyr*1e-3 ; var8  = alt_gpp_lower_TgCyr*1e-3 ; var9  = alt_gpp_upper_TgCyr *1e-3  
 zrange = range(c(var3,var4,var5,var6,var7,var8,var9), na.rm=TRUE)*c(0.9,1.0)
 plot(var4~run_years, main="", cex.lab=2, cex.main=2, cex.axis=1.8, ylim=zrange,
       col=model_colours[1], type="l", lwd = 4, ylab="", xlab="", lty = 2)
@@ -2107,12 +2105,12 @@ lines(var9~run_years, col=model_colours[2], lwd = 4, lty = 2) #; points(var9~run
 #legend("bottomright", legend = c(obs_flags[-5],model_flags), col = c(obs_colours[1:4],model_colours), 
 #       lty = c(rep(1,length(obs_flags[-5])),rep(2,length(model_flags))), pch=rep(NA,length(c(obs_flags[-5],model_flags))), horiz = FALSE, bty = "n", cex=1.8, lwd=3, ncol = 2)
 #mtext("Year", side=1, padj=2.0,cex=1.6)
-mtext(expression(paste("Gross Primary Productivity (TgC y",r^-1,")",sep="")), side=2, padj=-2.65, cex=1.5)
+mtext(expression(paste("Gross Primary Productivity (PgC y",r^-1,")",sep="")), side=2, padj=-1.60, cex=1.5)
 
 # Now plot fire
-var3  = cbind(cbind(c(obs_fire_mean_domain_TgCyr),c(obs_fire_min_domain_TgCyr)),c(obs_fire_max_domain_TgCyr))
-var4  = orig_fire_TgCyr  ; var5  = orig_fire_lower_TgCyr ; var6  = orig_fire_upper_TgCyr
-var7  = alt_fire_TgCyr   ; var8  = alt_fire_lower_TgCyr  ; var9  = alt_fire_upper_TgCyr
+var3  = cbind(cbind(c(obs_fire_mean_domain_TgCyr),c(obs_fire_min_domain_TgCyr)),c(obs_fire_max_domain_TgCyr))*1e-3
+var4  = orig_fire_TgCyr*1e-3  ; var5  = orig_fire_lower_TgCyr*1e-3 ; var6  = orig_fire_upper_TgCyr*1e-3
+var7  = alt_fire_TgCyr*1e-3   ; var8  = alt_fire_lower_TgCyr*1e-3  ; var9  = alt_fire_upper_TgCyr*1e-3
 zrange = range(c(var3,var4,var5,var6,var7,var8,var9), na.rm=TRUE)*c(0.9,1.1)
 plot(var4~run_years, main="", cex.lab=2, cex.main=2, cex.axis=1.8, ylim=zrange,
       col=model_colours[1], type="l", lwd=4, lty=2, ylab="", xlab="")
@@ -2124,7 +2122,7 @@ lines(var7~run_years, col=model_colours[2], lwd=4, lty = 1) ; points(var7~run_ye
 lines(var8~run_years, col=model_colours[2], lwd=4, lty = 2) ; points(var8~run_years, col=model_colours[2], pch=16)
 lines(var9~run_years, col=model_colours[2], lwd=4, lty = 2) ; points(var9~run_years, col=model_colours[2], pch=16)
 mtext("Year", side=1, padj=2.0,cex=1.6)
-mtext(expression(paste("Fire Emissions (TgC y",r^-1,")",sep="")), side=2, padj=-2.65,cex=1.5)
+mtext(expression(paste("Fire Emissions (PgC y",r^-1,")",sep="")), side=2, padj=-1.60,cex=1.5)
 dev.off()
 
 # Assimilated observations overlap

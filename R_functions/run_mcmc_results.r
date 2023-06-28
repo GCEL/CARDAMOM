@@ -722,7 +722,7 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           # If the combined correlation between wood MTT and wood allocation has been calculated
           if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = site_output)) {
               grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
-          } 
+          }
           # Quantify the mean absolute magnitude of correlations between parameters
           grid_output$absolute_mean_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
@@ -973,7 +973,7 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
               if (exists(x = "alloc_wood_gCm2day", where = states_all)) {
                   states_all$NPP_wood_gCm2day_parameter_correlation = cor(tmp,rowMeans(states_all$alloc_wood_gCm2day))
               }
-    
+
           } # Both MTT wood and alloc_wood present?
 
           ###
@@ -2438,8 +2438,8 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
           # If the correlation between wood MTT and wood allocation have been determined
           if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = states_all)) {
               site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = states_all$MTT_wood_years_to_NPP_wood_gCm2day_correlation
-          } 
-          
+
+          }
 
           # Tidy local environment
           rm(states_all,drivers) ; gc()
@@ -2497,19 +2497,31 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
   if (repair != 1) {
       # Inform the user
       print("...beginning filterings for sites we have already processed")
+      # Generate lists of expected files, which changes depending on whether this is a gridded or a site based run
+      if (PROJECT$spatial_type == "grid") {
+          outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites,"_stock_fluxes.RData",sep="")
+      } else if (PROJECT$spatial_type == "site") {
+          outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites,".RData",sep="")
+      } else {
+          stop("PROJECT$spatial_type not of valid value, i.e. grid or site")
+      }
+      # Loop through the expected sites
       for (n in seq(1, length(nos_plots))) {
-           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
-           if (file.exists(outfile_stocks) == FALSE) {
+           #outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_stock_fluxes.RData",sep="")
+           if (file.exists(outfile_stocks[n]) == FALSE) {
                keep_list=append(keep_list,n)
            } else {
                existing_list = append(existing_list,n) ; existing_files[n] = outfile_stocks
            }
       }
       # filter out the sites we already have then
-      keep_list = keep_list[-1] ; existing_list = existing_list[-1]
+      # Note conditional statments used later account for cases where no / all sites are removed.
+      keep_list = keep_list[-1]
+      existing_list = existing_list[-1]
+      # Update user
       print(paste("......removing ",length(nos_plots)-length(keep_list)," sites out of ",length(nos_plots)," from the analysis",sep=""))
       nos_plots = nos_plots[keep_list]
-  }
+  } # repair !=1
 
   # now request the creation of the plots
   if (use_parallel & length(nos_plots) > 1) {
@@ -2543,7 +2555,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       print("...finished serial operations")
 
   } else {
-  
+
       # Create empty output object into which to insert the required file names from the existing files
       site_output_all = vector("list", PROJECT$nosites)
 
@@ -2552,12 +2564,15 @@ print(paste("outfile_stocks=",outfile_stocks))
 print(paste("existing_list:",existing_list[1]))
 print(paste("existing_files[1]:",existing_files[1]))
   # Check whether we have some existing files...
-  if (existing_list[1] > 0 | length(existing_list) > 1) {
-      # ...then insert them into the overall output file list
-      for (n in seq(1, length(existing_list))) {
-           site_output_all[[existing_list[n]]] = existing_files[existing_list[n]]
-      }
-  }
+  if (length(existing_list) > 0) {
+      #if (existing_list[1] > 0 | length(existing_list) > 1) {
+      if (existing_list[1] > 0) {
+          # ...then insert them into the overall output file list
+          for (n in seq(1, length(existing_list))) {
+               site_output_all[[existing_list[n]]] = existing_files[existing_list[n]]
+          }
+      } # More subtle control
+  } # does the variable have a value?
 
   # now if this is a gridded run we want to take out individual site specific summary files and combine them into a single file
   if (PROJECT$spatial_type == "grid" & grid_override == FALSE) {
@@ -3256,7 +3271,7 @@ print(paste("existing_files[1]:",existing_files[1]))
                if (exists(x = "fire_assim_data_overlap_fraction", where = site_output)) {
                   grid_output$fire_assim_data_overlap_fraction[slot_i,slot_j] = site_output$fire_assim_data_overlap_fraction
                }
-               
+
                # Store mean absolute parameter correlation information
                grid_output$absolute_mean_parameter_correlation[slot_i,slot_j] = site_output$absolute_mean_parameter_correlation
                # Parameter vs C-cycle flux correlation across ensemble member
@@ -3277,7 +3292,7 @@ print(paste("existing_files[1]:",existing_files[1]))
                # If the correlation between wood MTT and wood allocation have been determined
                if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = site_output)) {
                    grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation[slot_i,slot_j] = site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation
-               }        
+               }
 
                # Tidy up
                rm(site_output) ; file.remove(site_output_all[[n]])
