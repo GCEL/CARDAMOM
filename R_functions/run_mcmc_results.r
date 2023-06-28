@@ -2492,6 +2492,8 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
   # now check which ones we need to calculate, but only if override not in play
   keep_list = 0 ; existing_list = 0 ; existing_files = rep(NA, length(nos_plots))
+  print(paste("length(nos_plots)=",length(nos_plots)))
+  print(paste("initial existing_list[1]=",existing_list[1]))
   if (repair != 1) {
       # Inform the user
       print("...beginning filterings for sites we have already processed")
@@ -2546,7 +2548,9 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       site_output_all = vector("list", PROJECT$nosites)
 
   } # parallel option
-
+print(paste("outfile_stocks=",outfile_stocks))
+print(paste("existing_list:",existing_list[1]))
+print(paste("existing_files[1]:",existing_files[1]))
   # Check whether we have some existing files...
   if (existing_list[1] > 0 | length(existing_list) > 1) {
       # ...then insert them into the overall output file list
