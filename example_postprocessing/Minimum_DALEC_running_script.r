@@ -6,18 +6,18 @@
 ###
 
 # Set working directory to the location which the CARDAMOM framework can be found
-setwd("<path to CARDAMOM directory>")
+setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/")
 # This is so we can read in the R functions for CARDAMOM, after this you can change the directory
 source("./R_functions/load_all_cardamom_functions.r")
 
 # Load the info file for the project you will be calling from
-load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_LAB_MHMCMC/Miombo_kilwa_nhambita_1km/infofile.RData")
+load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.C1.D1.F2.P1.#_MHMCMC/wetland_test_site/infofile.RData")
 # Load the already processed DALEC outputs - this has the parameters and drivers but also the existing DALEC output against which you can compare any modifications
-load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_LAB_MHMCMC/Miombo_kilwa_nhambita_1km/RESULTS_PROCESSED/kilwa.RData")
+load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.C1.D1.F2.P1.#_MHMCMC/wetland_test_site/RESULTS_PROCESSED/wetland_test.RData")
 # If the project has more than one site within set "n" to the correct value, otherwise leave as 1
 n = 1
 
-# Set missing observation values to NA as this will be easiler for plotting, -9999 needed for for CARDAMOM itself
+# Set missing observation values to NA as this will be easier for plotting, -9999 needed for for CARDAMOM itself
 drivers$obs[which(drivers$obs == -9999)] = NA
 
 ###
@@ -83,6 +83,8 @@ if (analysis_years != nos_years) {
 ##
 # Now run the actual model
 
+parameters[11,,] = parameters[11,,] * 2
+
 # run subsample of parameters for full results / propogation
 soil_info = c(drivers$top_sand,drivers$bot_sand,drivers$top_clay,drivers$bot_clay)
 C_cycle = simulate_all(n,new_PROJECT,PROJECT$model$name,new_drivers$met,parameters[1:PROJECT$model$nopars[n],,],
@@ -90,4 +92,8 @@ C_cycle = simulate_all(n,new_PROJECT,PROJECT$model$name,new_drivers$met,paramete
                           PROJECT$exepath,soil_info)
 
 # Then compare original states_all with C_cycle
+
+#plot(apply(C_cycle$gpp_gCm2day,2,median), type="l", lwd=3)
+lines(apply(C_cycle$gpp_gCm2day,2,median), col="green", lwd=3)
+
 

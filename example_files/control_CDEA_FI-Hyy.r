@@ -4,7 +4,7 @@
 ###
 
 # Set working directory in which the CARDAMOM code base can be found
-setwd("/home/s1832644/cardamom/CARDAMOM/")
+setwd("<enter your cardamom directory here>")
 
 ###
 ## Options
@@ -25,7 +25,7 @@ timing=FALSE
 debug=FALSE
 
 ## about you (only valid if working on UoE remote server)
-username="s1832644" # put your Edinburgh uun here
+username="<username here>" # put your Edinburgh uun here
 home_computer="ssh.geos.ed.ac.uk"
 
 ## use parallel functions?
@@ -33,8 +33,8 @@ use_parallel = FALSE
 numWorkers = 6 # number of cores to assign to parallel job
 
 ## Model - which DALEC 
-# i.e. "DALEC_CDEA_LU_FIRES","DALEC_1005","DALEC_1005a","DALEC_CDEA_ACM2_BUCKET","DALEC_CDEA_ACM2_BUCKET_RmRg", "DALEC_CDEA_ACM2_BUCKET_CWD", "DALEC_GSI_DFOL_CWD_FR", "DALEC_GSI_BUCKET"
-model="DALEC_CDEA_LU_FIRES"
+# see "MODEL_DESCRIPTIONS.md" for available models
+model="DALEC.2."
 pft_specific_parameters=FALSE # impacts crop model only
 
 ## MDF method
@@ -47,41 +47,45 @@ use_lcm="ECMWF" # coded choices exist for other maps however only "ECMWF" map is
 pft_wanted=FALSE # Impacts crop model only
 path_to_landsea="default" # If gridded analysis, any raster layer with >0 values will be taken as the mask area. To ignore = "default"
 
-## Data paths - assumes that R code has been updated to deal with various gridded datasets
-path_to_site_obs="./example_files/inputs/" # If not using gridded data then only the site obs path needs setting
+## Met paths
 path_to_met_source=" "
-path_to_lai=" "
-path_to_crop_management=" " # crop model only
-path_to_sand_clay=" " # sand / clay fractions for ACM2 hydraulics model
-path_to_Csom=" " # Currently just applies to soil C on initial conditions parameter
-path_to_forestry=" " # i.e. forest harvest / management
-path_to_Cwood_inc = " " # gCm2day allocation to wood over lagged period
-path_to_Cwood_mortality = " " # gCm2day nataural loss from wood over lagged period
-path_to_Cwood=" " # Time specific wood stock information (above + below)
-path_to_Cwood_initial=" " # Constraint on initial wood stock parameter
-path_to_Cwood_potential=" " #  Constraint on the steady state attractor for wood stocks
-path_to_gleam=" " # Evapotranspiration constraint
-path_to_nbe = " " # Net biome exchange
-path_to_gpp = " " # Gross Primary Productivity
-path_to_fire = " " # Fire C emission
-path_to_burnt_area=" " # imposed as a fraction
-path_to_lca = " " # leaf carbon per unit area (gC/m2)
-met_interp=TRUE # apply linear interpolation to met drivers if the provided datasets are not correct
+#path_to_met_source="/exports/csce/datastore/geos/groups/gcel/Trendy_v11_met/monthly/"
+#path_to_met_source="/exports/csce/datastore/geos/groups/gcel/ECMWF/ERA5/0.125deg_global/"
+path_to_lai=" " #"/exports/csce/datastore/geos/groups/gcel/LAI_ESTIMATES/MCD15A2H.061/global_0.0625deg/"
+path_to_crop_management=" "
+path_to_sand_clay=" " #"/exports/csce/datastore/geos/groups/gcel/SoilGrids/version2/processed/global_5km/"
+path_to_Csom=" " #"/exports/csce/datastore/geos/groups/gcel/SoilGrids/version2/processed/global_5km/"
+path_to_Cwood_inc = ""
+path_to_Cwood_mortality = ""
+path_to_Cwood=" " #"/exports/csce/datastore/geos/groups/gcel/AGB/ESA_CCI_BIOMASS/ESA_CCI_AGB_0.125deg/"
+path_to_Cwood_initial=" "
+path_to_Cwood_potential=" "
+path_to_gleam=" "
+path_to_nbe = " "
+path_to_gpp = " "
+path_to_fire = " "
+path_to_forestry=" " #"/exports/csce/datastore/geos/groups/gcel/GlobalForestWatch/global_0.0625deg/"
+path_to_burnt_area=" " #"/exports/csce/datastore/geos/groups/gcel/BurnedArea/MCD64A1/global_0.0625deg/"
+path_to_lca = "/exports/csce/datastore/geos/groups/gcel/TraitMaps/Butler/LCA/global_1deg/"
+path_to_co2 = "/exports/csce/datastore/geos/groups/gcel/Trendy_v11_met/global_CO2/"
+path_to_site_obs="./example_files/inputs/"
+path_to_landsea = "default"
+met_interp=TRUE
 
 ## Data streams - The currently coded data streams which can be used to drive or constrain the models
-met_source="site_specific" # "trendy_v9" or "ERA" or "isimip3a" or "site_specific"
+met_source="site_specific" # "trendy_v9" or "trendy_v11" or "ERA" or "isimip3a" or "site_specific"
 lai_source="site_specific" # "COPERNICUS" or "MODIS" or "site_specific"
-Csom_source="site_specific" # "SoilGrids" or "HWSD" or "site_specific"
+Csom_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
+sand_clay_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
 soilwater_initial_source = " " # initial soil water fraction (m3/m3)
-sand_clay_source="site_specific" # "SoilGrids" or "HWSD" or "site_specific
 Evap_source=" "        # " " or "site_specific"
 Cwood_inc_source = " " # "site_specific" or " " or "Rainfor"
 Cwood_mortality_source = " " # "site_specific" or " " or "Rainfor"
 fire_source=" " # " " or "site_specific" or "Global_Combined"
 GPP_source=" " 	# " " or "site_specific" or "Global_Combined"
 Reco_source=" " 	# " " or "site_specific"
-NEE_source="site_specific" # "site_specific" 	# " " or "site_specific"
-nbe_source = " " # " ", "site_specific", "Global_Combined"
+NEE_source="site_specific" # " " or "site_specific"
+nbe_source = " " # " " or "site_specific" or "Global_Combined" or "GEOSCHEM" or "OCO2MIP"
 # i.e. single value valid for beginning of simulation
 Cfol_initial_source=" " #"site_specific" 	# " " or "site_specific"
 Cwood_initial_source=" " #"site_specific" 	# " " or "site_specific"
@@ -90,7 +94,7 @@ Clit_initial_source=" " #"site_specific"  	# " " or "site_specific"
 # i.e. time series of stock estimates
 Cfol_stock_source=" " 	# " " or "site_specific"
 Cfolmax_stock_source=" " 	# " " or "site_specific"
-Cwood_stock_source="site_specific" 	# " " or "site_specific"
+Cwood_stock_source="site_specific" 	# " " or "site_specific" or "McNicol" or "Saatchi_2021" or "ESA_CCI_Biomass"
 Cstem_stock_source=" "      # " " or "site_specific"
 Cagb_stock_source=" " 	# " " or "site_specific"
 Ccoarseroot_stock_source=" " 	# " " or "site_specific"
@@ -127,13 +131,20 @@ select_country = FALSE # If gridded run and path_to_landsea = "default",
 
 ## Define the project setup
 # NOTE: if these are not set CARDAMOM will ask you for them
-request_nos_chains = 3         # Number of chains CARDAMOM should run for each location
-request_nos_samples = 100e6    # Total number of parameter samples / iterations to be explored
-request_nos_subsamples = 1e3   # Number of parameter sets to be sub-sampled from the chain
-request_use_server = FALSE     # Use remote server? Currently coded for UoE Eddie.
-request_runtime = 48           # How many hours of compute to request per job. Only applied for running on remote server
-request_compile_server = FALSE # Copy and compile current source code on remote server
-request_use_EDCs = TRUE        # Use EDCs
+request_nos_chains = 3        # Number of chains CARDAMOM should run for each location
+request_nos_samples = 100e6   # Total number of parameter samples / iterations to be explored
+request_nos_subsamples = 1e3  # Number of parameter sets to be sub-sampled from the chain
+request_use_server = FALSE    # Use remote server? Currently coded for UoE Eddie.
+request_runtime = 48          # How many hours of compute to request per job. Only applied for running on remote server
+request_compile_server = FALSE# Copy and compile current source code on remote server
+request_compile_local = TRUE  # Compile local copy of the source code 
+request_use_EDCs = TRUE       # Use EDCs
+request_extended_mcmc = FALSE # Extend the current MCMC by adding a further request_nos_extended_samples + request_nos_samples
+request_nos_extended_samples = 90e6 # If request_extened_mcmc == TRUE then this is the number of additional proposals to be made
+request_cost_function_scaling = 0 # 0 = Default, no normaliation of the likelihood score
+                                  # 1 = Normaliation of the likelihood score by sample size
+                                  # 2 = Normaliation of the likelihood score by sqrt(sample size)
+                                  # 3 = Normaliation of the likelihood score by log(sample size) 
 
 ## Stage
 # stage -1 : Create project first time (load source to eddie)
@@ -141,10 +152,9 @@ request_use_EDCs = TRUE        # Use EDCs
 # stage  1 : Create met / obs containing files for the specifc project
 # stage  2 : Submit the project to eddie
 # stage  3 : Copy back results and process vectors
-# stage  4 ; Do some standard figure creation (and further processing for gridded analysis)
-# stage  5 ; Currently out of use
-stage=4
-repair=1 # to force (=1) re-run processed results or driver files if they already exist
+# stage  4 : Do some standard figure creation (and further processing for gridded analysis)
+stage=-1
+repair=0 # to force (=1) re-run processed results or driver files if they already exist
 grid_override=FALSE # force site specific files to be saved and figures to be generated when in "grid" operation
 
 ##

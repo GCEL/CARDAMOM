@@ -148,6 +148,8 @@ if (exists(x = "som_gCm2", where = grid_output)) {SOIL = array(NA, dim=c(PROJECT
 if (exists(x = "woodlitter_gCm2", where = grid_output)) {WLIT = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
 if (exists(x = "dom_gCm2", where = grid_output)) {DOM = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
 if (exists(x = "biomass_gCm2", where = grid_output)) {BIO = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
+# C STATE CHANGE ESTIMATES
+if (exists(x = "dCbiomass_gCm2", where = grid_output)) {dBIO = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
 # C FLUXES
 if (exists(x = "gpp_gCm2day", where = grid_output)) {GPP = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
 if (exists(x = "rauto_gCm2day", where = grid_output)) {RAU = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,nos_quantiles,length(PROJECT$model$timestep_days)))}
@@ -260,6 +262,9 @@ for (n in seq(1, length(PROJECT$sites))) {
          if (exists("WLIT")) {WLIT[grid_output$i_location[n],grid_output$j_location[n],,] = grid_output$woodlitter_gCm2[n,,]*1e-3}
          if (exists("DOM")) {DOM[grid_output$i_location[n],grid_output$j_location[n],,] = grid_output$dom_gCm2[n,,]*1e-3}
          if (exists("BIO")) {BIO[grid_output$i_location[n],grid_output$j_location[n],,] = grid_output$biomass_gCm2[n,,]*1e-3}
+         # Change in stocks
+         if (exists("dBIO")) {dBIO[grid_output$i_location[n],grid_output$j_location[n],,] = grid_output$dCbiomass_gCm2[n,,]*1e-3}
+ 
 
          # FLUXES (NOTE; unit conversion gC/m2/day -> kgC/m2/s)
          if (exists("GPP")) {GPP[grid_output$i_location[n],grid_output$j_location[n],,] = grid_output$gpp_gCm2day[n,,]* 1e-3 * (1/86400)}
@@ -590,6 +595,33 @@ if(exists("BIO")) {
    var_new = ncvar_def("cVeg", unit="kg.m-2", longname = "Carbon in live biomass - Median estimate", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
    var_low  = ncvar_def("cVeg_2.5pc", unit="kg.m-2", longname = "Carbon in live biomass - 2.5% quantile", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
    var_high = ncvar_def("cVeg_97.5pc", unit="kg.m-2", longname = "Carbon in live biomass - 97.5% quantile", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
+   # Create the empty file space
+   new_file=nc_create(filename=output_name, vars=list(var0,var1,var2,var_new,var_low,var_high), force_v4 = TRUE)
+   # Load first variable into the file
+   # TIMING
+   ncvar_put(new_file, var0, drivers$met[,1])
+   # Grid area 
+   ncvar_put(new_file, var1, grid_output$area_m2)
+   # Land fraction
+   ncvar_put(new_file, var2, grid_output$land_fraction)
+   # VARIABLE
+   ncvar_put(new_file, var_new,  BIO[,,mid_quant,])
+   ncvar_put(new_file, var_low,  BIO[,,low_quant,])
+   ncvar_put(new_file, var_high,  BIO[,,high_quant,])
+   # Close the existing file to ensure its written to file
+   nc_close(new_file)
+}
+
+# Change in Biomass since t=1
+if(exists("dBIO")) {
+   # Define the output file name
+   output_name = paste(PROJECT$results_processedpath,output_prefix,"dcVeg",output_suffix,".nc",sep="")
+   # Delete if the file currently exists
+   if (file.exists(output_name)) {file.remove(output_name)}
+   # Define the new variable
+   var_new = ncvar_def("dcVeg", unit="kg.m-2", longname = "Change in Carbon in live biomass since t=1 - Median estimate", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
+   var_low  = ncvar_def("dcVeg_2.5pc", unit="kg.m-2", longname = "Change in Carbon in live biomass since t=1 - 2.5% quantile", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
+   var_high = ncvar_def("dcVeg_97.5pc", unit="kg.m-2", longname = "Change in Carbon in live biomass since t=1 - 97.5% quantile", dim=list(long_dimen,lat_dimen,time_dimen), missval = -99999, prec="double",compression = 9)
    # Create the empty file space
    new_file=nc_create(filename=output_name, vars=list(var0,var1,var2,var_new,var_low,var_high), force_v4 = TRUE)
    # Load first variable into the file
