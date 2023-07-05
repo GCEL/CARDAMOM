@@ -93,54 +93,18 @@ fudgeit <- function(){
 ## Load analysis
 
 # PointsOfChange
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_2_2.5deg_C7_GCP_AGB_GPP/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_2_2.5deg_C7_GCP_AGB/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM_FARQUHAR_BUCKET_MHMCMC/global_2_2.5deg_C7_GCP_AGB_GPP/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM_FARQUHAR_BUCKET_MHMCMC/global_2_2.5deg_C7_GCP_AGB/infofile.RData")
-
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_1deg_C7_GCP_LCA_AGB/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_1deg_C7_GCP_LCA_AGB_GPP/infofile.RData")
-load("/home/lsmallma/WORK/GREENHOUSE/models#/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM_FARQUHAR_BUCKET_MHMCMC/global_1deg_C7_GCP_LCA_AGB/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models#/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM_FARQUHAR_BUCKET_MHMCMC/global_1deg_C7_GCP_LCA_AGB_GPP/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_1deg_C7_GCP_LCA_AGB_etol_EQF_harsh/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_1deg_C7_isimip3a_lca_gpp_nbe/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/global_1deg_C7_trendy_lca_agb_gpp_fire/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/reccap2_permafrost_1deg_C7_isimip3a_agb_lca_CsomPriorNCSCD/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/reccap2_permafrost_1deg_C7_isimip3a_agb_lca_nbe_CsomPriorNCSDC3m/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/reccap2_permafrost_1deg_C7_isimip3a_agb_lca_nbe/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Miombo_0.5deg_allWood/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_GSI_BUCKET_MHMCMC/Miombo_0.5deg_allWood/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Trendyv9_historical/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_one_agb/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_agb/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_one_agb/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_gpp/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_nbe/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_nbe_fire/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_nbe_RaGPPhighConf/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_agb_nbe_gpp/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_one_agb_nbe/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_one_agb_gpp/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/ODA_extension_Africa_one_agb_nbe_gpp/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/NoRainfor_woody_productivity_mortality/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Rainfor_woody_productivity_mortality/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Mexico_1deg_C7_agb_lca_gpp_fire_nbe/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Mexico_1deg_C7_agb_lca_gpp_fire_nbe_partitioned/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Mexico_1deg_C7_agb_lca_gpp_fire_nbe_allpartitioned/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Mexico_1deg_C7_agb_lca_gpp_fire_nbe_allpartitionedannual/infofile.RData")
-
-# Load the CARDAMOM files
-load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
+load("/exports/csce/datastore/geos/users/lsmallma/CARDAMOM_R_OUTPUT/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/reccap2_permafrost_1deg_dalec2_isimip3a_agb_lca_nbe_CsomPriorNCSDC3m/infofile.RData")
+#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/Miombo_0.5deg_allWood/infofile.RData")
 
 # Set output path for figures and tables
-out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures_reccap2_permafrost_1deg_C7_isimip/"
+#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
+out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/RECCAP2/figures/"
 #out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/LTSS_CARBON_INTEGRATION/InternationalScience/figures_africa/"
 #out_dir = "~/WORK/GREENHOUSE/models/CARDAMOM/SECO/figures/"
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/trendy/figures/"
-#out_dir = "~/WORK/GREENHOUSE/models/CARDAMOM/SECO/figures/dalec_gsi_bucket/"
-#out_dir = "~/WORK/GREENHOUSE/models/CARDAMOM/mexico/gridded_figures/"
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/cssp_brazil_2/figures_productivity_without_vs_with/"
+
+#
+# Load the CARDAMOM files
+load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
 
 # Specify the position within the stored ensemble for the median estimate and the desired uncertainty bands
 mid_quant = 4 ; low_quant = 2 ; high_quant = 6
@@ -3236,27 +3200,25 @@ for (t in seq(1, length(gpp_years))) {
      # Unit convertion (gC/m2/d -> gC/m2/yr)
      obs_gpp_mean_gCm2yr[,,t] = input_data$var * 365.25
 
-     # GPP min
-     input_data = ncvar_get(input, "GPP_annual_min")    
-     # Must go in as a 3D array, so check that is the case
-     if (length(dim(input_data)) == 2) {input_data = array(input_data, dim=c(dim(input_data),1))}      
-     # Begin regridding
+#     # GPP min
+#     input_data = ncvar_get(input, "GPP_annual_min")    
+#     # Must go in as a 3D array, so check that is the case
+#     if (length(dim(input_data)) == 2) {input_data = array(input_data, dim=c(dim(input_data),1))}      
+#     # Begin regridding
 #     input_data = regrid_func(input_data,input_lat,input_long,cardamom_ext,landmask)
-     input_data = regrid_gdal_func(out_dir,input_data,input_lat,input_long,cardamom_ext,landmask)
-     # Assign to output variable
-     # Unit convertion (gC/m2/d -> gC/m2/yr)
-     obs_gpp_min_gCm2yr[,,t] = input_data$var * 365.25
+#     # Assign to output variable
+#     # Unit convertion (gC/m2/d -> gC/m2/yr)
+#     obs_gpp_min_gCm2yr[,,t] = input_data$var * 365.25
 
-     # GPP max
-     input_data = ncvar_get(input, "GPP_annual_max")
-     # Must go in as a 3D array, so check that is the case
-     if (length(dim(input_data)) == 2) {input_data = array(input_data, dim=c(dim(input_data),1))}     
-     # Begin regridding
+#     # GPP max
+#     input_data = ncvar_get(input, "GPP_annual_max")
+#     # Must go in as a 3D array, so check that is the case
+#     if (length(dim(input_data)) == 2) {input_data = array(input_data, dim=c(dim(input_data),1))}     
+#     # Begin regridding
 #     input_data = regrid_func(input_data,input_lat,input_long,cardamom_ext,landmask)
-     input_data = regrid_gdal_func(out_dir,input_data,input_lat,input_long,cardamom_ext,landmask)
-     # Assign to output variable
-     # Unit convertion (gC/m2/d -> gC/m2/yr)
-     obs_gpp_max_gCm2yr[,,t] = input_data$var * 365.25
+#     # Assign to output variable
+#     # Unit convertion (gC/m2/d -> gC/m2/yr)
+#     obs_gpp_max_gCm2yr[,,t] = input_data$var * 365.25
 
      # GPP ensemble
      input_data = ncvar_get(input, "GPP_annual_ensemble")
@@ -3274,21 +3236,19 @@ for (t in seq(1, length(gpp_years))) {
 }
 
 # Ensure the spatial orientation of the processed variable matches that of CARDAMOM
-obs_gpp_ensemble_gCm2yr = obs_gpp_ensemble_gCm2yr[,dim(obs_gpp_ensemble_gCm2yr)[2]:1,,]
-obs_gpp_mean_gCm2yr = obs_gpp_mean_gCm2yr[,dim(obs_gpp_mean_gCm2yr)[2]:1,]
-obs_gpp_min_gCm2yr = obs_gpp_min_gCm2yr[,dim(obs_gpp_min_gCm2yr)[2]:1,]
-obs_gpp_max_gCm2yr = obs_gpp_max_gCm2yr[,dim(obs_gpp_max_gCm2yr)[2]:1,]
+obs_gpp_ensemble_gCm2yr = obs_gpp_ensemble_gCm2yr[,dim(obs_gpp_ensemble_gCm2yr)[2]:1,,]*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))
+obs_gpp_mean_gCm2yr = obs_gpp_mean_gCm2yr[,dim(obs_gpp_mean_gCm2yr)[2]:1,]*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_mean_gCm2yr)[3]))
+obs_gpp_min_gCm2yr = apply(obs_gpp_ensemble_gCm2yr,c(1,2,3),min, na.rm=TRUE)*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3]))
+obs_gpp_max_gCm2yr = apply(obs_gpp_ensemble_gCm2yr,c(1,2,3),max, na.rm=TRUE)*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3]))
 
 # Create domain averaged values for each year and data source, note that aggregation MUST happen within product type before across products
-obs_gpp_ensemble_gCm2yr = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*grid_output$land_fraction, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
-# Generate aggregate values at the domain level - these must come from the raw product specific variables
-obs_gpp_mean_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,mean, na.rm=TRUE)
-obs_gpp_min_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,min, na.rm=TRUE)
-obs_gpp_max_domain_TgCyr = apply(obs_gpp_ensemble_gCm2yr,1,max, na.rm=TRUE)
+tmp = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*grid_output$land_fraction*landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
 # where the whole grid is zero can lead to zero being introduced - remove these
-obs_gpp_mean_domain_TgCyr[which(obs_gpp_mean_domain_TgCyr == 0)] = NA 
-obs_gpp_min_domain_TgCyr[which(obs_gpp_min_domain_TgCyr == 0)] = NA
-obs_gpp_max_domain_TgCyr[which(obs_gpp_max_domain_TgCyr == 0)] = NA
+tmp[which(tmp == 0)] = NA 
+# Generate aggregate values at the domain level - these must come from the raw product specific variables
+obs_gpp_mean_domain_TgCyr = apply(tmp,1,mean, na.rm=TRUE)
+obs_gpp_min_domain_TgCyr = apply(tmp,1,min, na.rm=TRUE)
+obs_gpp_max_domain_TgCyr = apply(tmp,1,max, na.rm=TRUE)
 
 ###
 ## Independent fire emissions estimate
@@ -3355,9 +3315,9 @@ for (t in seq(1, length(fire_years))) {
 }
 
 # Ensure the spatial orientation of the processed variable matches that of CARDAMOM
-obs_fire_mean_gCm2yr = obs_fire_mean_gCm2yr[,dim(obs_fire_mean_gCm2yr)[2]:1,]
-obs_fire_min_gCm2yr = obs_fire_min_gCm2yr[,dim(obs_fire_min_gCm2yr)[2]:1,]
-obs_fire_max_gCm2yr = obs_fire_max_gCm2yr[,dim(obs_fire_max_gCm2yr)[2]:1,]
+obs_fire_mean_gCm2yr = obs_fire_mean_gCm2yr[,dim(obs_fire_mean_gCm2yr)[2]:1,]*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_fire_mean_gCm2yr)[3]))
+obs_fire_min_gCm2yr = obs_fire_min_gCm2yr[,dim(obs_fire_min_gCm2yr)[2]:1,]*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_fire_mean_gCm2yr)[3]))
+obs_fire_max_gCm2yr = obs_fire_max_gCm2yr[,dim(obs_fire_max_gCm2yr)[2]:1,]*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_fire_mean_gCm2yr)[3]))
 
 # Ensure that the timeseries length is consistent between the observed variable and the model analysis
 # This assumes that only the timesteps that overlap the model period have been read in the first place,
@@ -3680,9 +3640,9 @@ var1 = NA ; var2 = NA ; var3 = NA ; var4 = NA ; var5 = NA
 # Modelled wood
 var1 = wood_TgC ; var2 = wood_lower_TgC ; var3 = wood_upper_TgC
 # Observed wood
-var4 = apply(WoodCobs*array(landfilter*area,dim=dim(WoodCobs)),3,sum,na.rm=TRUE) ; var4[which(var4 == 0)] = NA
+var4 = apply(WoodCobs*array(grid_output$land_fraction*landfilter*area,dim=dim(WoodCobs)),3,sum,na.rm=TRUE) ; var4[which(var4 == 0)] = NA
 var4 = rollapply(var4, FUN = mean, by = 12, width = 12, na.rm=TRUE)*1e-12
-var5 = apply(WoodCobs_CI**2*array(landfilter*area,dim=dim(WoodCobs)),3,sum,na.rm=TRUE)
+var5 = apply(WoodCobs_CI**2*array(grid_output$land_fraction*landfilter*area,dim=dim(WoodCobs)),3,sum,na.rm=TRUE)
 var5 = sqrt(rollapply(var5, FUN = mean, by = 12, width = 12, na.rm=TRUE)*1e-12)
 # Begin plotting
 zrange = range(c(var1,var2,var3,var4,var5), na.rm=TRUE)*c(0.9,1.1)
@@ -4044,7 +4004,7 @@ lines(var5~run_years, col=model_colours[1], lwd=3, lty = 2) ; points(var5~run_ye
 abline(0,0,col="grey", lwd=2)
 legend("topleft", legend = c(obs_flags,model_flags), col = c(obs_colours[1:3],model_colours), 
        lty = c(rep(1,length(obs_flags)),rep(1,length(model_flags))), pch=rep(NA,length(c(obs_flags,model_flags))), horiz = FALSE, bty = "n", cex=1.8, lwd=3, ncol = 2)
-mtext(expression(paste("Net Biome Exchange (TgC y",r^-1,")",sep="")), side=2, padj=-2.65,cex=1.5)
+mtext(expression(paste("Net Biome Exchange (TgC y",r^-1,")",sep="")), side=2, padj=-1.6,cex=1.5)
 #mtext("Year", side=1, padj=2.0,cex=1.6)
 
 # Now plot GPP
@@ -4060,7 +4020,7 @@ lines(var6~run_years, col=model_colours[1], lwd = 4, lty = 2) ; points(var6~run_
 #legend("bottomright", legend = c(obs_flags[-5],model_flags), col = c(obs_colours[1:4],model_colours), 
 #       lty = c(rep(1,length(obs_flags[-5])),rep(2,length(model_flags))), pch=rep(NA,length(c(obs_flags[-5],model_flags))), horiz = FALSE, bty = "n", cex=1.8, lwd=3, ncol = 2)
 #mtext("Year", side=1, padj=2.0,cex=1.6)
-mtext(expression(paste("Gross Primary Productivity (TgC y",r^-1,")",sep="")), side=2, padj=-2.65, cex=1.5)
+mtext(expression(paste("Gross Primary Productivity (TgC y",r^-1,")",sep="")), side=2, padj=-1.6, cex=1.5)
 
 # Now plot fire
 var3  = cbind(cbind(c(obs_fire_mean_domain_TgCyr),c(obs_fire_min_domain_TgCyr)),c(obs_fire_max_domain_TgCyr))
@@ -4073,7 +4033,7 @@ lines(var4~run_years, col=model_colours[1], lwd=4, lty = 1) ; points(var4~run_ye
 lines(var5~run_years, col=model_colours[1], lwd=4, lty = 2) ; points(var5~run_years, col=model_colours[1], pch=16)
 lines(var6~run_years, col=model_colours[1], lwd=4, lty = 2) ; points(var5~run_years, col=model_colours[1], pch=16)
 mtext("Year", side=1, padj=2.0,cex=1.6)
-mtext(expression(paste("Fire Emissions (TgC y",r^-1,")",sep="")), side=2, padj=-2.65,cex=1.5)
+mtext(expression(paste("Fire Emissions (TgC y",r^-1,")",sep="")), side=2, padj=-1.6,cex=1.5)
 dev.off()
 
 ###

@@ -745,11 +745,11 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           # this output is in vector form and we need matching array shapes so...
 #          grid_output$area_m2 = array(grid_output$area_m2, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
-          # Load the land mask and land fraction, assuming it exists
+          # Load the land mask...
           grid_output$landmask=array(PROJECT$landsea, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
-          if (exists("landsea", where = PROJECT)) {
-              grid_output$land_fraction=array(PROJECT$landsea, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
-          }
+          grid_output$landmask[grid_output$landmask > 0] = 1
+          # ...and land fraction
+          grid_output$land_fraction=array(PROJECT$landsea, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
       } else {
 

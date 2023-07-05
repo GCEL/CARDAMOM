@@ -501,7 +501,12 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
         # The \\ also specifies that the . is not to be considered a wildcard
         input_file = input_file[grepl("\\.tif$",input_file) == TRUE]
         # Extract the specific files from the original list
+        input_unc_file = input_file[grepl("saatchi_wood_uncertainty_MgCha",input_file) == TRUE]
+        # Extract the specific files from the original list
         input_file = input_file[grepl("saatchi_wood_MgCha",input_file) == TRUE]
+
+        # Sense check
+        if (length(input_unc_file) != length(input_file)) {stop("number of uncertainty and data files differ for Cwood_stock_source = Saatchi_2021")}
 
         # Determine the number of years found
         years_with_obs = gsub("saatchi_wood_MgCha_","",input_file)
@@ -516,6 +521,7 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
 
                  # Read in the estimate and uncertainty rasters
                  biomass = raster(paste(path_to_Cwood,input_file[t],sep=""))
+                 biomass_unc = raster(paste(path_to_Cwood,input_unc_file[t],sep=""))
 
                  # Create raster with the target crs
                  target = raster(crs = ("+init=epsg:4326"), ext = extent(biomass), resolution = res(biomass))
@@ -523,13 +529,17 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
                  if (compareCRS(biomass,target) == FALSE) {
                      # Resample to correct grid
                      biomass = resample(biomass, target, method="ngb") ; gc() ; removeTmpFiles()
+                     biomass_unc = resample(biomass_unc, target, method="ngb") ; gc() ; removeTmpFiles()
                  }
                  # Extend the extent of the overall grid to the analysis domain
                  biomass = extend(biomass,cardamom_ext)
+                 biomass_unc = extend(biomass_unc,cardamom_ext)
                  # Trim the extent of the overall grid to the analysis domain
                  biomass = crop(biomass,cardamom_ext)
+                 biomass_unc = crop(biomass_unc,cardamom_ext)
                  # now remove the ones that are actual missing data
                  biomass[which(as.vector(biomass) < 0)] = NA
+                 biomass_unc[which(as.vector(biomass_unc) < 0)] = NA
 
                  # Adjust spatial resolution of the datasets, this occurs in all cases
                  if (res(biomass)[1] != res(cardamom_ext)[1] | res(biomass)[2] != res(cardamom_ext)[2]) {
@@ -538,6 +548,7 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
                      target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
                      # Resample to correct grid
                      biomass = resample(biomass, target, method="bilinear") ; gc() ; removeTmpFiles()
+                     biomass_unc = resample(biomass_unc, target, method="bilinear") ; gc() ; removeTmpFiles()
 
                  } # Aggrgeate to resolution
 
@@ -559,6 +570,7 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
 
                  # break out from the rasters into arrays which we can manipulate
                  biomass = array(as.vector(unlist(biomass)), dim=c(xdim,ydim))
+                 biomass_unc = array(as.vector(unlist(biomass_unc)), dim=c(xdim,ydim))
 
                  # Determine when in the analysis time series the observations should go
                  # NOTE: We assume the biomass estimate is placed at the beginning of the year
@@ -571,10 +583,12 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
                      # Output variables already exits to append them
                      place_obs_in_step = append(place_obs_in_step, obs_step)
                      biomass_gCm2 = append(biomass_gCm2, as.vector(biomass)) ; rm(biomass)
+                     biomass_uncertainty_gCm2 = append(biomass_uncertainty_gCm2, as.vector(biomass_unc)) ; rm(biomass_unc)
                  } else {
                      # Output variables do not already exist, assign them
                      place_obs_in_step = obs_step ; rm(obs_step)
                      biomass_gCm2 = as.vector(biomass) ; rm(biomass)
+                     biomass_uncertainty_gCm2 = as.vector(biomass_unc) ; rm(biomass_unc)
                  } # obs_step exists
 
              } # Is dataset within the analysis time period?
@@ -583,11 +597,13 @@ load_biomass_stocks_maps_for_extraction<-function(latlon_in,Cwood_stock_source,s
 
         # Convert MgC/ha -> gCm2 needed for Saatchi et al (2011)
         biomass_gCm2 = biomass_gCm2 * 1e2
+        biomass_uncertainty_gCm2 = biomass_uncertainty_gCm2 * 1e2
 
         # Re-construct arrays for output
         idim = dim(lat)[1] ; jdim = dim(long)[2] ; tdim = length(biomass_gCm2) / (idim * jdim)
         biomass_gCm2 = array(biomass_gCm2, dim=c(idim,jdim,tdim))
-        biomass_uncertainty_gCm2 = biomass_gCm2 * 0.18 # assume uncertainty is 18 %
+        biomass_uncertainty_gCm2 = array(biomass_uncertainty_gCm2, dim=c(idim,jdim,tdim))
+        #biomass_uncertainty_gCm2 = biomass_gCm2 * 0.18 # assume uncertainty is 18 %
         if (done_lat) {
             # Output variables
             return(list(place_obs_in_step = place_obs_in_step, lat = lat, long = long,
