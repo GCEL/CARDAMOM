@@ -13,6 +13,8 @@ RUN apt-get update && \
     libnetcdf-dev \
     openssh-client \
     r-base \
+    gdal-bin \
+    libgdal-dev \
     build-essential
 
 # Install R packages
