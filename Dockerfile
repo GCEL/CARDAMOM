@@ -15,7 +15,9 @@ RUN apt-get update && \
     r-base \
     gdal-bin \
     libgdal-dev \
-    build-essential
+    build-essential \
+    vim \
+    nano
 
 # Install R packages
 RUN R -e "install.packages('chron')"
