@@ -20,7 +20,7 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
 
           # Create file name # two possible versions of  naming syntax
           input_file_2a = paste(path_to_forestry,"GFW_forest_loss_",years_to_load[yrr],".nc",sep="")
-          input_file_2b = Sys.glob(paste(path_to_forestry,lc_class,"/tree_cover_loss_fraction_",years_to_load[yrr],"*.nc",sep=""))
+          input_file_2b = Sys.glob(paste(path_to_forestry,"/tree_cover_loss_fraction_",years_to_load[yrr],"*.nc",sep=""))
 
           # Check it exists
           if (any(file.exists(input_file_2a),file.exists(input_file_2b))) {
