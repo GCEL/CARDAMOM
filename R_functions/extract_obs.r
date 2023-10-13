@@ -918,6 +918,17 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         minLWP = -9999 ; minLWP_unc = -9999
     }
 
+    ###
+    ## Get leaf lifespan information
+    if (set_leaflifespan_prior == TRUE) {
+        print(paste("\tsetting leaf lifespan prior = ",leaflifespan_prior,"+/-",leaflifespan_prior_unc,sep=" "))
+        leaflifespan=leaflifespan_prior
+        leaflifespan_unc=leaflifespan_prior_unc
+    } else {
+        # assume no data available
+        leaflifespan=-9999 ; leaflifespan_unc=-9999
+    }
+
     # return output now
     return(list(LAT = latlon_wanted[1], LAI = lai, LAI_unc = lai_unc, GPP = GPP, GPP_unc = GPP_unc, Fire = Fire, Fire_unc = Fire_unc
                ,Evap = Evap, Evap_unc = Evap_unc, NEE = NEE, NEE_unc = NEE_unc, Reco = Reco, Reco_unc = Reco_unc
@@ -939,7 +950,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                ,Cwood_mortality = Cwood_mortality, Cwood_mortality_unc = Cwood_mortality_unc, Cwood_mortality_lag = Cwood_mortality_lag
                ,foliage_to_litter = foliage_to_litter, foliage_to_litter_unc = foliage_to_litter_unc, foliage_to_litter_lag = foliage_to_litter_lag
                ,frac_Cwood_coarse_root_prior = frac_Cwood_coarse_root_prior, frac_Cwood_coarse_root_prior_unc = frac_Cwood_coarse_root_prior_unc
-               ,minLWP = minLWP, minLWP_unc = minLWP_unc))
+               ,minLWP = minLWP, minLWP_unc = minLWP_unc, leaflifespan = leaflifespan, leaflifespan_unc = leaflifespan_unc))
 
 
 } # end function extract_obs
