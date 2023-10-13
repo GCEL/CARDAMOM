@@ -70,7 +70,55 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         # output variables
         return(list(top_sand = top_sand, top_clay = top_clay, bot_sand = bot_sand, bot_clay = bot_clay,lat = lat,long = long))
 
-    } else if (sand_clay_source == "HWSD") {
+     }  else if(Csom_source == "SoilGrids_v2_stratified") {
+        # This has been added by DTM for the DARE-UK project
+        # file names - note that 0-30cm and 30-100cm in different files
+        top_sand_file=paste(path_to_Csom,"/sand_000-030cm_mean*.nc",sep="")
+      	top_sand_nc=nc_open(Sys.glob(top_sand_file))
+        bottom_sand_file=paste(path_to_Csom,"/sand_030-100cm_mean*.nc",sep="")
+      	bottom_sand_nc=nc_open(Sys.glob(bottom_sand_file))
+        
+        top_clay_file=paste(path_to_Csom,"/clay_000-030cm_mean*.nc",sep="")
+      	top_clay_nc=nc_open(Sys.glob(top_sand_file))
+        bottom_clay_file=paste(path_to_Csom,"/clay_030-100cm_mean*.nc",sep="")
+      	bottom_clay_nc=nc_open(Sys.glob(bottom_clay_file))
+        
+      	# extract location variables
+      	lat=ncvar_get(top_sand_nc, "latitude") ; long=ncvar_get(top_sand_nc, "longitude")
+        res = abs(diff(lat[1:2]))
+        max_lat = max(latlon_in[,1])+res/2. ; max_long = max(latlon_in[,2])+res/2.
+        min_lat = min(latlon_in[,1])-res/2. ; min_long = min(latlon_in[,2])-res/2.
+        keep_lat = which((lat > min_lat) & (lat < max_lat))
+        keep_long = which((long > min_long) & (long < max_long))
+
+        lat = lat[keep_lat]
+        long = long[keep_long]
+        xdim = length(long) ; ydim = length(lat)
+        long = array(long, dim=c(xdim,ydim))
+        lat = t(array(lat, dim=c(ydim,xdim)))
+
+        # read the sand from the two files
+        top_sand=ncvar_get(top_sand_nc, "sand")
+        bottom_sand=ncvar_get(bottom_sand_nc, "sand")
+	nc_close(top_sand_nc)
+	nc_close(bottom_sand_nc)
+	    
+      	top_sand=top_sand[keep_long,keep_lat]
+        bottom_sand=bottom_sand[keep_long,keep_lat]
+
+	# read the clay from the two files
+        top_clay=ncvar_get(top_clay_nc, "clay")
+        bottom_clay=ncvar_get(bottom_clay_nc, "clay")
+	nc_close(top_clay_nc)
+	nc_close(bottom_clay_nc)
+	    
+      	top_clay=top_clay[keep_long,keep_lat]
+        bottom_clay=bottom_clay[keep_long,keep_lat]
+        
+	
+	return(list(top_sand = top_sand, top_clay = top_clay, bot_sand = bot_sand, bot_clay = bot_clay, lat = lat,long = long))
+
+   } else if (sand_clay_source == "HWSD") {
 
         # let the user know this might take some time
         print("Loading processed HWSD sand clay fields for subsequent sub-setting ...")
