@@ -79,7 +79,7 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
       	bottom_sand_nc=nc_open(Sys.glob(bottom_sand_file))
         
         top_clay_file=paste(path_to_Csom,"/clay_000-030cm_mean*.nc",sep="")
-      	top_clay_nc=nc_open(Sys.glob(top_sand_file))
+      	top_clay_nc=nc_open(Sys.glob(top_clay_file))
         bottom_clay_file=paste(path_to_Csom,"/clay_030-100cm_mean*.nc",sep="")
       	bottom_clay_nc=nc_open(Sys.glob(bottom_clay_file))
         
