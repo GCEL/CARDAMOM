@@ -264,29 +264,29 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                     }
 
                     # check for variable names for coordinates
-                    if (length(which(grepl("lat",names(data1$var)) == TRUE)) > 0) {
+                    if (length(which(grepl("lat",names(data1$dim)) == TRUE)) > 0) {
                         lat_key = "lat"
-                    } else if (length(which(grepl("latitude",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("latitude",names(data1$dim)) == TRUE)) > 0)  {
                         lat_key = "latitude"
-                    } else if (length(which(grepl("Latitude",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("Latitude",names(data1$dim)) == TRUE)) > 0)  {
                         lat_key = "Latitude"
-                    } else if (length(which(grepl("Lat",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("Lat",names(data1$dim)) == TRUE)) > 0)  {
                         lat_key = "Lat"
                     } else {
                         stop("Latitude variable cannot be found for copernicus...")
                     }
                     
-                    if (length(which(grepl("lon",names(data1$var)) == TRUE)) > 0) {
+                    if (length(which(grepl("lon",names(data1$dim)) == TRUE)) > 0) {
                         lon_key = "lon"
-                    } else if (length(which(grepl("longitude",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("longitude",names(data1$dim)) == TRUE)) > 0)  {
                         lon_key = "longitude"
-                    } else if (length(which(grepl("Longitude",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("Longitude",names(data1$dim)) == TRUE)) > 0)  {
                         lon_key = "Longitude"
-                    } else if (length(which(grepl("Lon",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("Lon",names(data1$dim)) == TRUE)) > 0)  {
                         lon_key = "Lon"
-                    } else if (length(which(grepl("Long",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("Long",names(data1$dim)) == TRUE)) > 0)  {
                         lon_key = "Long"
-                    } else if (length(which(grepl("long",names(data1$var)) == TRUE)) > 0)  {
+                    } else if (length(which(grepl("long",names(data1$dim)) == TRUE)) > 0)  {
                         lon_key = "long"
                     } else {
                         stop("Longitude variable cannot be found for copernicus...")
