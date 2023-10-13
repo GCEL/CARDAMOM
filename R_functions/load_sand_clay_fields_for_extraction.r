@@ -75,13 +75,13 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         # file names - note that 0-30cm and 30-100cm in different files
         top_sand_file=paste(path_to_Csom,"/sand_000-030cm_mean*.nc",sep="")
       	top_sand_nc=nc_open(Sys.glob(top_sand_file))
-        bottom_sand_file=paste(path_to_Csom,"/sand_030-100cm_mean*.nc",sep="")
-      	bottom_sand_nc=nc_open(Sys.glob(bottom_sand_file))
+        bot_sand_file=paste(path_to_Csom,"/sand_030-100cm_mean*.nc",sep="")
+      	bot_sand_nc=nc_open(Sys.glob(bot_sand_file))
         
         top_clay_file=paste(path_to_Csom,"/clay_000-030cm_mean*.nc",sep="")
       	top_clay_nc=nc_open(Sys.glob(top_clay_file))
-        bottom_clay_file=paste(path_to_Csom,"/clay_030-100cm_mean*.nc",sep="")
-      	bottom_clay_nc=nc_open(Sys.glob(bottom_clay_file))
+        bot_clay_file=paste(path_to_Csom,"/clay_030-100cm_mean*.nc",sep="")
+      	bot_clay_nc=nc_open(Sys.glob(bot_clay_file))
         
       	# extract location variables
       	lat=ncvar_get(top_sand_nc, "latitude") ; long=ncvar_get(top_sand_nc, "longitude")
@@ -99,21 +99,21 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
 
         # read the sand from the two files
         top_sand=ncvar_get(top_sand_nc, "sand")
-        bottom_sand=ncvar_get(bottom_sand_nc, "sand")
+        bot_sand=ncvar_get(bot_sand_nc, "sand")
 	nc_close(top_sand_nc)
-	nc_close(bottom_sand_nc)
+	nc_close(bot_sand_nc)
 	    
       	top_sand=top_sand[keep_long,keep_lat]
-        bottom_sand=bottom_sand[keep_long,keep_lat]
+        bot_sand=bot_sand[keep_long,keep_lat]
 
 	# read the clay from the two files
         top_clay=ncvar_get(top_clay_nc, "clay")
-        bottom_clay=ncvar_get(bottom_clay_nc, "clay")
+        bot_clay=ncvar_get(bot_clay_nc, "clay")
 	nc_close(top_clay_nc)
-	nc_close(bottom_clay_nc)
+	nc_close(bot_clay_nc)
 	    
       	top_clay=top_clay[keep_long,keep_lat]
-        bottom_clay=bottom_clay[keep_long,keep_lat]
+        bot_clay=bot_clay[keep_long,keep_lat]
         
 	
 	return(list(top_sand = top_sand, top_clay = top_clay, bot_sand = bot_sand, bot_clay = bot_clay, lat = lat,long = long))
