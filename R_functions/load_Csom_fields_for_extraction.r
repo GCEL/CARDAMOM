@@ -107,7 +107,59 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
 
         return(list(Csom = Csom, Csom_unc = Csom_unc, lat = lat, long = long))
 
-    } else if (Csom_source == "HWSD") {
+      }  else if(Csom_source == "SoilGrids_v2_stratified") {
+        # This has been added by DTM for the DARE-UK project
+        # file names - note that 0-30cm and 30-100cm in different files
+        soc_file1=paste(path_to_Csom,"/SOC_000-030cm_mean*.nc",sep="")
+      	soc1=nc_open(Sys.glob(soc_file1))
+        soc_file2=paste(path_to_Csom,"/SOC_030-100cm_mean*.nc",sep="")
+      	soc2=nc_open(Sys.glob(soc_file2))
+
+      	# extract location variables
+      	lat=ncvar_get(soc1, "latitude") ; long=ncvar_get(soc1, "longitude")
+        res = abs(diff(lat[1:2]))
+        max_lat = max(latlon_in[,1])+res/2. ; max_long = max(latlon_in[,2])+res/2.
+        min_lat = min(latlon_in[,1])-res/2. ; min_long = min(latlon_in[,2])-res/2.
+        keep_lat = which((lat > min_lat) & (lat < max_lat))
+        keep_long = which((long > min_long) & (long < max_long))
+
+        lat = lat[keep_lat]
+        long = long[keep_long]
+        xdim = length(long) ; ydim = length(lat)
+        long = array(long, dim=c(xdim,ydim))
+        lat = t(array(lat, dim=c(ydim,xdim)))
+
+        # read the SOC from the two files
+        Csom1=ncvar_get(soc1, "SOC")
+        Csom2=ncvar_get(soc2, "SOC")
+
+      	Csom1=Csom1[keep_long,keep_lat]
+        Csom2=Csom2[keep_long,keep_lat]
+        Csom = array(Csom1 + Csom2, dim=c(xdim,ydim))
+
+        # repeat for uncertainty (uncertainty added)
+        # file names - note that 0-30cm and 30-100cm in different files
+        unc_file1=paste(path_to_Csom,"/SOC_000-030cm_uncertainty*.nc",sep="")
+      	unc1=nc_open(Sys.glob(unc_file1))
+        unc_file2=paste(path_to_Csom,"/SOC_030-100cm_uncertainty*.nc",sep="")
+      	unc2=nc_open(Sys.glob(unc_file2))
+
+      	# read the SOC from the two files
+        Cunc1=ncvar_get(unc1, "SOC_uncertainty")
+        Cunc2=ncvar_get(unc2, "SOC_uncertainty")
+
+        Cunc1=Cunc1[keep_long,keep_lat]
+        Cunc2=Cunc2[keep_long,keep_lat]
+
+        Csom_unc = array(Cunc1 + Cunc2, dim=c(xdim,ydim))
+      	# close files after use
+      	nc_close(soc1)
+        nc_close(soc2)
+      	nc_close(unc1)
+        nc_close(unc2)
+        return(list(Csom = Csom, Csom_unc = Csom_unc, lat = lat,long = long))
+
+  } else if (Csom_source == "HWSD") {
 
         # let the user know this might take some time
         print("Loading processed HWSD Csom fields for subsequent sub-setting ...")
