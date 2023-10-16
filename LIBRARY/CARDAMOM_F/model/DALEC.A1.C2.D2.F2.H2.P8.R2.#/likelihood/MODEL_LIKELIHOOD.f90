@@ -2724,7 +2724,7 @@ module model_likelihood_module
 !       tot_exp = sum((((DATAin%M_NEE(DATAin%nbepts(1:DATAin%nnbe))+DATAin%M_FLUXES(DATAin%nbepts(1:DATAin%nnbe),17)) &
 !                       -DATAin%NBE(DATAin%nbepts(1:DATAin%nnbe))) &
 !                       /DATAin%NBE_unc(DATAin%nbepts(1:DATAin%nnbe)))**2)
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nnbe))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nnbe))))
 !    endif
     ! NBE Log-likelihood
     ! NBE partitioned between the mean flux and seasonal anomalies
@@ -2770,7 +2770,7 @@ module model_likelihood_module
            end if ! sum(sub_time) > 0
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
-        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nnbe))))
+        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nnbe))))
     endif ! nnbe > 0
 !print*,"log_scale_likelihood: NBE done"
 !print*,"log_scale_likelihood: GPP"
@@ -2778,7 +2778,7 @@ module model_likelihood_module
 !    if (DATAin%ngpp > 0) then
 !       tot_exp = sum(((DATAin%M_GPP(DATAin%gpppts(1:DATAin%ngpp))-DATAin%GPP(DATAin%gpppts(1:DATAin%ngpp))) &
 !                       /DATAin%GPP_unc(DATAin%gpppts(1:DATAin%ngpp)))**2)
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%ngpp))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%ngpp))))
 !    endif
     ! GPP Log-likelihood
     ! GPP partitioned between the mean flux and seasonal anomalies
@@ -2808,7 +2808,7 @@ module model_likelihood_module
            end if ! sum(sub_time) > 0
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
-        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%ngpp))))
+        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%ngpp))))
     endif
 !print*,"log_scale_likelihood: GPP done"
 
@@ -2816,7 +2816,7 @@ module model_likelihood_module
     if (DATAin%nEvap > 0) then
        tot_exp = sum(((DATAin%M_FLUXES(DATAin%Evappts(1:DATAin%nEvap),19)-DATAin%Evap(DATAin%Evappts(1:DATAin%nEvap))) &
                        /DATAin%Evap_unc(DATAin%evappts(1:DATAin%nEvap)))**2)
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nEvap))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nEvap))))
     endif
 
 !print*,"log_scale_likelihood: Fire"
@@ -2824,7 +2824,7 @@ module model_likelihood_module
 !    if (DATAin%nFire > 0) then
 !       tot_exp = sum(((DATAin%M_FLUXES(DATAin%Firepts(1:DATAin%nFire),17)-DATAin%Fire(DATAin%Firepts(1:DATAin%nFire))) &
 !                       /DATAin%Fire_unc(DATAin%Firepts(1:DATAin%nFire)))**2)
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nFire))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nFire))))
 !    endif
     ! Fire Log-likelihood
     ! Fire partitioned between the mean flux and seasonal anomalies
@@ -2854,7 +2854,7 @@ module model_likelihood_module
            end if ! sum(sub_time) > 0
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
-        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nFire))))
+        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nFire))))
     endif
 !print*,"log_scale_likelihood: Fire done"
     ! LAI log-likelihood
@@ -2879,14 +2879,14 @@ module model_likelihood_module
              tot_exp = tot_exp+(-log(infini))
          endif
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nlai))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nlai))))
     endif
 
     ! NEE likelihood
     if (DATAin%nnee > 0) then
        tot_exp = sum(((DATAin%M_NEE(DATAin%neepts(1:DATAin%nnee))-DATAin%NEE(DATAin%neepts(1:DATAin%nnee))) &
                        /DATAin%NEE_unc(DATAin%neepts(1:DATAin%nnee)))**2)
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nnee))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nnee))))
     endif
 
     ! Reco likelihood
@@ -2898,7 +2898,7 @@ module model_likelihood_module
          ! note that we calculate the Ecosystem resp from GPP and NEE
          tot_exp = tot_exp+((tmp_var-DATAin%Reco(dn))/DATAin%Reco_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nreco))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nreco))))
     endif
 
     ! Cwood increment log-likelihood
@@ -2911,7 +2911,7 @@ module model_likelihood_module
          tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
          tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_inc))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_inc))))
     endif
 
     ! Cwood mortality log-likelihood
@@ -2924,7 +2924,7 @@ module model_likelihood_module
          tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
          tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_mortality))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_mortality))))
     endif
 
     ! Cfoliage log-likelihood
@@ -2937,7 +2937,7 @@ module model_likelihood_module
                        -DATAin%Cfol_stock(DATAin%Cfol_stockpts(1:DATAin%nCfol_stock)))&
                      / DATAin%Cfol_stock_unc(DATAin%Cfol_stockpts(1:DATAin%nCfol_stock)))**2)
        ! Sum with current likelihood score
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCfol_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCfol_stock))))
     endif
 
     ! Annual foliar maximum
@@ -2961,7 +2961,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((tmp_var-DATAin%Cfolmax_stock(dn)) / DATAin%Cfolmax_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCfolmax_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCfolmax_stock))))
     endif
 
     ! Cwood log-likelihood (i.e. branch, stem and CR)
@@ -2974,7 +2974,7 @@ module model_likelihood_module
                        -DATAin%Cwood_stock(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))&
                      / DATAin%Cwood_stock_unc(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))**2)
        ! Combine with existing likelihood estimate
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_stock))))
     endif
 
     ! Croots log-likelihood
@@ -2987,7 +2987,7 @@ module model_likelihood_module
                        -DATAin%Croots_stock(DATAin%Croots_stockpts(1:DATAin%nCroots_stock)))&
                      / DATAin%Croots_stock_unc(DATAin%Croots_stockpts(1:DATAin%nCroots_stock)))**2)
        ! Combine with existing likelihood estimate
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCroots_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCroots_stock))))
     endif
 
     ! Clitter log-likelihood
@@ -3005,7 +3005,7 @@ module model_likelihood_module
                        -DATAin%Clit_stock(DATAin%Clit_stockpts(1:DATAin%nClit_stock)))&
                      / DATAin%Clit_stock_unc(DATAin%Clit_stockpts(1:DATAin%nClit_stock)))**2)
        ! Combine with existing likelihood estimate
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nClit_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nClit_stock))))
     endif
 
     ! Csom log-likelihood
@@ -3018,7 +3018,7 @@ module model_likelihood_module
                        -DATAin%Csom_stock(DATAin%Csom_stockpts(1:DATAin%nCsom_stock)))&
                      / DATAin%Csom_stock_unc(DATAin%Csom_stockpts(1:DATAin%nCsom_stock)))**2)
        ! Combine with existing likelihood estimate
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCsom_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCsom_stock))))
     endif
 
     !
@@ -3083,7 +3083,7 @@ module model_likelihood_module
     ! don't forget to return
     return
 
-  end function log_scale_likelihood    
+  end function log_scale_likelihood
   !
   !------------------------------------------------------------------
   !

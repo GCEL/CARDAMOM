@@ -9,6 +9,7 @@ module cardamom_structures
  ! Edinburgh CARDAMOM code and subsequent modifications by:
  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
  ! J. F. Exbrayat (University of Edinburgh)
+ ! D. T. Milodowski (d.t.milodowski@ed.ac.uk, University of Edinburgh)
  ! See function / subroutine specific comments for exceptions and contributors
  !!!!!!!!!!!
 
@@ -32,6 +33,7 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                           ,LAI               & ! LAI (m2/m2)
                                           ,Cwood_inc         & ! Wood increment observations (gC.m-2.day-1, averaged across a lagged period)
                                           ,Cwood_mortality   & ! Natural wood mortality observations (gC.m-2.day-1, averaged across a lagged period)
+                                          ,foliage_to_litter & ! Flux from foliage to leaf litter (e.g. litter trap collections) (gC.m-2.day-1, averaged across a lagged period)
                                           ,Reco              & ! Ecosystem respiration (gC.m-2.day-1)
                                           ,Cfol_stock        & ! time specific estimate of foliage carbon (gC.m-2)
                                           ,Cwood_stock       & ! time specific estimate of wood carbon (gC.m-2)
@@ -43,7 +45,8 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                           ,Cfolmax_stock     & ! maximum annual foliar stock (gC.m-2)
                                           ,Evap              & ! Evapotranspiration (kg.m-2.day-1)
                                           ,SWE               & ! Snow Water Equivalent (mm.day-1)
-                                          ,NBE                 ! Net Biome Exchange (gC/m2/day)
+                                          ,NBE               & ! Net Biome Exchange (gC/m2/day)
+                                          ,fAPAR               ! Fraction of absorbed PAR by green vegetation
 
       ! OBS uncertainties: obv these must be paired with OBS above
       double precision, allocatable, dimension(:) :: GPP_unc     & ! (gC/m2/day)
@@ -52,6 +55,7 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                           ,LAI_unc               & ! (m2/m2)
                                           ,Cwood_inc_unc         & ! (gC.m-2.day-1, averaged across a lagged period)
                                           ,Cwood_mortality_unc   & ! (gC.m-2.day-1, averaged across a lagged period)
+                                          ,foliage_to_litter_unc & ! (gC.m-2.day-1, averaged across a lagged period)
                                           ,Reco_unc              & ! (gC/m2/day)
                                           ,Cfol_stock_unc        & ! gC/m2
                                           ,Cwood_stock_unc       & ! gC/m2
@@ -63,10 +67,11 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                           ,Cfolmax_stock_unc     & ! gC/m2
                                           ,Evap_unc              & ! (kg.m-2.day-1)
                                           ,SWE_unc               & ! (mm.day-1)
-                                          ,NBE_unc                 ! gC/m2/day
+                                          ,NBE_unc               & ! gC/m2/day
+                                          ,fAPAR_unc               ! (0-1)
 
       ! OBS lagged period: obs these must be paired with OBS and their uncertainties above
-      double precision, allocatable, dimension(:) :: Cwood_inc_lag, Cwood_mortality_lag
+      double precision, allocatable, dimension(:) :: Cwood_inc_lag, Cwood_mortality_lag, foliage_to_litter_lag
 
       ! location of observations in the data stream
       integer, allocatable, dimension(:) :: gpppts                   & ! gpppts vector used in deriving ngpp
@@ -74,6 +79,7 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                            ,Firepts                  & ! same for Fire
                                            ,Cwood_incpts             & ! same for wood increment
                                            ,Cwood_mortalitypts       & ! same for natural wood mortality
+                                           ,foliage_to_litterpts     & ! same for foliage to litter
                                            ,laipts                   & ! same for lai
                                            ,recopts                  & ! same for ecosystem respiration
                                            ,Cfol_stockpts            & ! same for Cfoliage
@@ -86,7 +92,8 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                                            ,Cfolmax_stockpts         & ! same for seasonal max foliar
                                            ,Evappts                  & ! same for ecosystem evaportion
                                            ,SWEpts                   & ! same for snow water equivalent
-                                           ,NBEpts                     ! same for net biome exchange of CO2
+                                           ,NBEpts                   & ! same for net biome exchange of CO2
+                                           ,fAPARpts                   ! same for fraction absorbed PAR
 
       double precision :: nobs_scaler
 
@@ -98,6 +105,7 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                 ,nlai                   & ! number of LAI observations
                 ,nCwood_inc             & ! number of wood increment obervations
                 ,nCwood_mortality       & ! number of wood mortality obervations
+                ,nfoliage_to_litter     & ! number of foliage to litter obervations
                 ,nreco                  & ! number of Reco observations
                 ,nCfol_stock            & ! number of Cfol observations
                 ,nCwood_stock           & ! number of Cwood observations
@@ -109,7 +117,8 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
                 ,nCfolmax_stock         & ! number of seasonal maximum foliar C
                 ,nEvap                  & ! number of ecosystem evaporation observations
                 ,nSWE                   & ! number of snow water equivalent
-                ,nNBE                     ! number of net biome exchange of CO2
+                ,nNBE                   & ! number of net biome exchange of CO2
+                ,nfAPAR                   ! number of fAPAR by green vegetation
 
       ! saving computational speed by allocating memory to model output
       double precision, allocatable, dimension(:) :: M_GPP    & !

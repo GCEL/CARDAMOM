@@ -805,10 +805,10 @@ module model_likelihood_module
         EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
     end if
 
-    ! Prevent NPP -> foliage (FLX4,8) > NPP (GPP-Ra, FLX1-FLX3)
-    if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(:,4)+M_FLUXES(:,8)) > sum(M_FLUXES(:,1)-M_FLUXES(:,3))*0.8d0 ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
-    end if
+!    ! Prevent NPP -> foliage (FLX4,8) > NPP (GPP-Ra, FLX1-FLX3)
+!    if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(:,4)+M_FLUXES(:,8)) > sum(M_FLUXES(:,1)-M_FLUXES(:,3))*0.8d0 ) then
+!        EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
+!    end if
 
     !
     ! EDCs done, below are additional fault detection conditions
@@ -2237,7 +2237,7 @@ module model_likelihood_module
     ! don't forget to return
     return
 
-  end function sqrt_scale_likelihood  
+  end function sqrt_scale_likelihood
   !
   !------------------------------------------------------------------
   !
@@ -2620,7 +2620,7 @@ module model_likelihood_module
     ! don't forget to return
     return
 
-  end function log_scale_likelihood  
+  end function log_scale_likelihood
   !
   !------------------------------------------------------------------
   !

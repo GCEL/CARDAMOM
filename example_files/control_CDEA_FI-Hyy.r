@@ -4,7 +4,7 @@
 ###
 
 # Set working directory in which the CARDAMOM code base can be found
-setwd("<enter your cardamom directory here>")
+setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/")
 
 ###
 ## Options
@@ -25,7 +25,7 @@ timing=FALSE
 debug=FALSE
 
 ## about you (only valid if working on UoE remote server)
-username="<username here>" # put your Edinburgh uun here
+username="lsmallma" # put your Edinburgh uun here
 home_computer="ssh.geos.ed.ac.uk"
 
 ## use parallel functions?
@@ -34,7 +34,7 @@ numWorkers = 6 # number of cores to assign to parallel job
 
 ## Model - which DALEC 
 # see "MODEL_DESCRIPTIONS.md" for available models
-model="DALEC.2."
+model="DALEC.29."
 pft_specific_parameters=FALSE # impacts crop model only
 
 ## MDF method
@@ -52,6 +52,7 @@ path_to_met_source=" "
 #path_to_met_source="/exports/csce/datastore/geos/groups/gcel/Trendy_v11_met/monthly/"
 #path_to_met_source="/exports/csce/datastore/geos/groups/gcel/ECMWF/ERA5/0.125deg_global/"
 path_to_lai=" " #"/exports/csce/datastore/geos/groups/gcel/LAI_ESTIMATES/MCD15A2H.061/global_0.0625deg/"
+path_to_fapar = " "
 path_to_crop_management=" "
 path_to_sand_clay=" " #"/exports/csce/datastore/geos/groups/gcel/SoilGrids/version2/processed/global_5km/"
 path_to_Csom=" " #"/exports/csce/datastore/geos/groups/gcel/SoilGrids/version2/processed/global_5km/"
@@ -75,6 +76,7 @@ met_interp=TRUE
 ## Data streams - The currently coded data streams which can be used to drive or constrain the models
 met_source="site_specific" # "trendy_v9" or "trendy_v11" or "ERA" or "isimip3a" or "site_specific"
 lai_source="site_specific" # "COPERNICUS" or "MODIS" or "site_specific"
+fapar_source=" " # "COPERNICUS" or "MODIS" or "site_specific"
 Csom_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
 sand_clay_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
 soilwater_initial_source = " " # initial soil water fraction (m3/m3)
@@ -142,9 +144,9 @@ request_use_EDCs = TRUE       # Use EDCs
 request_extended_mcmc = FALSE # Extend the current MCMC by adding a further request_nos_extended_samples + request_nos_samples
 request_nos_extended_samples = 90e6 # If request_extened_mcmc == TRUE then this is the number of additional proposals to be made
 request_cost_function_scaling = 0 # 0 = Default, no normaliation of the likelihood score
-                                  # 1 = Normaliation of the likelihood score by sample size
-                                  # 2 = Normaliation of the likelihood score by sqrt(sample size)
-                                  # 3 = Normaliation of the likelihood score by log(sample size) 
+                                  # 1 = Normalisation of the likelihood score by sample size
+                                  # 2 = Normalisation of the likelihood score by sqrt(sample size)
+                                  # 3 = Normalisation of the likelihood score by log(sample size) 
 
 ## Stage
 # stage -1 : Create project first time (load source to eddie)
@@ -153,8 +155,8 @@ request_cost_function_scaling = 0 # 0 = Default, no normaliation of the likeliho
 # stage  2 : Submit the project to eddie
 # stage  3 : Copy back results and process vectors
 # stage  4 : Do some standard figure creation (and further processing for gridded analysis)
-stage=-1
-repair=0 # to force (=1) re-run processed results or driver files if they already exist
+stage=0
+repair=1 # to force (=1) re-run processed results or driver files if they already exist
 grid_override=FALSE # force site specific files to be saved and figures to be generated when in "grid" operation
 
 ##

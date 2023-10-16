@@ -32,6 +32,7 @@ module CARBON_MODEL_MOD
            ,gs_total_canopy        &
            ,gb_total_canopy        &
            ,canopy_par_MJday_time  &
+           ,soil_par_MJday_time &
            ,snow_storage_time&
            ,soil_frac_clay   &
            ,soil_frac_sand   &
@@ -102,7 +103,7 @@ module CARBON_MODEL_MOD
                       canopy_height = 9d0,          & ! canopy height assumed to be 9 m
                        tower_height = canopy_height + 2d0, & ! tower (observation) height assumed to be 2 m above canopy
                            min_wind = 0.2d0,        & ! minimum wind speed at canopy top
-                       min_drythick = 0.005d0,      & ! minimum dry thickness depth (m)
+                       min_drythick = 0.001d0,      & ! minimum dry thickness depth (m)
                           min_layer = 0.03d0,       & ! minimum thickness of the third rooting layer (m)
                         soil_roughl = 0.05d0,       & ! soil roughness length (m)
                      top_soil_depth = 0.30d0,       & ! thickness of the top soil layer (m)
@@ -170,6 +171,7 @@ module CARBON_MODEL_MOD
   double precision, allocatable, dimension(:) :: gs_demand_supply_ratio, & ! actual:potential stomatal conductance
                                                         gs_total_canopy, & ! stomatal conductance (mmolH2O/m2ground/s)
                                                         gb_total_canopy, & ! boundary conductance (mmolH2O/m2ground/s)
+                                                    soil_par_MJday_time, & ! Absorbed PAR by soil (MJ/m2ground/day)
                                                   canopy_par_MJday_time    ! Absorbed PAR by canopy (MJ/m2ground/day)
 
   ! arrays for the emulator, just so we load them once and that is it cos they be
@@ -228,6 +230,7 @@ module CARBON_MODEL_MOD
                                          leafT, & ! canopy day time temperature temperature (oC)
                             canopy_swrad_MJday, & ! canopy_absorbed shortwave radiation (MJ.m-2.day-1)
                               canopy_par_MJday, & ! canopy_absorbed PAR radiation (MJ.m-2.day-1)
+                                soil_par_MJday, & ! soil absorbed PAR radiation (MJ.m-2.day-1)
                               soil_swrad_MJday, & ! soil absorbed shortwave radiation (MJ.m-2.day-1)
                               canopy_lwrad_Wm2, & ! canopy absorbed longwave radiation (W.m-2)
                                 soil_lwrad_Wm2, & ! soil absorbed longwave radiation (W.m-2)
@@ -245,7 +248,9 @@ module CARBON_MODEL_MOD
                                          slope, & ! Rate of change of saturation vapour pressure with temperature (kPa.K-1)
                         water_vapour_diffusion, & ! Water vapour diffusion coefficient in (m2/s)
                            kinematic_viscosity, & ! kinematic viscosity (m2.s-1)
-                                  snow_storage, & ! snow storage (kgH2O/m2)
+                                  snow_storage, & ! snow storage on soil surface (kgH2O/m2)
+                             !soil_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
+                           !canopy_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                                 canopy_storage, & ! water storage on canopy (kgH2O.m-2)
                           intercepted_rainfall    ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
 
@@ -299,7 +304,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                             rainfall_time, &
                                                 cica_time, & ! Internal vs ambient CO2 concentrations
                                           root_depth_time, &
-                                        snow_storage_time, &
+                                        snow_storage_time, & ! Total ecosystem snow storage
                                                 rSWP_time, & ! Soil water potential weighted by access water
                                                 wSWP_time    ! Soil water potential weighted by supply of water
 
@@ -513,6 +518,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),wSWP_time(nodays),rSWP_time(nodays),gs_demand_supply_ratio(nodays), &
                  gs_total_canopy(nodays),gb_total_canopy(nodays),canopy_par_MJday_time(nodays), &
+                 soil_par_MJday_time(nodays), &
                  daylength_hours(nodays),daylength_seconds(nodays),daylength_seconds_1(nodays), &
                  rainfall_time(nodays),cica_time(nodays),root_depth_time(nodays),snow_storage_time(nodays))
 
@@ -586,14 +592,14 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     wl = pars(14)*sqrt(2d0) * 0.5d0
     ! magnitude coefficient
     ff = (log(pars(5))-log(pars(5)-1d0)) * 0.5d0
-    fl = (log(1.001d0)-log(0.001d0)) * 0.5d0
+    fl = 3.45437738965761021d0!(log(1.001d0)-log(0.001d0)) * 0.5d0
     ! set minium labile life span to one year
     ml = 1.001d0
     ! offset for labile and leaf turnovers
     osf = ospolynomial(pars(5),wf)
     osl = ospolynomial(ml,wl)
     ! scaling to biyearly sine curve
-    sf = 365.25d0/pi
+    sf = 116.262685928629551d0 !365.25d0/pi
 
     ! now load the hardcoded forest management parameters into their scenario locations
 
@@ -816,35 +822,37 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !!!!!!!!!!
 
        ! snowing or not...?
-       if (mint < 0d0 .and. maxt > 0d0) then
-           ! if minimum temperature is below freezing point then we weight the
-           ! rainfall into snow or rain based on proportion of temperature below
-           ! freezing
+       if (((mint + maxt) * 0.5d0) > 0d0) then
+           ! on average above freezing so no snow
+           snowfall = 0d0
+       else
+           ! on average below freezing, so some snow based on proportion of temperture
+           ! below freezing
            snowfall = rainfall * (1d0 - airt_zero_fraction) ; rainfall = rainfall - snowfall
            ! Add rainfall to the snowpack and clear rainfall variable
            snow_storage = snow_storage + (snowfall*seconds_per_step)
+       end if
 
+       ! melting or not...?
+       if (mint < 0d0 .and. maxt > 0d0) then
            ! Also melt some of the snow based on airt_zero_fraction
-           ! default assumption is that snow is melting at 10 % per day light hour
-           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * dayl_hours * 0.1d0 * deltat(n))
+           ! default assumption is that snow is melting at 10 % per day hour above freezing
+           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * 0.1d0 * deltat(n))
+           snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
            snow_melt = snow_melt / seconds_per_step
-           snow_storage = snow_storage - snow_melt
        elseif (maxt < 0d0) then
-           ! if whole day is below freezing then we should assume that all
-           ! precipitation is snowfall
-           snowfall = rainfall ; rainfall = 0d0 ; snow_melt = 0d0
+           snow_melt = 0d0
            ! Add rainfall to the snowpack and clear rainfall variable
            snow_storage = snow_storage + (snowfall*seconds_per_step)
        else if (mint > 0d0 .and. snow_storage > 0d0) then
-           ! otherwise we assume snow is melting at 10 % per day light hour
-           snow_melt = min(snow_storage, snow_storage * dayl_hours * 0.1d0 * deltat(n))
+           ! otherwise we assume snow is melting at 10 % per day above hour
+           snow_melt = min(snow_storage, snow_storage * 0.1d0 * deltat(n))
            snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
            snow_melt = snow_melt / seconds_per_step
-           snowfall = 0d0
        else
-           snowfall = 0d0 ; snow_melt = 0d0
+           snow_melt = 0d0
        end if
        snow_storage_time(n) = snow_storage
 
@@ -868,6 +876,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
        call calculate_radiation_balance
        canopy_par_MJday_time(n) = canopy_par_MJday
+       soil_par_MJday_time(n) = soil_par_MJday
 
        !!!!!!!!!!
        ! Calculate physically constrained evaporation and
@@ -911,7 +920,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        gs_demand_supply_ratio(n) = (stomatal_conductance  - minimum_conductance) &
                                  / (potential_conductance - minimum_conductance)
        ! Store the canopy level stomatal conductance (mmolH2O/m2ground/s)
-       !gs_total_canopy(n) = stomatal_conductance * dayl_seconds_1
        gs_total_canopy(n) = stomatal_conductance
 
        ! Note that soil mass balance will be calculated after phenology
@@ -1013,8 +1021,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,41) =  transpiration   ! transpiration
        FLUXES(n,42) =  soilevaporation ! soil evaporation
        FLUXES(n,43) =  wetcanopy_evap  ! wet canopy evaporation
-       FLUXES(n,44) =  runoff
-       FLUXES(n,45) =  underflow
+       FLUXES(n,44) =  runoff          ! soil surface runoff
+       FLUXES(n,45) =  underflow       ! drainage from bottom of soil column
 
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
@@ -1296,6 +1304,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! calculate combined light and CO2 limited photosynthesis (umolC/m2/s)
     acm_gpp_stage_2 = light_limited_photosynthesis*pd/(light_limited_photosynthesis+pd)
 
+    ! Estimate ci as a function of the final combined GPP estimate
     !pp = acm_gpp_stage_2*rc ; mult = co2+qq-pp
     !! calculate internal CO2 concentration (ppm or umol/mol)
     !ci = 0.5d0*(mult+sqrt((mult*mult)-4d0*(co2*qq-pp*co2_comp_point)))
@@ -1592,6 +1601,44 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     endif
 
   end subroutine calculate_wetcanopy_evaporation
+  !
+  !------------------------------------------------------------------
+  !
+  subroutine calculate_potential_evaporation(potential_evap)
+
+    ! Estimates potential surface evapotransporation based on the Penman-Monteith model
+    ! (kgH20.m-2.day-1). FAO Chapter 3 Determination of ETo, see chapter 2 for derivation.
+
+    implicit none
+
+    ! arguments
+    double precision, intent(out) :: potential_evap ! kgH2O.m-2.day-1
+
+    ! local variables
+    double precision :: canopy_radiation  ! isothermal net radiation (W/m2)
+
+    !!!!!!!!!!
+    ! Estimate energy radiation balance (W.m-2)
+    !!!!!!!!!!
+
+    ! Absorbed shortwave radiation MJ.m-2.day-1
+    canopy_radiation = canopy_swrad_MJday + soil_swrad_MJday & 
+                     + (canopy_lwrad_Wm2 * 1d-6 * seconds_per_day) &
+                     + (soil_lwrad_Wm2 * 1d-6 * seconds_per_day)
+
+    !!!!!!!!!!
+    ! Calculate canopy evaporative fluxes (kgH2O/m2/day)
+    !!!!!!!!!!
+
+    ! Calculate numerator of Penman Montheith (kgH2O.m-2.day-1)
+    ! NOTE: Rn - G, neglected as G (ground heat) near zero on daily scales
+    ! 0.34 estimates the ratio of canopy and stomatal conductance
+    ! 0.408 is the inverse of lambda as described in this code.
+    potential_evap = ((0.408d0*slope*canopy_radiation) + &
+                      (psych*(900d0 / (meant + 273d0)) * wind_spd * vpd_kPa)) &
+                   / (slope + psych * (1d0+0.34d0*wind_spd))
+
+  end subroutine calculate_potential_evaporation
   !
   !------------------------------------------------------------------
   !
@@ -2021,7 +2068,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                        ,absorbed_nir_fraction_soil  &
                        ,absorbed_par_fraction_soil  &
                        ,fsnow,par,nir               &
-                       ,soil_par_MJday              &
                        ,soil_nir_MJday              &
                        ,trans_nir_MJday             &
                        ,trans_par_MJday             &
@@ -2145,9 +2191,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Combine to estimate total shortwave canopy absorbed radiation
     canopy_swrad_MJday = canopy_par_MJday + canopy_nir_MJday
 
-    ! check energy balance
+!    ! check energy balance
 !    balance = swrad - canopy_par_MJday - canopy_nir_MJday - refl_par_MJday - refl_nir_MJday - soil_swrad_MJday
-!    if ((balance - swrad) / swrad > 0.01) then
+!    if (((balance - swrad) / swrad) > 0.01) then
 !        print*,"SW residual frac = ",(balance - swrad) / swrad,"SW residual = ",balance,"SW in = ",swrad
 !    endif
 

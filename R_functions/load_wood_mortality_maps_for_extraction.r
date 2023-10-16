@@ -71,16 +71,16 @@ load_wood_mortality_maps_for_extraction<-function(Cwood_mortality_source,cardamo
              if (years_with_obs[t] >= as.numeric(start) & years_with_obs[t] <= as.numeric(finish)) {
 
                  # Read in the estimate and uncertainty rasters
-                 Cwood_mortality = raster(paste(path_to_Cwood_mortality,input_file[t],sep=""))
-                 Cwood_mortality_uncertainty = raster(paste(path_to_Cwood_mortality,unc_input_file[t],sep=""))
+                 Cwood_mortality = rast(paste(path_to_Cwood_mortality,input_file[t],sep=""))
+                 Cwood_mortality_uncertainty = rast(paste(path_to_Cwood_mortality,unc_input_file[t],sep=""))
 
                  # Create raster with the target crs
-                 target = raster(crs = ("+init=epsg:4326"), ext = extent(Cwood_mortality), resolution = res(Cwood_mortality))
+                 target = rast(crs = ("+init=epsg:4326"), ext = ext(Cwood_mortality), resolution = res(Cwood_mortality))
                  # Check whether the target and actual analyses have the same CRS
-                 if (compareCRS(Cwood_mortality,target) == FALSE) {
+                 if (compareGeom(Cwood_mortality,target) == FALSE) {
                      # Resample to correct grid
-                     Cwood_mortality = resample(Cwood_mortality, target, method="ngb") ; gc() ; removeTmpFiles()
-                     Cwood_mortality_uncertainty = resample(Cwood_mortality_uncertainty, target, method="ngb") ; gc() ; removeTmpFiles()
+                     Cwood_mortality = resample(Cwood_mortality, target, method="ngb") ; gc()
+                     Cwood_mortality_uncertainty = resample(Cwood_mortality_uncertainty, target, method="ngb") ; gc() 
                  }
                  # Extend the extent of the overall grid to the analysis domain
                  Cwood_mortality = extend(Cwood_mortality,cardamom_ext) ; Cwood_mortality_uncertainty = extend(Cwood_mortality_uncertainty,cardamom_ext)
@@ -94,11 +94,11 @@ load_wood_mortality_maps_for_extraction<-function(Cwood_mortality_source,cardamo
                  if (res(Cwood_mortality)[1] != res(cardamom_ext)[1] | res(Cwood_mortality)[2] != res(cardamom_ext)[2]) {
 
                      # Create raster with the target resolution
-                     target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                     target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
 
                      # Resample to correct grid
-                     Cwood_mortality = resample(Cwood_mortality, target, method="bilinear") ; gc() ; removeTmpFiles()
-                     Cwood_mortality_uncertainty = resample(Cwood_mortality_uncertainty, target, method="bilinear") ; gc() ; removeTmpFiles()
+                     Cwood_mortality = resample(Cwood_mortality, target, method="bilinear") ; gc()
+                     Cwood_mortality_uncertainty = resample(Cwood_mortality_uncertainty, target, method="bilinear") ; gc()
 
                  } # Aggrgeate to resolution
 
@@ -110,7 +110,8 @@ load_wood_mortality_maps_for_extraction<-function(Cwood_mortality_source,cardamo
                      # extract dimension information for the grid, note the axis switching between raster and actual array
                      xdim = dim(Cwood_mortality)[2] ; ydim = dim(Cwood_mortality)[1]
                      # extract the lat / long information needed
-                     long = coordinates(Cwood_mortality)[,1] ; lat = coordinates(Cwood_mortality)[,2]
+                     long = crds(Cwood_mortality,df=TRUE, na.rm=FALSE)
+                     lat  = long$y ; long = long$x
                      # restructure into correct orientation
                      long = array(long, dim=c(xdim,ydim))
                      lat = array(lat, dim=c(xdim,ydim))

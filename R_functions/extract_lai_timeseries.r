@@ -97,7 +97,8 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
    # CARDAMOM works best if the uncertainties are the same across each LAI observation as the framework tends towards lower LAI values
    # Therefore, to make use of the uncertainty information we take the mean for this site and apply it across each value.
    # NOTE: we put a book end the upper uncertainty linked to the max LAI estimate to ensure that there is some constraint
-   lai_unc_out[lai_out >= 0] = max(0.25,min(mean(lai_unc_out[lai_out >= 0]), max(lai_out[lai_out >= 0])))
+   #lai_unc_out[lai_out >= 0] = max(0.25,min(mean(lai_unc_out[lai_out >= 0]), max(lai_out[lai_out >= 0])))
+   #lai_unc_out[lai_out >= 0] = pmax(0.25,lai_unc_out[lai_out >= 0])
 
    # pass the information back
    output = list(lai = lai_out, lai_unc = lai_unc_out)

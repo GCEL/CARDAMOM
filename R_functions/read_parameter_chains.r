@@ -1,5 +1,105 @@
 
 ###
+## Function to read parameter chains and determine which will be ran, based on their convergence criterion
+###
+
+# This function was created by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+
+determine_parameter_chains_to_run<-function(PROJECT,n) {
+
+  # load only the desired latter fraction of the parameter vectors
+  # output is order dimensions(npar+1,iter,chain)
+  parameters = read_parameter_chains(PROJECT,n)
+  #parameter_covariance = read_parameter_covariance(PROJECT,n)
+
+  # determine whether we have any actual completed chains and whether they include EDC consistent value only
+  error_check = FALSE
+  if (length(parameters) == 1 & parameters[1] == -9999) {
+      error_check = TRUE
+      #print("Site not available / parameters file empty")
+      dummy = -1 ; return(dummy)
+  } else {
+      if (length(which(as.vector(is.na(parameters)))) > 0 ) {
+          error_check = TRUE
+          print("NA found in likelihood score")
+          dummy = -2 ; return(dummy)
+      } else if (min(as.vector(parameters)) == -Inf) {
+          error_check = TRUE
+          print("Inf found in likelihood score")
+          #print("Site not available / parameters file empty")
+          dummy = -3 ; return(dummy)
+      } # NaN / Inf check
+  } # error check
+
+  # test for convergence and whether or not there is any single chain which can be removed in they do not converge
+  notconv = TRUE ; converged = rep("TRUE", times = max(PROJECT$model$nopars))
+  while (dim(parameters)[3] > 2 & notconv) {
+     if (use_parallel == FALSE) {print("begin convergence checking")}
+     converged = have_chains_converged(parameters)
+     # if log-likelihood has passed then we are not interested
+     if (converged[length(converged)] == "FAIL") {
+         #if (use_parallel == FALSE) {print("...not converged begin removing potential parameter vectors")}
+         i = 1 ; max_likelihood = rep(NA, length.out=dim(parameters)[3]) ; CI90 = rep(NA,length.out=c(2))
+         while (notconv){
+            #if (use_parallel == FALSE) {print(paste("......trying removal of parameter vector ",i,sep=""))}
+            # Track the maximum likelihood across each chain.
+            max_likelihood[i] = max(parameters[dim(parameters)[1],,i])
+            converged = have_chains_converged(parameters[,,-i]) ; i = i + 1
+            # if removing one of the chains get convergence then great
+            if (converged[length(converged)] == "PASS") {
+                #if (use_parallel == FALSE) {print(".........convergence found on chain removal")}
+                # likelihoods converge now but we need to check for the possibility that the chain we have removed is actually better than the others
+                CI90[1] = quantile(parameters[dim(parameters)[1],,(i-1)], prob=c(0.10))
+                CI90[2] = quantile(parameters[dim(parameters)[1],,-(i-1)], prob=c(0.90))
+                # if the rejected chain is significantly better (at 90 % CI) than the converged chains then we have a problem
+                if (CI90[1] > CI90[2]) {
+                    # rejected chain (while others converge) is actually better and the others have gotten stuck in a local minima.
+                    # we will now assume that we use the single good chain instead...
+                    parameters = array(parameters[,,(i-1)],dim=c(dim(parameters)[1:2],2))
+                    notconv = FALSE ; i = (i-1) * -1
+                    if (use_parallel == FALSE) {print(paste("............chain ",i*-1," only has been accepted",sep=""))}
+                } else {
+                    # if the non-converged chain is worse or just the same in likelihood terms as the others then we will ditch it
+                    notconv = FALSE ; i = i-1 # converged now?
+                    parameters = parameters[,,-i]
+                    if (use_parallel == FALSE) {print(paste("............chain rejected = ",i,sep=""))}
+                }
+            }
+            # If removing one chain does not lead to convergence then lowest average likelihood chain could be removed
+            # NOTE: this should be made optional, such that non-converging locations are excluded from the analysis instead
+            if (i > dim(parameters)[3] & notconv) {
+                # Which is lowest likelihood
+                i = which(max_likelihood == min(max_likelihood))
+                # Remove from array
+                parameters = parameters[,,-i]
+                # Update the maximum likelihood vector also
+                max_likelihood = max_likelihood[-i]
+                # Update the user
+                if (use_parallel == FALSE) {print(paste(".........single chain removal couldn't find convergence; removing lowest likelihood chain = ",i,sep=""))}
+                # reset counter
+                i = 1
+                # If we have removed chains down to 2 (or kept just one) we need to abort
+                if (dim(parameters)[3] < 3 & notconv) {
+                    notconv = FALSE
+                    if (use_parallel == FALSE) {print(".........have removed all low likelihood chains without successful convergence")}
+                }
+                 }
+            } # while to removing chains
+     } else {
+         #if (use_parallel == FALSE) {print("All chains converge")}
+         # we have conveged
+         notconv = FALSE
+     } # if likelihood not converged
+  } # if more than 2 chains
+
+  # Return parameters to user
+  return(list(parameters = parameters,converged = converged))
+
+} # end function determine_parameter_chains_to_run
+## Use byte compile
+determine_parameter_chains_to_run<-cmpfun(determine_parameter_chains_to_run)
+
+###
 ## Function to read parameter chains info
 ###
 
@@ -144,6 +244,7 @@ read_parameter_chains<- function(PROJECT_in,n) {
   if (PROJECT_in$model$name == "DALEC_1005" || PROJECT_in$model$name == "DALEC_1005a" ||
       PROJECT_in$model$name == "DALEC.C1.D1.F2.P1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R3.#" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H1.P1.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.#" ||
+      PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H3.P1" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.R1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#" ||
       PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#" || PROJECT_in$model$name == "DALEC.A2.C1.D2.F2.H2.P1.#" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P5.#") {

@@ -28,16 +28,16 @@ load_lca_maps_for_extraction<-function(latlon_in,lca_source,cardamom_ext,spatial
         if (length(input_file) > 1 | length(unc_input_file) > 1) {stop("More than one file has been found for the estimate and its uncertainty, there should only be one")}
 
         # Read in the estimate and uncertainty rasters
-        lca_gCm2 = raster(paste(path_to_lca,input_file,sep=""))
-        lca_uncertainty_gCm2 = raster(paste(path_to_lca,unc_input_file,sep=""))
+        lca_gCm2 = rast(paste(path_to_lca,input_file,sep=""))
+        lca_uncertainty_gCm2 = rast(paste(path_to_lca,unc_input_file,sep=""))
 
         # Create raster with the target crs
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(lca_gCm2), resolution = res(lca_gCm2))
+        target = rast(crs = ("+init=epsg:4326"), ext = ext(lca_gCm2), resolution = res(lca_gCm2))
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(lca_gCm2,target) == FALSE) {
+        if (compareGeom(lca_gCm2,target) == FALSE) {
             # Resample to correct grid
-            lca_gCm2 = resample(lca_gCm2, target, method="ngb") ; gc() ; removeTmpFiles()
-            lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="ngb") ; gc() ; removeTmpFiles()
+            lca_gCm2 = resample(lca_gCm2, target, method="ngb") ; gc()
+            lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="ngb") ; gc()
         }
         # Extend the extent of the overall grid to the analysis domain
         lca_gCm2 = extend(lca_gCm2,cardamom_ext) ; lca_uncertainty_gCm2 = extend(lca_uncertainty_gCm2,cardamom_ext)
@@ -50,24 +50,27 @@ load_lca_maps_for_extraction<-function(latlon_in,lca_source,cardamom_ext,spatial
         if (res(lca_gCm2)[1] != res(cardamom_ext)[1] | res(lca_gCm2)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
-            lca_gCm2 = resample(lca_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
-            lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="bilinear") ; gc() ; removeTmpFiles()
+            lca_gCm2 = resample(lca_gCm2, target, method="bilinear") ; gc() 
+            lca_uncertainty_gCm2 = resample(lca_uncertainty_gCm2, target, method="bilinear") ; gc()
 
         } # Aggrgeate to resolution
 
         # extract dimension information for the grid, note the axis switching between raster and actual array
         xdim = dim(lca_gCm2)[2] ; ydim = dim(lca_gCm2)[1]
         # extract the lat / long information needed
-        long = coordinates(lca_gCm2)[,1] ; lat = coordinates(lca_gCm2)[,2]
+        long = crds(lca_gCm2,df=TRUE, na.rm=FALSE)
+        lat  = long$y ; long = long$x
         # restructure into correct orientation
         long = array(long, dim=c(xdim,ydim))
         lat = array(lat, dim=c(xdim,ydim))
         # break out from the rasters into arrays which we can manipulate
         lca_gCm2 = array(as.vector(unlist(lca_gCm2)), dim=c(xdim,ydim))
         lca_uncertainty_gCm2 = array(as.vector(unlist(lca_uncertainty_gCm2)), dim=c(xdim,ydim))
+        # TLS: Hack to reduce uncertainty associated with this dataset
+        lca_uncertainty_gCm2 = lca_uncertainty_gCm2*0.5
 
         # Output variables
         return(list(lat = lat, long = long, lca_gCm2 = lca_gCm2, lca_uncertainty_gCm2 = lca_uncertainty_gCm2))

@@ -64,7 +64,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
 
                   # Convert to a raster, assuming standad WGS84 grid
                   var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1))
-                  var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+                  var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
                   # Remove the input lat / long information
                   rm(lat_in,long_in)
 
@@ -77,10 +77,10 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                    # Adjust spatial resolution of the datasets, this occurs in all cases
                    if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                        # Create raster with the target resolution
-                       target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                       target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
                        # Resample to correct grid.
                        # Probably should be done via aggregate function to allow for correct error propogation
-                       var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
+                       var1 = resample(var1, target, method="bilinear") ; gc()
                    } # Aggrgeate to resolution
 
                   # Extract spatial information just the once
@@ -88,7 +88,8 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                       # extract dimension information for the grid, note the axis switching between raster and actual array
                       xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                       # extract the lat / long information needed
-                      long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+                      long = crds(var1,df=TRUE, na.rm=FALSE)
+                      lat  = long$y ; long = long$x
                       # restructure into correct orientation
                       long = array(long, dim=c(xdim,ydim))
                       lat = array(lat, dim=c(xdim,ydim))
@@ -197,42 +198,22 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
 
                       # Convert to a raster, assuming standad WGS84 grid
                       var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1))
-                      var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326")) ; f1 = filename(var1)
+                      var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
                       # Remove the input lat / long information
-                      rm(lat_in,long_in,lat_in_sd)
+                      rm(lat_in,long_in)
 
                       # Extend the extent of the overall grid to the analysis domain
                       var1 = extend(var1,cardamom_ext)
-                      ff1 = filename(var1)
-
-                      # Check and remove unwanted tmp files
-                      if (f1 != ff1 & f1 != "") {
-                          if (file.exists(f1)) { file.remove(f1) }
-                          if (file.exists(gsub(".grd",".gri",f1))) { file.remove(gsub(".grd",".gri",f1)) }
-                      } ; f1 = filename(var1)
                       # Trim the extent of the overall grid to the analysis domain
                       var1 = crop(var1,cardamom_ext)
-                      ff1 = filename(var1)
 
-                      # Check and remove unwanted tmp files
-                      if (f1 != ff1 & f1 != "") {
-                          if (file.exists(f1)) { file.remove(f1) }
-                          if (file.exists(gsub(".grd",".gri",f1))) { file.remove(gsub(".grd",".gri",f1)) }
-                      } ; f1 = filename(var1)
                       # Adjust spatial resolution of the datasets, this occurs in all cases
                       if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                           # Create raster with the target resolution
-                          target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                          target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
                           # Resample to correct grid.
                           # Probably should be done via aggregate function to allow for correct error propogation
-                          var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                          ff1 = filename(var1)
-                          # Check and remove unwanted tmp files
-                          if (f1 != ff1 & f1 != "") {
-                              if (file.exists(f1)) { file.remove(f1) }
-                              if (file.exists(gsub(".grd",".gri",f1))) { file.remove(gsub(".grd",".gri",f1)) }
-                          } ; f1 = filename(var1)
-
+                          var1 = resample(var1, target, method="bilinear") ; gc() 
                       } # Aggrgeate to resolution
 
                       # Extract spatial information just the once
@@ -242,7 +223,8 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                           # extract dimension information for the grid, note the axis switching between raster and actual array
                           xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                           # extract the lat / long information needed
-                          long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+                          long = crds(var1,df=TRUE, na.rm=FALSE)
+                          lat  = long$y ; long = long$x
                           # restructure into correct orientation
                           long = array(long, dim=c(xdim,ydim))
                           lat = array(lat, dim=c(xdim,ydim))
@@ -252,11 +234,6 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                       # break out from the rasters into arrays which we can manipulate
                       var1 = array(as.vector(unlist(var1)), dim=c(xdim,ydim))
 
-                      # Check and remove unwanted tmp files
-                      if (f1 != "") {
-                          if (file.exists(f1)) { file.remove(f1) }
-                          if (file.exists(gsub(".grd",".gri",f1))) { file.remove(gsub(".grd",".gri",f1)) }
-                      } # no longer using rasters at this point, so no file name to track
                       # set actual missing data to -9999
                       var1[which(is.na(as.vector(var1)))] = -9999
 
@@ -299,7 +276,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                              doy_obs = doy_out,
                              lat = lat, long = long, missing_years=missing_years)
         # clean up variables
-        rm(doy_in,burnt_area_hold,not_na,lai_out,doy_out,lat,long,missing_years)
+        rm(doy_in,burnt_area_hold,not_na,burnt_area_out,doy_out,lat,long,missing_years)
         gc(reset=TRUE,verbose=FALSE)
         return(burn_area_all)
 

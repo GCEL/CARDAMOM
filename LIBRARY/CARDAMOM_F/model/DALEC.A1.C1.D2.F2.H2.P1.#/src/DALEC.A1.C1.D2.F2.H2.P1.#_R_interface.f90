@@ -10,8 +10,8 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
                              ,soil_frac_clay, soil_frac_sand, nos_soil_layers &
                              ,gs_demand_supply_ratio, cica_time &
                              ,gs_total_canopy, gb_total_canopy &
-                             ,canopy_par_MJday_time, root_depth_time &
-                             ,snow_storage_time
+                             ,canopy_par_MJday_time, soil_par_MJday_time &
+                             ,root_depth_time, snow_storage_time
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R

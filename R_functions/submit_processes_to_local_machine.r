@@ -29,7 +29,7 @@ submit_processes_to_local_machine<-function (PROJECT_in) {
     }
 
     # Assume MCMC withh use pre-mcmc where lielihoods are normalised by sample size
-    pre_mcmc = 1   
+    pre_mcmc = 1
     # Combined the default set of parameter proposals with the extended run number
     # if this is an extened run
     nsamples = as.integer(PROJECT_in$nsamples)
@@ -44,7 +44,7 @@ submit_processes_to_local_machine<-function (PROJECT_in) {
         # If not, assume default cost function
         PROJECT_in$cost_function_scaling = 0
     }
-    
+
     # begin submitting the different tasks
     cwd = getwd()
     setwd(PROJECT_in$exepath)

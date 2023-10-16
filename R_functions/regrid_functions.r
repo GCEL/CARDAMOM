@@ -5,8 +5,23 @@
 
 # This function is by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
 
+# Griddify function (marmap library) updated to work with terra libraries
+griddify <-function (xyz, nlon, nlat) {
+    if (ncol(xyz) != 3) {stop("xyz must be a 3-column matrix or data.frame of longitudes, latitudes and depths/altitudes")}
+    colnames(xyz) <- c("lon", "lat", "depth")
+    r <- terra::rast(xmin = min(xyz$lon, na.rm = TRUE), xmax = max(xyz$lon, na.rm = TRUE),
+                     ymin = min(xyz$lat, na.rm = TRUE), ymax = max(xyz$lat, na.rm = TRUE),
+                     ncol = nlon, nrow = nlat)
+    xy = terra::vect(xyz, geom = c("lon","lat"))
+    x <- terra::rasterize(xy, r, field = "depth", fun = mean)
+    s <- terra::rast(nrow = nlat, ncol = nlon)
+    terra::ext(s) <- terra::ext(x)
+    s <- terra::resample(x, s, method = "bilinear")
+    return(s)
+}
+
 # Define local function
-regrid_func<-function(var1_in, lat_in, long_in, cardamom_ext, landmask) {
+regrid_func<-function(var1_in, lat_in, long_in, cardamom_ext, landmask=NULL) {
 
    # Set flags
    lat_done = FALSE
@@ -23,40 +38,52 @@ regrid_func<-function(var1_in, lat_in, long_in, cardamom_ext, landmask) {
         if (length(unique(diff(input_long[,1]))) > 1 | length(unique(diff(input_lat[1,]))) > 1) {
             var1 = griddify(var1, dim(var1_in)[1], dim(var1_in)[2])
         } else {
-            var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+            var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
         }
 
         # Create raster with the target crs (technically this bit is not required)
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(var1), resolution = res(var1))
+        target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
+
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(var1,target) == FALSE) {
+        if (compareGeom(var1,target) == FALSE) {
             # Resample to correct grid
-            var1 = resample(var1, target, method="ngb") ; gc() ; removeTmpFiles()
+            #var1 = resample(var1, target, method="near") ; gc()
+            var1 = project(var1, target, mask = FALSE, method="near")
         }
-        # Extend the extent of the overall grid to the analysis domain
-        var1 = extend(var1,cardamom_ext, snap="near", value = NA)
-        # Trim the extent of the overall grid to the analysis domain
-        var1 = crop(var1,cardamom_ext)
+
+        if (ext(cardamom_ext) != ext(var1)) {
+            # Extend the extent of the overall grid to the analysis domain
+            #var1 = extend(var1,cardamom_ext, snap="near", fill = NA)
+            var1 = extend(var1,cardamom_ext)
+            # Trim the extent of the overall grid to the analysis domain
+            var1 = crop(var1,cardamom_ext)
+            # With different resolutions that are non-divisible with the target
+            # resolution a mismatch may still be present. However, this should be
+            # closer than it was and allow for the final adjustments made in the resampling
+        }
 
         # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here.
         # Despite creation of a cardamom_ext for a site run do not allow aggregation here as this will damage the fine resolution datasets
-        if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
+        if (res(var1)[1] != res(cardamom_ext)[1] |
+            res(var1)[2] != res(cardamom_ext)[2] |
+            ext(cardamom_ext) != ext(var1)) {
 
             # Create raster with the target resolution
-            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
             # Resample to correct grid
-            var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
+            var1 = resample(var1, target, method="bilinear") ; gc()
 
         } # Aggregate to resolution
 
         # If a land mask is present then also restrict to this target domain
-        if (missing("landmask") == FALSE) {var1 = crop(var1,landmask)}
+        #if (missing("landmask") == FALSE) {var1 = crop(var1,landmask)}
 
         if (lat_done == FALSE) {
             # extract dimension information for the grid, note the axis switching between raster and actual array
             xdim = dim(var1)[2] ; ydim = dim(var1)[1]
             # extract the lat / long information needed
-            long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+            long = crds(var1,df=TRUE, na.rm=FALSE)
+            lat  = long$y ; long = long$x
             # restructure into correct orientation
             long = array(long, dim=c(xdim,ydim))
             lat = array(lat, dim=c(xdim,ydim))
@@ -120,11 +147,11 @@ regrid_gdal_func<-function(tmp_dir, var1_in, lat_in, long_in, cardamom_ext, land
         }
 
         # Create raster with the target crs (technically this bit is not required)
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(var1), resolution = res(var1))
+        target = raster(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
         # Check whether the target and actual analyses have the same CRS
         if (compareCRS(var1,target) == FALSE) {
             # Resample to correct grid
-            var1 = resample(var1, target, method="ngb") ; gc() ; removeTmpFiles()
+            var1 = resample(var1, target, method="near") ; gc()
         }
         # Extend the extent of the overall grid to the analysis domain
         var1 = extend(var1,cardamom_ext, snap="near", value = NA)

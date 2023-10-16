@@ -801,6 +801,8 @@ module model_likelihood_module
 
         ! Living pools
         do n = 1, 3
+!        do n = 1, 3, 2 ! labile + fine root
+        !do n = 3, 3 ! fine root only
            ! Restrict mean rates of increase
            if (abs(log(Fin(n)/Fout(n))) > EQF2) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
@@ -836,7 +838,8 @@ module model_likelihood_module
 !            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
 !        end if
         ! Dead pools
-        do n = 5, 6
+        do n = 5, 6  ! Litter + som
+!        do n = 6, 6   ! som only
            ! Restrict rates of increase
            if (abs(log(Fin(n)/Fout(n))) > EQF2) then
                EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
@@ -863,10 +866,10 @@ module model_likelihood_module
         EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
     end if
 
-    ! Prevent NPP -> foliage (FLX4,8) > NPP (GPP-Ra, FLX1-FLX3)
-    if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(:,4)+M_FLUXES(:,8)) / sum(M_FLUXES(:,1)-M_FLUXES(:,3)) > 1d0 ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
-    end if
+!    ! Prevent NPP -> foliage (FLX4,8) > NPP (GPP-Ra, FLX1-FLX3)
+!    if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(:,4)+M_FLUXES(:,8)) / sum(M_FLUXES(:,1)-M_FLUXES(:,3)) > 1d0 ) then
+!        EDC2 = 0d0 ; EDCD%PASSFAIL(36) = 0
+!   end if
 
     !
     ! EDCs done, below are additional fault detection conditions
@@ -1390,6 +1393,19 @@ module model_likelihood_module
        likelihood = likelihood-tot_exp
     endif
 
+    ! Leaf litter log-likelihood
+    if (DATAin%nfoliage_to_litter > 0) then
+        tot_exp = 0d0
+        do n = 1, DATAin%nfoliage_to_litter
+            dn = DATAin%foliage_to_litterpts(n)
+            s = max(0,dn-nint(DATAin%foliage_to_litter_lag(dn)))+1
+            ! Estimate the mean allocation to wood over the lag period
+            tmp_var = sum(DATAin%M_FLUXES(s:dn,10)) / DATAin%foliage_to_litter_lag(dn)
+            tot_exp = tot_exp+((tmp_var-DATAin%foliage_to_litter(dn)) / DATAin%foliage_to_litter_unc(dn))**2
+        end do
+        likelihood = likelihood-tot_exp
+    endif
+
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
        ! Create vector of (FOL_t0 + FOL_t1) * 0.5
@@ -1791,6 +1807,19 @@ module model_likelihood_module
        end do
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCwood_mortality))
     endif
+
+    ! Leaf litter log-likelihood
+    if (DATAin%nfoliage_to_litter > 0) then
+        tot_exp = 0d0
+        do n = 1, DATAin%nfoliage_to_litter
+            dn = DATAin%foliage_to_litterpts(n)
+            s = max(0,dn-nint(DATAin%foliage_to_litter_lag(dn)))+1
+            ! Estimate the mean allocation to wood over the lag period
+            tmp_var = sum(DATAin%M_FLUXES(s:dn,10)) / DATAin%foliage_to_litter_lag(dn)
+            tot_exp = tot_exp+((tmp_var-DATAin%foliage_to_litter(dn)) / DATAin%foliage_to_litter_unc(dn))**2
+        end do
+        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nfoliage_to_litter))
+     endif
 
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
@@ -2194,6 +2223,19 @@ module model_likelihood_module
        end do
        sqrt_scale_likelihood = sqrt_scale_likelihood-(tot_exp/sqrt(dble(DATAin%nCwood_mortality)))
     endif
+
+    ! Leaf litter log-likelihood
+    if (DATAin%nfoliage_to_litter > 0) then
+        tot_exp = 0d0
+        do n = 1, DATAin%nfoliage_to_litter
+            dn = DATAin%foliage_to_litterpts(n)
+            s = max(0,dn-nint(DATAin%foliage_to_litter_lag(dn)))+1
+            ! Estimate the mean allocation to wood over the lag period
+            tmp_var = sum(DATAin%M_FLUXES(s:dn,10)) / DATAin%foliage_to_litter_lag(dn)
+            tot_exp = tot_exp+((tmp_var-DATAin%foliage_to_litter(dn)) / DATAin%foliage_to_litter_unc(dn))**2
+        end do
+        sqrt_scale_likelihood = sqrt_scale_likelihood-(tot_exp/sqrt(dble(DATAin%nfoliage_to_litter)))
+     endif
 
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
@@ -2599,6 +2641,19 @@ module model_likelihood_module
        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_mortality))))
     endif
 
+    ! Leaf litter log-likelihood
+    if (DATAin%nfoliage_to_litter > 0) then
+        tot_exp = 0d0
+        do n = 1, DATAin%nfoliage_to_litter
+            dn = DATAin%foliage_to_litterpts(n)
+            s = max(0,dn-nint(DATAin%foliage_to_litter_lag(dn)))+1
+            ! Estimate the mean allocation to wood over the lag period
+            tmp_var = sum(DATAin%M_FLUXES(s:dn,10)) / DATAin%foliage_to_litter_lag(dn)
+            tot_exp = tot_exp+((tmp_var-DATAin%foliage_to_litter(dn)) / DATAin%foliage_to_litter_unc(dn))**2
+        end do
+        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nfoliage_to_litter))))
+    endif
+
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
        ! Create vector of (FOL_t0 + FOL_t1) * 0.5
@@ -2767,7 +2822,8 @@ module model_likelihood_module
     return
 
   end function log_scale_likelihood
-  !
-  !------------------------------------------------------------------
-  !
+
+!
+!------------------------------------------------------------------
+!
 end module model_likelihood_module

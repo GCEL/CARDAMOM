@@ -9,10 +9,7 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
                               path_to_met_source,met_source,wheat) {
 
     # Create target grid for aggregation if needed
-    if (spatial_type == "grid") {
-       # Create raster with the target resolution
-       target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
-    }
+    target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
 
     if (met_source == "ERA" | met_source == "isimip3a") {
 
@@ -50,34 +47,32 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
                   # This dependes on the lat / long / tmp1 spatially matching each other AND
                   # latitude ranging -90/90 and longitude ranging -180/180 degrees
                   var1 = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(var_in[,,t]))
-                  var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+                  var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
 
                   # Extend the extent of the overall grid to the analysis domain
                   var1 = extend(var1,cardamom_ext)
                   # Trim the extent of the overall grid to the analysis domain
                   var1 = crop(var1,cardamom_ext)
                   var1[which(as.vector(var1) == -9999)] = NA
-                  # If this is a gridded analysis and the desired CARDAMOM resolution is
-                  # coarser than the currently provided then aggregate here. Despite
-                  # creation of a cardamom_ext for a site run do not allow aggragation here
-                  # as this will damage the fine resolution datasets
-                  if (spatial_type == "grid") {
-                      if (res(var1)[1] < res(cardamom_ext)[1] | res(var1)[2] < res(cardamom_ext)[2]) {
-                          # Resample to correct grid
-                          var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                      } # Aggrgeate to resolution
-                  } # spatial_type == "grid"
+                  # Match resolutions
+                  if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
+                      # Resample to correct grid
+                      var1 = resample(var1, target, method="bilinear") ; gc() 
+                  } # Aggrgeate to resolution
 
                   # break out from the rasters so can manipulate
                   var1_out = append(var1_out, as.vector(unlist(var1))[wheat])
              } # step within month loop
 
         }  # month loop
+        
+        # Remove initial value
+        var1_out = var1_out[-1]
 
         # clean up
         rm(var1,m) ; gc(reset=TRUE,verbose=FALSE)
 
-    } else if (met_source == "trendy_v9" | met_source == "trendy_v11") {
+    } else if (met_source == "trendy_v9" | met_source == "trendy_v11" | met_source == "trendy_v12") {
 
         # Check whether this is a leap year or not
         nos_days = nos_days_in_year(year_to_do)
@@ -111,23 +106,18 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
              # This dependes on the lat / long / tmp1 spatially matching each other AND
              # latitude ranging -90/90 and longitude ranging -180/180 degrees
              var1 = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(var_in[,,t]))
-             var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+             var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
 
              # Extend the extent of the overall grid to the analysis domain
              var1 = extend(var1,cardamom_ext)
              # Trim the extent of the overall grid to the analysis domain
              var1 = crop(var1,cardamom_ext)
              var1[which(as.vector(var1) == -9999)] = NA
-             # If this is a gridded analysis and the desired CARDAMOM resolution is
-             # coarser than the currently provided then aggregate here. Despite
-             # creation of a cardamom_ext for a site run do not allow aggragation here
-             # as this will damage the fine resolution datasets
-             if (spatial_type == "grid") {
-                 if (res(var1)[1] < res(cardamom_ext)[1] | res(var1)[2] < res(cardamom_ext)[2]) {
-                     # Resample to correct grid
-                     var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                 } # Aggrgeate to resolution
-             } # spatial_type == "grid"
+             # Match resolutions of the datasets
+             if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
+                 # Resample to correct grid
+                 var1 = resample(var1, target, method="bilinear") ; gc() 
+             } # Aggrgeate to resolution
 
              # break out from the rasters so can manipulate
              var1_out = append(var1_out, rep(as.vector(unlist(var1))[wheat], times = days_per_month[t]))

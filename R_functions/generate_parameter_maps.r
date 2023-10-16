@@ -45,10 +45,10 @@ generate_parameter_maps<-function(PROJECT) {
    timestep_days = rep(timestep_days, length.out=grid_output$time_dim)
 
    # Convert avgN log10-normal to gN/m2, in models which use foliar N in gN/m2
-   if (PROJECT$model$name == "DALEC_GSI_BUCKET"| PROJECT$model$name == "DALEC_GSI_DFOL_CWD_FR" |
-       PROJECT$model$name == "DALECN_GSI_BUCKET" | PROJECT$model$name == "DALEC_BUCKET" |
-       PROJECT$model$name == "DALEC" | PROJECT$model$name == "DALEC_G5" |
-       PROJECT$model$name == "DALEC_G6" | PROJECT$model$name == "DALEC_BUCKET_CanAGE") {
+   if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P3.R1.#"| PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P3.R1.#" |
+       PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P4.R2.#" | PROJECT$model$name ==  "DALEC.A3.C3.H2.M1.#" |
+       PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P4.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P7.R2.#" |
+       PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P8.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#") {
        grid_output$parameters[,,11,] = 10**grid_output$parameters[,,11,]
    }
 
@@ -69,33 +69,33 @@ generate_parameter_maps<-function(PROJECT) {
           # remove non-constrained parameters (i.e. those not actually used in this analysis)
           initial_conditions=c(18:23)
           par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions),median_loc]
-          if (PROJECT$model$name == "DALEC_GSI_DFOL_CWD_FR") {
+          if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P3.R1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,30,31,32,33,37),median_loc]
-          } else if (PROJECT$model$name == "DALEC_BUCKET") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P4.R2.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,30,31,32,33,37,41),median_loc]
-          } else if (PROJECT$model$name == "DALEC") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P4.R2.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,30,31,32,33,37),median_loc]
-          } else if (PROJECT$model$name == "DALEC_GSI_BUCKET") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P3.R1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,30,31,32,33,35,37),median_loc]
-          } else if (PROJECT$model$name == "DALEC_GSI_BUCKET_CanAGE") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P10.R2.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,30,31,32,33,35,37,41),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET") {
+          } else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM_FARQUHAR_BUCKET") {
+          } else if (PROJECT$model$name == "DALEC.A2.C1.D2.F2.H2.P1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_wMRT") {
+          } else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_LAB") {
+          } else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P5.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
           } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_LAB_wMRT") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg") {
+          } else if (PROJECT$model$name == "DALEC.A1.C1.D2.F2.H2.P6.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24,28),median_loc]
-          } else if (PROJECT$model$name == "DALEC_CDEA_ACM2_BUCKET_RmRg_CWD_wMRT") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,24,28),median_loc]
-          } else if (PROJECT$model$name == "DALEC_G5" | PROJECT$model$name == "DALEC_G6") {
+          } else if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P7.R2.#" | PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P8.R2.#") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,37,41),median_loc]
           } else if (PROJECT$model$name == "DALEC_1005" | PROJECT$model$name == "DALEC_1005a") {
               par_array_median_normalised = grid_output$parameters[,,-c(initial_conditions,27,36),median_loc]

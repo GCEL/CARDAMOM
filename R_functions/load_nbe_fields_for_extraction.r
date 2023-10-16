@@ -67,17 +67,17 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                   for (t in seq(1, dim(var1_in)[3])) {
                        # Convert to a raster, assuming standad WGS84 grid
                        var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1_in[,,t]))
-                       var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+                       var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
                        var2 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var2_in[,,t]))
-                       var2 = rasterFromXYZ(var2, crs = ("+init=epsg:4326"))
+                       var2 = rast(var2, crs = ("+init=epsg:4326"), type="xyz")
 
                        # Create raster with the target crs (technically this bit is not required)
-                       target = raster(crs = ("+init=epsg:4326"), ext = extent(var1), resolution = res(var1))
+                       target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
                        # Check whether the target and actual analyses have the same CRS
-                       if (compareCRS(var1,target) == FALSE) {
+                       if (compareGeom(var1,target) == FALSE) {
                            # Resample to correct grid
-                           var1 = resample(var1, target, method="ngb") ; gc() ; removeTmpFiles()
-                           var2 = resample(var2, target, method="ngb") ; gc() ; removeTmpFiles()
+                           var1 = resample(var1, target, method="ngb") ; gc() 
+                           var2 = resample(var2, target, method="ngb") ; gc() 
                        }
                        # Extend the extent of the overall grid to the analysis domain
                        var1 = extend(var1,cardamom_ext) ; var2 = extend(var2,cardamom_ext)
@@ -88,10 +88,10 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                        if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
 
                            # Create raster with the target resolution
-                           target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                           target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
                            # Resample to correct grid
-                           var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                           var2 = resample(var2, target, method="bilinear") ; gc() ; removeTmpFiles()
+                           var1 = resample(var1, target, method="bilinear") ; gc()
+                           var2 = resample(var2, target, method="bilinear") ; gc() 
 
                        } # Aggrgeate to resolution
 
@@ -99,7 +99,8 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                            # extract dimension information for the grid, note the axis switching between raster and actual array
                            xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                            # extract the lat / long information needed
-                           long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+                           long = crds(var1,df=TRUE, na.rm=FALSE)
+                           lat  = long$y ; long = long$x
                            # restructure into correct orientation
                            long = array(long, dim=c(xdim,ydim))
                            lat = array(lat, dim=c(xdim,ydim))
@@ -224,17 +225,17 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
 
                     # Convert to a raster, assuming standad WGS84 grid
                     var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1))
-                    var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+                    var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
                     var2 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var2))
-                    var2 = rasterFromXYZ(var2, crs = ("+init=epsg:4326"))
+                    var2 = rast(var2, crs = ("+init=epsg:4326"), type="xyz")
 
                     # Create raster with the target crs (technically this bit is not required)
-                    target = raster(crs = ("+init=epsg:4326"), ext = extent(var1), resolution = res(var1))
+                    target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
                     # Check whether the target and actual analyses have the same CRS
-                    if (compareCRS(var1,target) == FALSE) {
+                    if (compareGeom(var1,target) == FALSE) {
                         # Resample to correct grid
-                        var1 = resample(var1, target, method="ngb") ; gc() ; removeTmpFiles()
-                        var2 = resample(var2, target, method="ngb") ; gc() ; removeTmpFiles()
+                        var1 = resample(var1, target, method="ngb") ; gc() 
+                        var2 = resample(var2, target, method="ngb") ; gc() 
                     }
                     # Extend the extent of the overall grid to the analysis domain
                     var1 = extend(var1,cardamom_ext) ; var2 = extend(var2,cardamom_ext)
@@ -245,10 +246,10 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                     if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
 
                         # Create raster with the target resolution
-                        target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                        target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
                         # Resample to correct grid
-                        var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                        var2 = resample(var2, target, method="bilinear") ; gc() ; removeTmpFiles()
+                        var1 = resample(var1, target, method="bilinear") ; gc() 
+                        var2 = resample(var2, target, method="bilinear") ; gc() 
 
                     } # Aggrgeate to resolution
 
@@ -256,7 +257,8 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                         # extract dimension information for the grid, note the axis switching between raster and actual array
                         xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                         # extract the lat / long information needed
-                        long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+                        long = crds(var1,df=TRUE, na.rm=FALSE)
+                        lat  = long$y ; long = long$x
                         # restructure into correct orientation
                         long = array(long, dim=c(xdim,ydim))
                         lat = array(lat, dim=c(xdim,ydim))
@@ -409,17 +411,17 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
 
                     # Convert to a raster, assuming standad WGS84 grid
                     var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1))
-                    var1 = rasterFromXYZ(var1, crs = ("+init=epsg:4326"))
+                    var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
                     var2 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var2))
-                    var2 = rasterFromXYZ(var2, crs = ("+init=epsg:4326"))
+                    var2 = rast(var2, crs = ("+init=epsg:4326"), type="xyz")
 
                     # Create raster with the target crs (technically this bit is not required)
-                    target = raster(crs = ("+init=epsg:4326"), ext = extent(var1), resolution = res(var1))
+                    target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
                     # Check whether the target and actual analyses have the same CRS
-                    if (compareCRS(var1,target) == FALSE) {
+                    if (compareGeom(var1,target) == FALSE) {
                         # Resample to correct grid
-                        var1 = resample(var1, target, method="ngb") ; gc() ; removeTmpFiles()
-                        var2 = resample(var2, target, method="ngb") ; gc() ; removeTmpFiles()
+                        var1 = resample(var1, target, method="ngb") ; gc() 
+                        var2 = resample(var2, target, method="ngb") ; gc() 
                     }
                     # Extend the extent of the overall grid to the analysis domain
                     var1 = extend(var1,cardamom_ext) ; var2 = extend(var2,cardamom_ext)
@@ -431,10 +433,10 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                     if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
 
                         # Create raster with the target resolution
-                        target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                        target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
                         # Resample to correct grid
-                        var1 = resample(var1, target, method="bilinear") ; gc() ; removeTmpFiles()
-                        var2 = resample(var2, target, method="bilinear") ; gc() ; removeTmpFiles()
+                        var1 = resample(var1, target, method="bilinear") ; gc()
+                        var2 = resample(var2, target, method="bilinear") ; gc() 
 
                     } # Aggrgeate to resolution
 
@@ -442,7 +444,8 @@ load_nbe_fields_for_extraction<-function(latlon_in,nbe_source,years_to_load,card
                         # extract dimension information for the grid, note the axis switching between raster and actual array
                         xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                         # extract the lat / long information needed
-                        long = coordinates(var1)[,1] ; lat = coordinates(var1)[,2]
+                        long = crds(var1,df=TRUE, na.rm=FALSE)
+                        lat  = long$y ; long = long$x
                         # restructure into correct orientation
                         long = array(long, dim=c(xdim,ydim))
                         lat = array(lat, dim=c(xdim,ydim))

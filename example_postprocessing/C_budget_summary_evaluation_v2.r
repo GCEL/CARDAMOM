@@ -16,6 +16,41 @@
 # Comparison between CARDAMOM and EO soil moisture
 
 ###
+## Analysis specific information and generic creation
+###
+
+# Set the working directory for your CARDAMOM code base
+setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM")
+
+###
+## Load analysis
+
+# PointsOfChange
+#load("/exports/csce/datastore/geos/users/lsmallma/CARDAMOM_R_OUTPUT/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/reccap2_permafrost_1deg_dalec2_isimip3a_agb_lca_nbe_CsomPriorNCSDC3m/infofile.RData")
+#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/Miombo_0.5deg_allWood/infofile.RData")
+#load("/exports/csce/datastore/geos/users/lsmallma/CARDAMOM_R_OUTPUT/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_2_2.5deg_C7_GCP_AGB_GPP_NBE/infofile.RData")
+load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/global_1deg_dalec4_trendyv12_LCA_AGB/infofile.RData")
+
+# Set output path for figures and tables
+out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
+#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/RECCAP2/figures/"
+#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/LTSS_CARBON_INTEGRATION/InternationalScience/figures_africa/"
+#out_dir = "~/WORK/GREENHOUSE/models/CARDAMOM/SECO/figures/"
+
+#
+# Load the CARDAMOM files
+load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
+
+# Specify the position within the stored ensemble for the median estimate and the desired uncertainty bands
+mid_quant = 4 ; low_quant = 2 ; high_quant = 6
+wanted_quant = c(low_quant,3,mid_quant,5,high_quant)
+
+# Extract timing information
+run_years = as.numeric(PROJECT$start_year) : as.numeric(PROJECT$end_year)
+nos_years = length(as.numeric(PROJECT$start_year) : as.numeric(PROJECT$end_year))
+steps_per_year = length(PROJECT$model$timestep_days) / nos_years
+
+###
 ## Load needed libraries and framework functions
 ###
 
@@ -30,12 +65,12 @@ library(ncdf4)
 library(abind)
 
 # Load any CARDAMOM functions which might be useful
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/generate_wgs_grid.r")
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/calc_pixel_area.r")
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/read_binary_file_format.r")
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/function_closest2d.r")
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/plotconfidence.r")
-source("~/WORK/GREENHOUSE/models/CARDAMOM/R_functions/read_src_model_priors.r")
+source("./R_functions/generate_wgs_grid.r")
+source("./R_functions/calc_pixel_area.r")
+source("./R_functions/read_binary_file_format.r")
+source("./R_functions/function_closest2d.r")
+source("./R_functions/plotconfidence.r")
+source("./R_functions/read_src_model_priors.r")
 source("./R_functions/regrid_functions.r")
 
 # Function to determine the number of days in any given year
@@ -84,36 +119,6 @@ fudgeit <- function(){
 #                     smallplot = c(.78,.81,0.28,0.85))
                      smallplot = c(0.97-0.12,1.0-0.12,0.28,0.85))
 } # end function fudgeit
-
-###
-## Analysis specific information and generic creation
-###
-
-###
-## Load analysis
-
-# PointsOfChange
-load("/exports/csce/datastore/geos/users/lsmallma/CARDAMOM_R_OUTPUT/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/reccap2_permafrost_1deg_dalec2_isimip3a_agb_lca_nbe_CsomPriorNCSDC3m/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/Miombo_0.5deg_allWood/infofile.RData")
-
-# Set output path for figures and tables
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/ESSD_update/figures/"
-out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/RECCAP2/figures/"
-#out_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/LTSS_CARBON_INTEGRATION/InternationalScience/figures_africa/"
-#out_dir = "~/WORK/GREENHOUSE/models/CARDAMOM/SECO/figures/"
-
-#
-# Load the CARDAMOM files
-load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
-
-# Specify the position within the stored ensemble for the median estimate and the desired uncertainty bands
-mid_quant = 4 ; low_quant = 2 ; high_quant = 6
-wanted_quant = c(low_quant,3,mid_quant,5,high_quant)
-
-# Extract timing information
-run_years = as.numeric(PROJECT$start_year) : as.numeric(PROJECT$end_year)
-nos_years = length(as.numeric(PROJECT$start_year) : as.numeric(PROJECT$end_year))
-steps_per_year = length(PROJECT$model$timestep_days) / nos_years
 
 ###
 ## Determine needed spatial information
@@ -263,11 +268,10 @@ if (add_biomes == "ssa_wwf") {
     }
     # Trim the extent of the overall grid to the analysis domain
     biomes = crop(biomes,cardamom_ext) 
-    # If this is a gridded analysis and the desired CARDAMOM resolution is coarser than the currently provided then aggregate here
-    # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
+    # Match resolutions if they differ
     spatial_type = "grid"
     if (spatial_type == "grid") {
-        if (res(biomes)[1] < res(cardamom_ext)[1] | res(biomes)[2] < res(cardamom_ext)[2]) {
+        if (res(biomes)[1] != res(cardamom_ext)[1] | res(biomes)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
             target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
@@ -360,6 +364,7 @@ SoilCPrior = array(NA, dim=c(dims[1], dims[2]))
 # Mean annual LAI obs
 LAIobs = array(NA, dim=c(dims[1],dims[2],nos_years))
 LAIobs_unc = array(NA, dim=c(dims[1],dims[2],nos_years))
+LAIcount = array(NA, dim=c(dims[1],dims[2],nos_years))
 # Disturbance
 HarvestFraction = array(NA, dim=c(dims[1], dims[2]))
 BurnedFraction = array(NA, dim=c(dims[1], dims[2]))
@@ -410,6 +415,9 @@ lai_trend = array(NA, dim=c(dim(grid_output$mean_nee_gCm2day)[1],dim(grid_output
 #lai_trend_normalised = array(NA, dim=c(dim(grid_output$mean_nee_gCm2day)[1],dim(grid_output$mean_nee_gCm2day)[2]))
 # Timing variable needed
 time_vector = seq(0,nos_years, length.out = dim(grid_output$nee_gCm2day)[3])
+
+# Define counting function
+counting<-function(var) {return(length(which(is.na(var) == FALSE)))}
 
 # Loop through all sites
 nos_sites_inc = 0
@@ -515,6 +523,7 @@ for (n in seq(1, PROJECT$nosites)) {
          SoilCPrior[i_loc,j_loc] = drivers$parpriors[23] ; if (SoilCPrior[i_loc,j_loc] == -9999) {SoilCPrior[i_loc,j_loc] = NA}
          # Clear missing data from and extract observed LAI
          drivers$obs[which(drivers$obs[,3] == -9999),3] = NA ; drivers$obs[which(drivers$obs[,4] == -9999),4] = NA
+         LAIcount[i_loc,j_loc,] = rollapply(drivers$obs[,3], width = steps_per_year, by = steps_per_year, counting)
          LAIobs[i_loc,j_loc,] = rollapply(drivers$obs[,3], width = steps_per_year, by = steps_per_year, mean, na.rm=TRUE)
          LAIobs_unc[i_loc,j_loc,] = rollapply(drivers$obs[,4], width = steps_per_year, by = steps_per_year, mean, na.rm=TRUE)
          # If wood stock estimate available get that too
@@ -2747,9 +2756,9 @@ nc_close(CTE)
 cte_nbe = cte_nee + cte_fire
 
 # Adjust units
-cte_nee = cte_nee * 12 * 86400 * 365.25 # gC/m2/yr
+cte_nee  = cte_nee  * 12 * 86400 * 365.25 # gC/m2/yr
 cte_fire = cte_fire * 12 * 86400 * 365.25 # gC/m2/yr
-cte_nbe = cte_nbe * 12 * 86400 * 365.25 # gC/m2/yr
+cte_nbe  = cte_nbe  * 12 * 86400 * 365.25 # gC/m2/yr
 
 # Search for africa locations and slot into africa only grid for matching
 # Make into CARDAMOM paired masks.
@@ -2988,7 +2997,7 @@ nc_close(oco2)
 # Estimate step size
 oco2_step = abs(oco2_date[1]-oco2_date[2])
 # Estimate the number of days in each year since 2000 (the reference point for )
-create_years = c(0,2000:2020)
+create_years = c(0,2000:2030)
 nos_days = 0 ; for (i in seq(2,length(create_years))) { nos_days = append(nos_days,nos_days_in_year(create_years[i]))}
 # Convert all into decimal year
 for (i in seq(1, length(oco2_date))) {
@@ -3028,9 +3037,9 @@ for (i in seq(2, length(oco2_files_nee))) {
 }
 
 # Now apply units correction (mol/m2/s) to gC/m2/day
-oco2_nee = oco2_nee * 12 * 86400
+oco2_nee  = oco2_nee  * 12 * 86400
 oco2_fire = oco2_fire * 12 * 86400
-oco2_nbe = oco2_nee + oco2_fire
+oco2_nbe  = oco2_nee + oco2_fire
 
 # Loop through each year to estimate the annual means
 oco2_nee_gCm2yr = array(NA, dim=c(dim(oco2_nee)[1:2],length(unique(oco2_years)),dim(oco2_nee)[4]))
@@ -3241,6 +3250,41 @@ obs_gpp_mean_gCm2yr = obs_gpp_mean_gCm2yr[,dim(obs_gpp_mean_gCm2yr)[2]:1,]*array
 obs_gpp_min_gCm2yr = apply(obs_gpp_ensemble_gCm2yr,c(1,2,3),min, na.rm=TRUE)*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3]))
 obs_gpp_max_gCm2yr = apply(obs_gpp_ensemble_gCm2yr,c(1,2,3),max, na.rm=TRUE)*array(landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3]))
 
+# Ensure that the timeseries length is consistent between the observed variable and the model analysis
+# This assumes that only the timesteps that overlap the model period have been read in the first place,
+# so we should only be needing to add extra empty variable space.
+tmp = intersect(run_years,gpp_years)
+if (length(tmp) != length(run_years)) {
+    # How many years before the observations need to be added?
+    nos_add_beginning = gpp_years[1]-run_years[1]
+    # How many years after the observations
+    nos_add_afterward = run_years[length(run_years)] - gpp_years[length(gpp_years)]
+    if (nos_add_beginning > 0) {
+        # Convert these into arrays of the correct shape but empty
+        add_beginning = array(NA, dim=c(dim(obs_gpp_min_gCm2yr)[1:2],nos_add_beginning))
+        # Add the extra years 
+        obs_gpp_mean_gCm2yr = abind(add_beginning,obs_gpp_mean_gCm2yr, along=3)
+        obs_gpp_min_gCm2yr = abind(add_beginning,obs_gpp_min_gCm2yr, along=3)
+        obs_gpp_max_gCm2yr = abind(add_beginning,obs_gpp_max_gCm2yr, along=3)
+        # Convert these into arrays of the correct shape but empty
+        add_beginning = array(NA, dim=c(dim(obs_gpp_ensemble_gCm2yr)[1:2],nos_add_beginning,dim(obs_gpp_ensemble_gCm2yr)[4]))
+        # Add the extra years 
+        obs_gpp_ensemble_gCm2yr = abind(add_beginning,obs_gpp_ensemble_gCm2yr, along=3)
+    } 
+    if (nos_add_afterward > 0) {
+        # Convert these into arrays of the correct shape but empty
+        add_afterward = array(NA, dim=c(dim(obs_gpp_min_gCm2yr)[1:2],nos_add_afterward))
+        # Add the extra years 
+        obs_gpp_mean_gCm2yr = abind(obs_gpp_mean_gCm2yr,add_afterward, along=3)
+        obs_gpp_min_gCm2yr = abind(obs_gpp_min_gCm2yr,add_afterward, along=3)
+        obs_gpp_max_gCm2yr = abind(obs_gpp_max_gCm2yr,add_afterward, along=3)
+        # Convert these into arrays of the correct shape but empty
+        add_afterward = array(NA, dim=c(dim(obs_gpp_ensemble_gCm2yr)[1:2],nos_add_afterward,dim(obs_gpp_ensemble_gCm2yr)[4]))
+        # Add the extra years 
+        obs_gpp_ensemble_gCm2yr = abind(obs_gpp_ensemble_gCm2yr,add_afterward, along=3)
+    }
+} # extra years needed
+
 # Create domain averaged values for each year and data source, note that aggregation MUST happen within product type before across products
 tmp = apply(obs_gpp_ensemble_gCm2yr*array(landmask_area*grid_output$land_fraction*landfilter, dim=c(dim(landmask_area)[1:2],dim(obs_gpp_ensemble_gCm2yr)[3],dim(obs_gpp_ensemble_gCm2yr)[4]))*1e-12,c(3,4),sum, na.rm=TRUE)
 # where the whole grid is zero can lead to zero being introduced - remove these
@@ -3249,6 +3293,9 @@ tmp[which(tmp == 0)] = NA
 obs_gpp_mean_domain_TgCyr = apply(tmp,1,mean, na.rm=TRUE)
 obs_gpp_min_domain_TgCyr = apply(tmp,1,min, na.rm=TRUE)
 obs_gpp_max_domain_TgCyr = apply(tmp,1,max, na.rm=TRUE)
+# Check for introduced Inf values
+obs_gpp_min_domain_TgCyr[which(is.infinite(obs_gpp_min_domain_TgCyr))] = NA
+obs_gpp_max_domain_TgCyr[which(is.infinite(obs_gpp_max_domain_TgCyr))] = NA
 
 ###
 ## Independent fire emissions estimate
@@ -3622,7 +3669,7 @@ plotCI(y = var3, x = run_years, uiw = var3_unc, main="", cex.lab=2.4, cex.main=2
       col="black", pch=16, cex=0.5, lwd=4, ylab="", xlab="")
 lines(var3~run_years, col="black", lwd=3, lty = 2) 
 lines(var4~run_years, col=model_colours[1], lwd=3, lty = 2) ; points(var4~run_years, col=model_colours[1], pch=16)
-legend("topleft", legend = c("Copernicus","CARDAMOM"), col = c("black",model_colours[1]), lty = c(1,2), pch=c(NA,NA), horiz = FALSE, bty = "n", cex=2.1, lwd=3, ncol = 2)
+legend("topleft", legend = c("EO","CARDAMOM"), col = c("black",model_colours[1]), lty = c(1,2), pch=c(NA,NA), horiz = FALSE, bty = "n", cex=2.1, lwd=3, ncol = 2)
 mtext(expression(paste('Year',sep="")), side = 1, cex = 2.4, padj = 1.85)
 mtext(expression(paste('Analysis-wide LAI (',m^2,'/',m^2,')',sep="")), side = 2, cex = 2.4, padj = -1.05)
 abline(0,1, col="grey", lwd=3)

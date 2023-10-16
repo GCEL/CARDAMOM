@@ -179,7 +179,7 @@ module model_likelihood_module
     ! next need to run the model itself
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -249,7 +249,7 @@ module model_likelihood_module
     ! run the dalec model
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -317,7 +317,7 @@ module model_likelihood_module
     ! run the dalec model
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -385,7 +385,7 @@ module model_likelihood_module
     ! run the dalec model
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -441,7 +441,7 @@ module model_likelihood_module
     ! next need to run the model itself
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -450,7 +450,7 @@ module model_likelihood_module
 
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,local_fluxes,local_pools,DATAin%pft   &
+                     ,local_fluxes,local_pools                    &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -525,74 +525,53 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
     endif
 
-    ! turnover of foliage faster than turnover of wood
-! TLS: turnover off because foliage and stem turnovers are made same
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(6) > pars(5)) then
-!       EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
-!    end if
-
-    ! pre_DR should be greater than post_DR
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(4) > pars(3))) then
-!        EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
-!    endif
+    ! pre_DR should be greater than post_DR, this is consistent across currently
+    ! available SPA crop parameter files
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(4) > pars(3))) then
+        EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
+    endif
 
     ! for development: Tmin should be < topt and topt should be < tmax
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(26) > pars(28) &
                                      .or. pars(28) > pars(27) &
                                      .or. pars(26) > pars(27))) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
     ! for development: the difference between each Tmin,Topt,Tmax > 1.
     if ((EDC1 == 1 .or. DIAG == 1) .and. (abs(pars(26)-pars(28)) < 1d0 &
                                      .or. abs(pars(28)-pars(27)) < 1d0  &
                                      .or. abs(pars(26)-pars(27)) < 1d0)) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
     endif
 
-   ! for vernalisation: Tmin < Topt < Tmax
+    ! for vernalisation: Tmin < Topt < Tmax
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(29) > pars(31) &
                                      .or. pars(31) > pars(30) &
                                      .or. pars(29) > pars(30))) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     endif
 
    ! for vernalisation: the difference between each Tmin, Topt, Tmax
     if ((EDC1 == 1 .or. DIAG == 1) .and. ( abs(pars(29)-pars(31)) < 1d0 &
                                       .or. abs(pars(31)-pars(30)) < 1d0 &
                                       .or. abs(pars(29)-pars(30)) < 1d0 ) ) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
     endif
 
    ! development temperature value should be larger corresponding vernalisation
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(29) > pars(26) &
                                      .or. pars(31) > pars(28) &
                                      .or. pars(30) > pars(27))) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
     endif
 
-!    ! plough must be before sow and after harvest: WINTER ONLY
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(16) > pars(12) ) then
-!        EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
+!    ! CN ratio of leaf should also be between 95CI of trait database values
+!    ! Kattge et al (2011)
+!    tmp = (pars(17)/(10d0**pars(11)))
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 43.76895d0 .or. tmp < 10.82105d0)) then
+!       EDC1=0 ; EDCD%PASSFAIL(9) = 0
 !    endif
-!
-!    ! harvest cannot be more than 345 after harvest
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) < pars(12)+345.25d0) ) then
-!        EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
-!    endif
-!
-!    ! plough must be before sow and after harvest: WINTER ONLY
-!    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(16) < pars(15) .or. &
-!        pars(16) > pars(12)) ) then
-!        EDC1 = 0d0 ; EDCD%PASSFAIL(12) = 0
-!    endif
-
-    ! CN ratio of leaf should also be between 95CI of trait database values
-    ! Kattge et al (2011)
-    tmp = (pars(17)/(10d0**pars(11)))
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 43.76895d0 .or. tmp < 10.82105d0)) then
-       EDC1=0 ; EDCD%PASSFAIL(13) = 0
-    endif
 
     ! could and probably should add some more
   end subroutine assess_EDC1
@@ -604,7 +583,7 @@ module model_likelihood_module
                         ,meantemp,EDC2)
 
     use cardamom_structures, only: DATAin
-    use CARBON_MODEL_MOD, only: resp_rate_temp_coeff,ts_length,linear_model_gradient
+    use CARBON_MODEL_MOD, only: resp_rate_temp_coeff,linear_model_gradient, DS_time
 
     ! the second of two subroutines for assessing current parameters for passing
     ! realism tests for crop ecosystems
@@ -650,8 +629,7 @@ module model_likelihood_module
     fwood = sum(M_FLUXES(:,7)) / (sum(M_FLUXES(:,1))*fauto)
     fsom = fwood+(froot+flab+ffol)*pars(1)/(pars(1)+pars(10))
     flit = (froot+flab+ffol)
-    ! length of time step in hours..
-    ts_length = 24d0
+
     ! initial value
     infi = 0d0
     ! update initial values
@@ -664,7 +642,7 @@ module model_likelihood_module
     EQF = 10d0
 
     ! initialise and then calculate mean gpp values
-    meangpp = sum(M_GPP(1:nodays))/dble(nodays)
+    meangpp = sum(M_GPP(1:nodays))/dble(nodays)!        
 
     ! EDC 11 - SOM steady state within order magnitude of initial conditions
     if ((EDC2 == 1 .or. DIAG == 1) .and. &
@@ -722,17 +700,15 @@ module model_likelihood_module
     if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(1:nodays,21)) < (1d0*dble(no_years)) ) then
         EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
     endif
+    ! Total hack to enforce a massive yield and find out what the parameters do
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_FLUXES(1:nodays,21)) < 300d0 ) then
+      EDC2 = 0d0 ; EDCD%PASSFAIL(22) = 0
+    endif
 
-    ! LAI time series linear model must retrieve gradient which is at least
-    ! positive (or some other reasonable critical threshold)
-    ! if ((EDC2 == 1 .or. DIAG == 1) .and. &
-    !     linear_model_gradient(DATAin%M_LAI(DATAin%laipts),DATAin%LAI(DATAin%laipts),DATAin%nlai) < 0d0 ) then
-    !     EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
-    ! endif
-
-    ! Function to calculate the gradient of a linear model for a given depentent
-    ! variable (y) based on predictive variable (x). The typical use of this
-    ! function will in fact be to assume that x is time.
+    ! We should assume all crops get somewhere close to maturity (2.0)
+    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(DS_time) < 1.9) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
+    endif
 
     !
     ! EDCs done, below are additional fault detection conditions
@@ -931,7 +907,7 @@ module model_likelihood_module
     ! run the dalec model
     call CARBON_MODEL(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
-                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%pft   &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS              &
                      ,DATAin%nopars,DATAin%nomet,DATAin%nopools   &
                      ,DATAin%nofluxes,DATAin%M_GPP                &
                      ,PI%stock_seed_labile,PI%DS_shoot,PI%DS_root &
@@ -1848,14 +1824,14 @@ module model_likelihood_module
 !       tot_exp = sum((((DATAin%M_NEE(DATAin%nbepts(1:DATAin%nnbe))+DATAin%M_FLUXES(DATAin%nbepts(1:DATAin%nnbe),17)) &
 !                       -DATAin%NBE(DATAin%nbepts(1:DATAin%nnbe))) &
 !                       /DATAin%NBE_unc(DATAin%nbepts(1:DATAin%nnbe)))**2)
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nnbe))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nnbe))))
 !    endif
 
     ! Evap Log-likelihood
     if (DATAin%nEvap > 0) then
        tot_exp = sum(((DATAin%M_FLUXES(DATAin%Evappts(1:DATAin%nEvap),19)-DATAin%Evap(DATAin%Evappts(1:DATAin%nEvap))) &
                        /DATAin%Evap_unc(DATAin%evappts(1:DATAin%nEvap)))**2)
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nEvap))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nEvap))))
     endif
 
 ! FIRE not currently coded into DALEC_CROP_BUCKET
@@ -1863,14 +1839,14 @@ module model_likelihood_module
 !    if (DATAin%nFire > 0) then
 !       tot_exp = sum(((DATAin%M_FLUXES(DATAin%Firepts(1:DATAin%nFire),17)-DATAin%Fire(DATAin%Firepts(1:DATAin%nFire))) &
 !                       /DATAin%Fire_unc(DATAin%Firepts(1:DATAin%nFire)))**2)
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nFire))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nFire))))
 !    endif
 
     ! GPP Log-likelihood
     if (DATAin%ngpp > 0) then
        tot_exp = sum(((DATAin%M_GPP(DATAin%gpppts(1:DATAin%ngpp))-DATAin%GPP(DATAin%gpppts(1:DATAin%ngpp))) &
                        /DATAin%GPP_unc(DATAin%gpppts(1:DATAin%ngpp)))**2)
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%ngpp))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%ngpp))))
     endif
 
     ! LAI log-likelihood
@@ -1879,14 +1855,14 @@ module model_likelihood_module
         tot_exp = sum(((DATAin%M_LAI(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
         if (minval(DATAin%M_LAI) < 0d0) tot_exp = tot_exp + (-log(infini))
-        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nlai))))
+        log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nlai))))
     endif
 
     ! NEE likelihood
     if (DATAin%nnee > 0) then
        tot_exp = sum(((DATAin%M_NEE(DATAin%neepts(1:DATAin%nnee))-DATAin%NEE(DATAin%neepts(1:DATAin%nnee))) &
                        /DATAin%NEE_unc(DATAin%neepts(1:DATAin%nnee)))**2)
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nnee))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nnee))))
     endif
 
     ! Reco likelihood
@@ -1898,7 +1874,7 @@ module model_likelihood_module
          ! note that we calculate the Ecosystem resp from GPP and NEE
          tot_exp = tot_exp+((tmp_var-DATAin%Reco(dn))/DATAin%Reco_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nreco))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nreco))))
     endif
 
     ! Cwood increment log-likelihood
@@ -1911,7 +1887,7 @@ module model_likelihood_module
          tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
          tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_inc))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_inc))))
     endif
 
     ! Cwood mortality log-likelihood
@@ -1924,7 +1900,7 @@ module model_likelihood_module
          tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
          tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_mortality))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_mortality))))
     endif
 
     ! Cfoliage log-likelihood
@@ -1935,7 +1911,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((DATAin%M_POOLS(dn,2)-DATAin%Cfol_stock(dn)) / DATAin%Cfol_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCfol_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCfol_stock))))
     endif
 
     ! Annual foliar maximum
@@ -1960,7 +1936,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((tmp_var-DATAin%Cfolmax_stock(dn)) / DATAin%Cfolmax_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCfolmax_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCfolmax_stock))))
     endif
 
     ! Cwood log-likelihood (i.e. branch, stem and CR)
@@ -1971,7 +1947,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((DATAin%M_POOLS(dn,4)-DATAin%Cwood_stock(dn))/DATAin%Cwood_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCwood_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCwood_stock))))
     endif
 
 ! AGB calculation not currently implemented in this version of DALEC_CROP_BUCKET
@@ -1984,7 +1960,7 @@ module model_likelihood_module
 !         tmp_var = DATAin%M_POOLS(dn,4)-(DATAin%M_POOLS(dn,4)*pars(29))
 !         tot_exp = tot_exp+((tmp_var-DATAin%Cagb_stock(dn))/DATAin%Cagb_stock_unc(dn))**2
 !       end do
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCagb_stock))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCagb_stock))))
 !    endif
 
 ! Coarse root calculation not currently available in this version of DALEC_CROP_BUCKET
@@ -1997,7 +1973,7 @@ module model_likelihood_module
 !         tmp_var = DATAin%M_POOLS(dn,4)*pars(29)
 !         tot_exp = tot_exp+((tmp_var-DATAin%Ccoarseroot_stock(dn)) / DATAin%Ccoarseroot_stock_unc(dn))**2
 !       end do
-!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCcoarseroot_stock))))
+!       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCcoarseroot_stock))))
 !    endif
 
     ! Croots log-likelihood
@@ -2008,7 +1984,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((DATAin%M_POOLS(dn,3)-DATAin%Croots_stock(dn)) / DATAin%Croots_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCroots_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCroots_stock))))
     endif
 
     ! Clitter log-likelihood
@@ -2022,7 +1998,7 @@ module model_likelihood_module
          tot_exp = tot_exp+(((sum(DATAin%M_FLUXES(:,10))/sum(DATAin%M_FLUXES(:,10)+DATAin%M_FLUXES(:,12))) &
                            *(DATAin%M_POOLS(dn,5))-DATAin%Clit_stock(dn))/DATAin%Clit_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nClit_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nClit_stock))))
     endif
 
     ! Csom log-likelihood
@@ -2033,7 +2009,7 @@ module model_likelihood_module
          ! note that division is the uncertainty
          tot_exp = tot_exp+((DATAin%M_POOLS(dn,6)-DATAin%Csom_stock(dn))/DATAin%Csom_stock_unc(dn))**2
        end do
-       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0-log(dble(DATAin%nCsom_stock))))
+       log_scale_likelihood = log_scale_likelihood-(tot_exp/(1d0+log(dble(DATAin%nCsom_stock))))
     endif
 
     !

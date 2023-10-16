@@ -13,21 +13,21 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
 
         # Read in the data for both the sand and clay
         # Sand
-        top_sand = raster(paste(path_to_sand_clay,"sand_percent_mean_0to30cm.tif", sep=""))
-        bot_sand = raster(paste(path_to_sand_clay,"sand_percent_mean_30to100cm.tif", sep=""))
+        top_sand = rast(paste(path_to_sand_clay,"sand_percent_mean_0to30cm.tif", sep=""))
+        bot_sand = rast(paste(path_to_sand_clay,"sand_percent_mean_30to100cm.tif", sep=""))
         # Clay
-        top_clay = raster(paste(path_to_sand_clay,"clay_percent_mean_0to30cm.tif", sep=""))
-        bot_clay = raster(paste(path_to_sand_clay,"clay_percent_mean_30to100cm.tif", sep=""))
+        top_clay = rast(paste(path_to_sand_clay,"clay_percent_mean_0to30cm.tif", sep=""))
+        bot_clay = rast(paste(path_to_sand_clay,"clay_percent_mean_30to100cm.tif", sep=""))
 
         # Create raster with the target crs
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(top_sand), resolution = res(top_sand))
+        target = rast(crs = ("+init=epsg:4326"), ext = ext(top_sand), resolution = res(top_sand))
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(top_sand,target) == FALSE) {
+        if (compareGeom(top_sand,target) == FALSE) {
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="ngb") ; gc() ; removeTmpFiles()
-            bot_sand = resample(bot_sand, target, method="ngb") ; gc() ; removeTmpFiles()
-            top_clay = resample(top_clay, target, method="ngb") ; gc() ; removeTmpFiles()
-            bot_clay = resample(bot_clay, target, method="ngb") ; gc() ; removeTmpFiles()
+            top_sand = resample(top_sand, target, method="ngb") ; gc() 
+            bot_sand = resample(bot_sand, target, method="ngb") ; gc()
+            top_clay = resample(top_clay, target, method="ngb") ; gc()
+            bot_clay = resample(bot_clay, target, method="ngb") ; gc()
         }
         # Extend the extent of the overall grid to the analysis domain
         top_sand = extend(top_sand,cardamom_ext) ; bot_sand = extend(bot_sand,cardamom_ext)
@@ -39,13 +39,13 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-            bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-            top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
-            bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            top_sand = resample(top_sand, target, method="bilinear") ; gc() 
+            bot_sand = resample(bot_sand, target, method="bilinear") ; gc() 
+            top_clay = resample(top_clay, target, method="bilinear") ; gc() 
+            bot_clay = resample(bot_clay, target, method="bilinear") ; gc() 
 
         } # Aggrgeate to resolution
 
@@ -54,8 +54,8 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         #      2) we only do this once as the lat / long grid for both maps is identical
         xdim = dim(top_sand)[2] ; ydim = dim(top_sand)[1]
         # extract the lat / long information needed
-        long = coordinates(top_sand)[,1] ; lat = coordinates(top_sand)[,2]
-        # restructure into correct orientation
+        long = crds(top_sand,df=TRUE, na.rm=FALSE)
+        lat  = long$y ; long = long$x        # restructure into correct orientation
         long = array(long, dim=c(xdim,ydim))
         lat = array(lat, dim=c(xdim,ydim))
 
@@ -88,23 +88,23 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
 
         # Convert to a raster, assuming standad WGS84 grid
         top_sand = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(top_sand))
-        top_sand = rasterFromXYZ(top_sand, crs = ("+init=epsg:4326"))
+        top_sand = rast(top_sand, crs = ("+init=epsg:4326"), type="xyz")
         bot_sand = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(bot_sand))
-        bot_sand = rasterFromXYZ(bot_sand, crs = ("+init=epsg:4326"))
+        bot_sand = rast(bot_sand, crs = ("+init=epsg:4326"), type="xyz")
         top_clay = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(top_clay))
-        top_clay = rasterFromXYZ(top_clay, crs = ("+init=epsg:4326"))
+        top_clay = rast(top_clay, crs = ("+init=epsg:4326"), type="xyz")
         bot_clay = data.frame(x = as.vector(long), y = as.vector(lat), z = as.vector(bot_clay))
-        bot_clay = rasterFromXYZ(bot_clay, crs = ("+init=epsg:4326"))
+        bot_clay = rast(bot_clay, crs = ("+init=epsg:4326"), type="xyz")
 
         # Create raster with the target crs
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(top_sand), resolution = res(top_sand))
+        target = rast(crs = ("+init=epsg:4326"), ext = ext(top_sand), resolution = res(top_sand))
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(top_sand,target) == FALSE) {
+        if (compareGeom(top_sand,target) == FALSE) {
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="ngb") ; gc() ; removeTmpFiles()
-            bot_sand = resample(bot_sand, target, method="ngb") ; gc() ; removeTmpFiles()
-            top_clay = resample(top_clay, target, method="ngb") ; gc() ; removeTmpFiles()
-            bot_clay = resample(bot_clay, target, method="ngb") ; gc() ; removeTmpFiles()
+            top_sand = resample(top_sand, target, method="ngb") ; gc() 
+            bot_sand = resample(bot_sand, target, method="ngb") ; gc() 
+            top_clay = resample(top_clay, target, method="ngb") ; gc() 
+            bot_clay = resample(bot_clay, target, method="ngb") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         top_sand = extend(top_sand,cardamom_ext) ; bot_sand = extend(bot_sand,cardamom_ext)
@@ -117,13 +117,13 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-            bot_sand = resample(bot_sand, target, method="bilinear") ; gc() ; removeTmpFiles()
-            top_clay = resample(top_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
-            bot_clay = resample(bot_clay, target, method="bilinear") ; gc() ; removeTmpFiles()
+            top_sand = resample(top_sand, target, method="bilinear") ; gc() 
+            bot_sand = resample(bot_sand, target, method="bilinear") ; gc()
+            top_clay = resample(top_clay, target, method="bilinear") ; gc()
+            bot_clay = resample(bot_clay, target, method="bilinear") ; gc()
 
         } # Aggrgeate to resolution
 
@@ -132,7 +132,8 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         #      2) we only do this once as the lat / long grid for both maps is identical
         xdim = dim(top_sand)[2] ; ydim = dim(top_sand)[1]
         # extract the lat / long information needed
-        long = coordinates(top_sand)[,1] ; lat = coordinates(top_sand)[,2]
+        long = crds(top_sand,df=TRUE, na.rm=FALSE)
+        lat  = long$y ; long = long$x
         # restructure into correct orientation
         long = array(long, dim=c(xdim,ydim))
         lat = array(lat, dim=c(xdim,ydim))

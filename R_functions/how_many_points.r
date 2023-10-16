@@ -152,9 +152,14 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
     if (use_lcm == "LCM2007") {
 #        data2=nc_open("/home/lsmallma/WORK/GREENHOUSE/LCM2007/LCM2007_with_lat_long.nc")
 #        lcm=ncvar_get(data2,"LCM2007")
-        lcm = raster("/home/lsmallma/WORK/GREENHOUSE/LCM2007/Download_lcm2007_143707/lcm-2007-1km_397874/dominant_target_class/LCM2007_GB_1K_Dominant_TargetClass.tif")
-        # Reproject onto the WGS84 grid
-        lcm = projectRaster(lcm, ext = cardamom_ext, crs = CRS("+init=epsg:4326"), method = "ngb")
+        lcm = rast("/home/lsmallma/WORK/GREENHOUSE/LCM2007/Download_lcm2007_143707/lcm-2007-1km_397874/dominant_target_class/LCM2007_GB_1K_Dominant_TargetClass.tif")
+        # Create raster with the target crs (technically this bit is not required)
+        target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
+        # Check whether the target and actual analyses have the same CRS
+        if (compareGeom(lcm,target) == FALSE) {
+            # Resample to correct grid
+            lcm = resample(lcm, target, method="ngb") ; gc()
+        }
         # Aggregate to approximately the right resolution
         if (grid_type == "UK") {
             target_ratio = max(0.1666667,(0.001*(resolution/111))) / res(lcm)
@@ -170,7 +175,7 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
         }
         lcm = aggregate(lcm, fact = floor(target_ratio), fun = agg_fun)
         # Extract lat / long
-        lat_lcm = coordinates(lcm)
+        lat_lcm = crds(lcm,df=TRUE, na.rm=FALSE)
         # Convert into arrays
         long_lcm = array(lat_lcm[,1], dim=c(dim(lcm)[2],dim(lcm)[1])) ; lat_lcm = array(lat_lcm[,2], dim=c(dim(lcm)[2],dim(lcm)[1]))
         lcm = array(lcm, dim=c(dim(lcm)[2],dim(lcm)[1]))
@@ -239,10 +244,12 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
     print("Generating land sea mask")
 
     if (path_to_landsea == "default") {
+
         # load global shape file for land sea mask
-        landmask = shapefile("./R_functions/global_map/national_boundaries/ne_10m_admin_0_countries.shx")
+        landmask = vect("./R_functions/global_map/national_boundaries/ne_10m_admin_0_countries.shx")
         # just to be sure enforce the projection to WGS-84
-        landmask = spTransform(landmask,CRS("+init=epsg:4326"))
+        #landmask = spTransform(landmask,CRS("+init=epsg:4326"))
+        landmask = project(landmask,"EPSG:4326")
         # Clip to the extent of the CARDAMOM analysis
         landmask = crop(landmask, cardamom_ext)
 
@@ -272,7 +279,7 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
         # Set non country areas to NA, and all other to 1
         landsea[keep == 0] = NA
         # Add a buffer based on the land sea fraction to avoid missing land area we want
-        landsea_frac_buffer = boundaries(landsea, type="outer")*landsea_frac
+        landsea_frac_buffer = boundaries(landsea, inner=FALSE)*landsea_frac
         # Set all actual data to 1
         landsea[as.vector(landsea) > 0] = 1
         # set missing data to 0
@@ -285,9 +292,9 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
     } else {
 
         # Assume that we have been given a geotiff file where the presence of a value > 0  should be included in the masked area
-        landsea = raster(path_to_landsea)
+        landsea = rast(path_to_landsea)
         # just to be sure enforce the projection to WGS-84
-        target = raster(crs = crs(cardamom_ext), ext = extent(landsea), resolution = res(cardamom_ext))
+        target = rast(crs = crs(cardamom_ext), ext = ext(landsea), resolution = res(cardamom_ext))
         # Resample to correct grid
         landsea = resample(landsea, target, method="ngb", na.rm=TRUE)
         # Clip to the extent of the CARDAMOM analysis
@@ -304,7 +311,9 @@ how_many_points<- function (path_to_landsea,lat,long,resolution,grid_type,sitena
     # trim to the actual data area
     #landsea = trim(landsea, padding = 3)
     # extract lat/long information for the raster version
-    landsea_long = coordinates(landsea)[,1] ; landsea_lat = coordinates(landsea)[,2]
+    # extract the lat / long information needed
+    landsea_long = crds(landsea,df=TRUE, na.rm=FALSE)
+    landsea_lat  = landsea_long$y ; landsea_long = landsea_long$x
     # arrange them into the correct lat / long orientations
     landsea_dim = dim(landsea) ; landsea = as.vector(landsea)
 

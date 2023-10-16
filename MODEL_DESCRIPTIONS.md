@@ -31,7 +31,7 @@ M = Managed Grassland / arable crops (Table 10)
 | 12 | DALEC.C4.D1.F2.#             | DALEC_EVERGREEN_no_lit_root, S1            | Fire model updated from F1 to F2| Famiglietti et al., 2021  | Published   |
 | 13 | DALEC.C5.D1.F2.P1.#          | DALEC_CDEA_no_lit_root, S4                 | Fire model updated from F1 to F2| Famiglietti et al., 2021  | Published   |
 | 14 | DALEC.C3.M1.#                | DALEC_CROP          | Developmental arable crop model                     | Sus et al., 2010             | Published   |
-| 15 | DALEC.A1.C3.H2.M1.#          | DALEC_CROP_BUCKET   | Developmental arable crop model                     | Sus et al., 2010             | Published   |
+| 15 | DALEC.A3.C3.H2.M1.#          | DALEC_CROP_BUCKET   | Developmental arable crop model                     | Sus et al., 2010, T. L. Smallman             | Unpublished   |
 | 16 | DALEC.M2.#                   | DALEC_GRASS         | Managed grassland                                   | Myrgiotis et al., 2020       | Published   |
 | 17 | DALEC.A1.H2.M2.#             | DALEC_GRASS_BUCKET  | Managed grassland                                   | Myrgiotis et al., 2020       | Unpublished |
 | 18 | DALEC.A1.C1.D2.F2.H2.P2.#    | DALEC_CDEA_ACM2_BUCKET_wMRT                |                              | T. L. Smallman                | Unpublished |
@@ -45,15 +45,17 @@ M = Managed Grassland / arable crops (Table 10)
 | 26 | DALEC.A1.C2.D2.F2.H2.P10.R2.#| DALEC_BUCKET_CanAGE |                                                     | T. L. Smallman               | Unpublished |
 | 27 | DALEC_1005                   | DALEC_1005          | JPL-CARDAMOM DALEC 1005                             | Famiglietti et al., 2021     | Published   |
 | 28 | DALEC_1005a                  | DALEC_1005a         | As DALEC 1005 but with code error corrections       | Famiglietti et al., 2021     | Published   |
+| 29 | <PLACE HOLDER FOR DAVID>     | NA                  | PLACE HOLDER FOR DAVID                              | D. T. Milodowski             | Unpublished   |
+| 30 | DALEC.A3.C1.D2.F2.H2.P1.#    | NA                  | As dalec.4. plus Sellers (1985) RTM                 | T. L. Smallman               | Unpublished   |
 
-
-#### TABLE 2. Assimilation due to photosynthic activity sub-models
+#### TABLE 2. Assimilation due to photosynthetic activity sub-models
 
 | Model Name | Short Description                                                          | Details                   |
 |------------|----------------------------------------------------------------------------|---------------------------|
 | A0         | Aggregated canopy model for canopy scale photosynthetic activity           | Published (Williams et al., 1997)  |
 | A1         | Aggregated canopy model for canopy scale photosynthesis and plant ~ soil water cycle | Published (Smallman & Williams 2019)  |
 | A2         | As A2 but with Farquhar equations                                          | Unpublished |
+| A3         | As A1 but with Sellers (1985) radiative transfer scheme                    | Unpublished |
 
 #### TABLE 3. Carbon pools represented and connected structure sub-models
 

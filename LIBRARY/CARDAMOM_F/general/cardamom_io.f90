@@ -68,91 +68,91 @@ module cardamom_io
         DATAin%nopars = 20
         DATAin%nofluxes = 4
     else if (DATAin%ID == 1) then
-        ! ID = 1 - DALEC.D1.F2.
+        ! ID = 1 - DALEC.D1.F2.#
         DATAin%nopools = 5
         DATAin%nopars = 22
         DATAin%nofluxes = 35
     else if (DATAin%ID == 2) then
-        ! ID = 2 - DALEC.C1.D1.F2.P1.
+        ! ID = 2 - DALEC.C1.D1.F2.P1.#
         DATAin%nopools = 6
         DATAin%nopars = 28
         DATAin%nofluxes = 39
     else if (DATAin%ID == 3 ) then
-        ! ID = 3 - DALEC.A1.C1.D2.F2.H1.P1.
+        ! ID = 3 - DALEC.A1.C1.D2.F2.H1.P1.#
         DATAin%nopools = 6
         DATAin%nopars = 28
         DATAin%nofluxes = 39
     else if (DATAin%ID == 4) then
-        ! ID = 4 - DALEC.A1.C1.D2.F2.H2.P1.
+        ! ID = 4 - DALEC.A1.C1.D2.F2.H2.P1.#
         DATAin%nopools = 7
         DATAin%nopars = 32
         DATAin%nofluxes = 45
     else if (DATAin%ID == 5) then
-        ! ID = 5 - DALEC.A1.C1.D2.F2.H2.P1.R1.
+        ! ID = 5 - DALEC.A1.C1.D2.F2.H2.P1.R1.#
         DATAin%nopools = 7
         DATAin%nopars = 32
         DATAin%nofluxes = 40
     else if (DATAin%ID == 6) then
-        ! ID = 6 - DALEC.A1.C2.D2.F2.H2.P1.R1.
+        ! ID = 6 - DALEC.A1.C2.D2.F2.H2.P1.R1.#
         DATAin%nopools = 8
         DATAin%nopars = 35
         DATAin%nofluxes = 45
     else if (DATAin%ID == 7) then
-        ! ID = 7 - DALEC.A1.C2.D2.F2.H2.P2.R1.
+        ! ID = 7 - DALEC.A1.C2.D2.F2.H2.P2.R1.#
         DATAin%nopools = 8
         DATAin%nopars = 36
         DATAin%nofluxes = 45
     else if (DATAin%ID == 8) then
-        ! ID = 8 - DALEC.A1.C2.D2.F2.H1.P3.R1.
+        ! ID = 8 - DALEC.A1.C2.D2.F2.H1.P3.R1.#
         DATAin%nopools = 7
         DATAin%nopars = 43
         DATAin%nofluxes = 25
     else if (DATAin%ID == 9) then
-        ! ID = 9 - DALEC.A1.C2.D2.F2.H2.P3.R1.
+        ! ID = 9 - DALEC.A1.C2.D2.F2.H2.P3.R1.#
         DATAin%nopools = 8
         DATAin%nopars = 46
         DATAin%nofluxes = 25
     else if (DATAin%ID == 10) then
-        ! ID = 10 - DALEC.A1.C2.D2.F2.H1.P4.R2.
+        ! ID = 10 - DALEC.A1.C2.D2.F2.H1.P4.R2.#
         DATAin%nopools = 7
         DATAin%nopars = 48
         DATAin%nofluxes = 25
     else if (DATAin%ID == 11) then
-        ! ID = 11 - DALEC.A1.C2.D2.F2.H2.P4.R2.
+        ! ID = 11 - DALEC.A1.C2.D2.F2.H2.P4.R2.#
         DATAin%nopools = 8
         DATAin%nopars = 49
         DATAin%nofluxes = 25
         stop
     else if (DATAin%ID == 12) then
-        ! ID = 12 - DALEC.C4.D1.F2.
+        ! ID = 12 - DALEC.C4.D1.F2.#
         DATAin%nopools = 3
         DATAin%nopars = 15
         DATAin%nofluxes = 28
     else if (DATAin%ID == 13) then
-        ! ID = 13 - DALEC.C5.D1.F2.P1.
+        ! ID = 13 - DALEC.C5.D1.F2.P1.#
         DATAin%nopools = 4
         DATAin%nopars = 21
         DATAin%nofluxes = 32
     else if (DATAin%ID == 14) then
-        ! ID = 14 - DALEC.C3.M1.
+        ! ID = 14 - DALEC.C3.M1.#
         DATAin%nopools = 6
         DATAin%nopars = 22
         DATAin%nofluxes = 16
     else if (DATAin%ID == 15) then
-        ! ID = 15 - DALEC.A1.C3.H2.M1.
-        DATAin%nopools = 9
+        ! ID = 15 - DALEC.A3.C3.H2.M1.# i.e. the CROP model
+        DATAin%nopools = 10
         DATAin%nopars = 38
-        DATAin%nofluxes = 21
+        DATAin%nofluxes = 41
     else if (DATAin%ID == 16) then
-        ! ID = 16 - DALEC.M2.
+        ! ID = 16 - DALEC.M2.#
         write(*,*) "Oh dear... DALEC.M2.# ID not valid = ",DATAin%ID
         stop
     else if (DATAin%ID == 17) then
-        ! ID = 17 - DALEC.A1.H2.M2.
+        ! ID = 17 - DALEC.A1.H2.M2.#
         write(*,*) "Oh dear... DALEC.A1.H2.M2.# ID not valid = ",DATAin%ID
         stop
     else if (DATAin%ID == 18) then
-        ! ID = 18 - DALEC.A1.C1.D2.F2.H2.P2.
+        ! ID = 18 - DALEC.A1.C1.D2.F2.H2.P2.#
         DATAin%nopools = 7
         DATAin%nopars = 33
         DATAin%nofluxes = 40
@@ -162,37 +162,37 @@ module cardamom_io
         DATAin%nopars = 38
         DATAin%nofluxes = 45
     else if (DATAin%ID == 20) then
-        ! ID = 20 - DALEC.A2.C1.D2.F2.H2.P1.
+        ! ID = 20 - DALEC.A2.C1.D2.F2.H2.P1.#
         DATAin%nopools = 7
         DATAin%nopars = 32
         DATAin%nofluxes = 45
     else if (DATAin%ID == 21) then
-        ! ID = 21 - DALEC.A1.C1.D2.F2.H2.P5.
+        ! ID = 21 - DALEC.A1.C1.D2.F2.H2.P5.#
         DATAin%nopools = 7
         DATAin%nopars = 33
         DATAin%nofluxes = 40
     else if (DATAin%ID == 22) then
-        ! ID = 22 - DALEC.A1.C1.D2.F2.H2.P6.
+        ! ID = 22 - DALEC.A1.C1.D2.F2.H2.P6.#
         DATAin%nopools = 7
         DATAin%nopars = 34
         DATAin%nofluxes = 40
     else if (DATAin%ID == 23) then
-        ! ID = 23 - DALEC.A1.C2.D2.F2.H2.P7.R2.
+        ! ID = 23 - DALEC.A1.C2.D2.F2.H2.P7.R2.#
         DATAin%nopools = 8
         DATAin%nopars = 48
         DATAin%nofluxes = 45
     else if (DATAin%ID == 24) then
-        ! ID = 24 - DALEC.A1.C2.D2.F2.H2.P8.R2.
+        ! ID = 24 - DALEC.A1.C2.D2.F2.H2.P8.R2.#
         DATAin%nopools = 8
         DATAin%nopars = 51
         DATAin%nofluxes = 45
     else if (DATAin%ID == 25) then
-        ! ID = 25 - DALEC.A1.C2.D2.F2.H2.P9.R2.
+        ! ID = 25 - DALEC.A1.C2.D2.F2.H2.P9.R2.#
         DATAin%nopools = 8
         DATAin%nopars = 49
         DATAin%nofluxes = 45
     else if (DATAin%ID == 26) then
-        ! ID = 26 - DALEC.A1.C2.D2.F2.H2.P10.R2.
+        ! ID = 26 - DALEC.A1.C2.D2.F2.H2.P10.R2.#
         DATAin%nopools = 8
         DATAin%nopars = 48
         DATAin%nofluxes = 25
@@ -207,9 +207,15 @@ module cardamom_io
         DATAin%nopars = 38
         DATAin%nofluxes = 43
     else if (DATAin%ID == 29) then
-        ! ID = 29 -
+        ! ID = 29 -DALEC.A1.C1.D2.F2.H3.P1.#
+        DATAin%nopools = 7
+        DATAin%nopars = 33
+        DATAin%nofluxes = 45
     else if (DATAin%ID == 30) then
-        ! ID = 30 -
+        ! ID = 30 - DALEC.A3.C1.D2.F2.H2.P1.#
+        DATAin%nopools = 7
+        DATAin%nopars = 32+6
+        DATAin%nofluxes = 45
     else if (DATAin%ID == 31) then
         ! ID = 31 -
     else if (DATAin%ID == 32) then
@@ -555,7 +561,7 @@ module cardamom_io
 
     ! declare local variables
     integer :: nopars_dummy,subsample
-    integer :: a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,u,v,w,x,y,z,day,s,t &
+    integer :: a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,u,v,w,x,y,z,day,s,t,aa &
               ,start      &
               ,finish     &
               ,totcol     & ! total number of columns (met + obs)
@@ -612,7 +618,7 @@ module cardamom_io
        read(ifile_unit) DATAin%parpriors(a)
        a = a + 1
     end do
-
+    
     ! read in parameter uncertainty (100 elements)
     a = 1
     do i = 151, 250
@@ -673,8 +679,11 @@ module cardamom_io
             ,DATAin%SWE(DATAin%nodays),DATAin%SWE_unc(DATAin%nodays)                             &
             ,DATAin%NBE(DATAin%nodays),DATAin%NBE_unc(DATAin%nodays)                             &
             ,DATAin%Fire(DATAin%nodays),DATAin%Fire_unc(DATAin%nodays)                           &
+            ,DATAin%fAPAR(DATAin%nodays),DATAin%fAPAR_unc(DATAin%nodays)                         &
             ,DATAin%Cwood_mortality_unc(DATAin%nodays)                                           &
             ,DATAin%Cwood_inc_lag(DATAin%nodays),DATAin%Cwood_mortality_lag(DATAin%nodays)       &
+            ,DATAin%foliage_to_litter(DATAin%nodays),DATAin%foliage_to_litter_unc(DATAin%nodays)       &
+            ,DATAin%foliage_to_litter_lag(DATAin%nodays)       &
             ,mettemp(DATAin%nomet),obstemp(DATAin%noobs))
 
     !! Zero all variables
@@ -697,9 +706,11 @@ module cardamom_io
     DATAin%SWE = 0d0               ; DATAin%SWE_unc = 0d0
     DATAin%NBE = 0d0               ; DATAin%NBE_unc = 0d0
     DATAin%Fire = 0d0              ; DATAin%Fire_unc = 0d0
+    DATAin%fAPAR = 0d0             ; DATAin%fAPAR_unc = 0d0
     ! Observations which have an explicit lag, i.e. they represent the average of a to be specified period
     DATAin%Cwood_inc = 0d0 ; DATAin%Cwood_inc_unc = 0d0 ; DATAin%Cwood_inc_lag = 0
     DATAin%Cwood_mortality = 0d0 ; DATAin%Cwood_mortality_unc = 0d0 ; DATAin%Cwood_mortality_lag = 0
+    DATAin%foliage_to_litter = 0d0 ; DATAin%foliage_to_litter_unc = 0d0 ; DATAin%foliage_to_litter_lag = 0
     ! Temorary arrays
     mettemp = 0d0 ; obstemp = 0d0
 
@@ -710,6 +721,7 @@ module cardamom_io
     DATAin%nnee = 0
     DATAin%nCwood_inc = 0
     DATAin%nCwood_mortality = 0
+    DATAin%nfoliage_to_litter = 0
     DATAin%nreco = 0
     DATAin%nCfol_stock = 0
     DATAin%nCwood_stock = 0
@@ -723,6 +735,7 @@ module cardamom_io
     DATAin%nSWE = 0
     DATAin%nNBE = 0
     DATAin%nFire = 0
+    DATAin%nfAPAR = 0
 
     ! work out some key variables
     ! DATAin%noobs corresponds to observations and uncertainties
@@ -804,12 +817,14 @@ module cardamom_io
        if (obstemp(21) > -9998d0) DATAin%nCagb_stock = DATAin%nCagb_stock+1
        DATAin%Cagb_stock_unc(day) = obstemp(22)
 
-! POSITION 23-26 no longer have matching points in code.
+       ! Fraction of absorbed photosynthetically active radiation
+       ! by green vegetation (0-1)
+       DATAin%fAPAR(day) = obstemp(23)
+       if (obstemp(23) > -9998d0) DATAin%nfAPAR = DATAin%nfAPAR+1
+       DATAin%fAPAR_unc(day) = obstemp(24)
+! POSITION 25-26 no longer have matching points in code.
 ! These can be re-allocated at a future point
 ! TLS: 27/11/2019
-!       DATAin%Cstem_stock(day) = obstemp(23)
-!       if (obstemp(23) > -9998d0) DATAin%nCstem_stock = DATAin%nCstem_stock+1
-!       DATAin%Cstem_stock_unc(day) = obstemp(24)
 !       DATAin%Cbranch_stock(day) = obstemp(25)
 !       if (obstemp(25) > -9998d0) DATAin%nCbranch_stock = DATAin%nCbranch_stock+1
 !       DATAin%Cbranch_stock_unc(day) = obstemp(26)
@@ -853,6 +868,14 @@ module cardamom_io
        if (obstemp(40) > -9998d0) DATAin%nCwood_mortality = DATAin%nCwood_mortality+1
        DATAin%Cwood_mortality_unc(day) = obstemp(41)
        DATAin%Cwood_mortality_lag(day) = obstemp(42)
+
+       ! Flux from foliage to litter (gC/m2/day)
+       ! Represents the average across the lagged period
+       DATAin%foliage_to_litter(day) = obstemp(43)
+       if (obstemp(43) > -9998d0) DATAin%nfoliage_to_litter = DATAin%nfoliage_to_litter+1
+       DATAin%foliage_to_litter_unc(day) = obstemp(44)
+       DATAin%foliage_to_litter_lag(day) = obstemp(45)
+
     end do ! day loop
 
     ! Count the total number of observations which are to be used.
@@ -862,7 +885,8 @@ module cardamom_io
                      + DATAin%nCwood_stock + DATAin%nCroots_stock + DATAin%nCsom_stock &
                      + DATAin%nClit_stock + DATAin%nCagb_stock + DATAin%nCcoarseroot_stock &
                      + DATAin%nCfolmax_stock + DATAin%nEvap + DATAin%nSWE + DATAin%nNBE &
-                     + DATAin%nCwood_mortality + DATAin%nFire
+                     + DATAin%nCwood_mortality + DATAin%nfoliage_to_litter + DATAin%nFire &
+                     + DATAin%nfAPAR
 
     ! allocate to time step
     allocate(DATAin%deltat(DATAin%nodays)) ; DATAin%deltat = 0d0
@@ -902,12 +926,16 @@ module cardamom_io
     if (DATAin%nNBE > 0) allocate(DATAin%NBEpts(DATAin%nNBE))
     if (DATAin%nCwood_inc > 0) allocate(DATAin%Cwood_incpts(DATAin%nCwood_inc))
     if (DATAin%nCwood_mortality > 0) allocate(DATAin%Cwood_mortalitypts(DATAin%nCwood_mortality))
+    if (DATAin%nfoliage_to_litter > 0) allocate(DATAin%foliage_to_litterpts(DATAin%nfoliage_to_litter))
     if (DATAin%nFire > 0) allocate(DATAin%Firepts(DATAin%nFire))
+    if (DATAin%nfAPAR > 0) allocate(DATAin%fAPARpts(DATAin%nfAPAR))
+
     ! we know how many observations we have and what they are, but now lets work
     ! out where they are in the data sets
     x = 1 ; y = 1 ; z = 1 ; b = 1 ; c = 1 ; d = 1 ; e = 1
     f = 1 ; g = 1 ; h = 1 ; i = 1 ; j = 1 ; k = 1 ; l = 1
-    m = 1 ; o = 1 ; s = 1 ; t = 1 ; v = 1 ; w = 1
+    m = 1 ; o = 1 ; s = 1 ; t = 1 ; u = 1 ; v = 1 ; w = 1
+    aa = 1
     do day = 1, DATAin%nodays
        if (DATAin%GPP(day) > -9998d0) then
           DATAin%gpppts(b) = day ; b = b+1
@@ -923,6 +951,9 @@ module cardamom_io
        endif ! data present condition
        if (DATAin%Cwood_mortality(day) > -9998d0) then
            DATAin%Cwood_mortalitypts(w) = day ; w = w+1
+       endif ! data present condition
+       if (DATAin%foliage_to_litter(day) > -9998d0) then
+           DATAin%foliage_to_litterpts(aa) = day ; aa = aa+1
        endif ! data present condition
        if (DATAin%Reco(day) > -9998d0) then
            DATAin%recopts(c) = day ; c = c+1
@@ -962,6 +993,9 @@ module cardamom_io
        endif
        if (DATAin%Fire(day) > -9998d0) then
            DATAin%Firepts(v) = day ; v = v+1
+       endif ! data present condition
+       if (DATAin%fAPAR(day) > -9998d0) then
+           DATAin%fAPARpts(u) = day ; u = u+1
        endif ! data present condition
     end do ! day loop
 
@@ -1056,7 +1090,6 @@ module cardamom_io
     do i = 1, PI%npars
        PI%covariance(i,i) = 1d0
     end do
-
     ! report back to user
     write(*,*) "Created field for parameter and covariances"
 

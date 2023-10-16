@@ -233,7 +233,7 @@ module CARBON_MODEL_MOD
                       canopy_height = 9d0,          & ! canopy height assumed to be 9 m
                        tower_height = canopy_height + 2d0, & ! tower (observation) height assumed to be 2 m above canopy
                            min_wind = 0.2d0,        & ! minimum wind speed at canopy top
-                       min_drythick = 0.005d0,      & ! minimum dry thickness depth (m)
+                       min_drythick = 0.001d0,      & ! minimum dry thickness depth (m)
                           min_layer = 0.03d0,       & ! minimum thickness of the second rooting layer (m)
                         soil_roughl = 0.05d0,       & ! soil roughness length (m)
                      top_soil_depth = 0.30d0,       & ! thickness of the top soil layer (m)
@@ -1048,35 +1048,37 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !!!!!!!!!!
 
        ! snowing or not...?
-       if (mint < 0d0 .and. maxt > 0d0) then
-           ! if minimum temperature is below freezing point then we weight the
-           ! rainfall into snow or rain based on proportion of temperature below
-           ! freezing
+       if (((mint + maxt) * 0.5d0) > 0d0) then
+           ! on average above freezing so no snow
+           snowfall = 0d0
+       else
+           ! on average below freezing, so some snow based on proportion of temperture
+           ! below freezing
            snowfall = rainfall * (1d0 - airt_zero_fraction) ; rainfall = rainfall - snowfall
            ! Add rainfall to the snowpack and clear rainfall variable
            snow_storage = snow_storage + (snowfall*seconds_per_step)
+       end if
 
+       ! melting or not...?
+       if (mint < 0d0 .and. maxt > 0d0) then
            ! Also melt some of the snow based on airt_zero_fraction
-           ! default assumption is that snow is melting at 10 % per day light hour
-           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * dayl_hours * 0.1d0 * deltat(n))
+           ! default assumption is that snow is melting at 10 % per day hour above freezing
+           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * 0.1d0 * deltat(n))
+           snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
            snow_melt = snow_melt / seconds_per_step
-           snow_storage = snow_storage - snow_melt
        elseif (maxt < 0d0) then
-           ! if whole day is below freezing then we should assume that all
-           ! precipitation is snowfall
-           snowfall = rainfall ; rainfall = 0d0 ; snow_melt = 0d0
+           snow_melt = 0d0
            ! Add rainfall to the snowpack and clear rainfall variable
            snow_storage = snow_storage + (snowfall*seconds_per_step)
        else if (mint > 0d0 .and. snow_storage > 0d0) then
-           ! otherwise we assume snow is melting at 10 % per day light hour
-           snow_melt = min(snow_storage, snow_storage * dayl_hours * 0.1d0 * deltat(n))
+           ! otherwise we assume snow is melting at 10 % per day above hour
+           snow_melt = min(snow_storage, snow_storage * 0.1d0 * deltat(n))
            snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
            snow_melt = snow_melt / seconds_per_step
-           snowfall = 0d0
        else
-           snowfall = 0d0 ; snow_melt = 0d0
+           snow_melt = 0d0
        end if
 
        !!!!!!!!!!
@@ -1234,22 +1236,24 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,8) = FLUXES(n,8) * one_Rg_fraction ! Leaf
 
        ! if 12 months has gone by, update the leaf lifespan variable
-       if (n > steps_per_year .and. met(6,n) < met(6,n-1)) then
-           ! update the mean_Q10_adjustment for the previous year
-!           tmp = sum(Q10_adjustment((n-steps_per_year):(n-1))) / dble(steps_per_year)
-!           mean_Q10_adjustment = (tmp + mean_Q10_adjustment) * 0.5d0
-           ! determine the mean life span (days)
-           tmp = sum(POOLS((n-steps_per_year):(n-1),2)) &
-               / sum(FLUXES((n-steps_per_year):(n-1),10) + FLUXES((n-steps_per_year):(n-1),23))
-           ! i.e. we cannot / should not update the leaf lifespan if there has
-           ! been no turnover and / or there is no foliar pool.
-           ! 2933 = 365.25 * 8 years
-           if (tmp > 0d0 .and. tmp < 2933d0) then
-               ! We assume that leaf life span is weighted 50:50 between the
-               ! previous year and its history
-               leaf_life = (tmp + leaf_life) * 0.5d0
-           end if
-       endif ! n /= 1 and new calendar year
+       if (n > steps_per_year) then
+           if (met(6,n) < met(6,n-1)) then
+               ! update the mean_Q10_adjustment for the previous year
+!               tmp = sum(Q10_adjustment((n-steps_per_year):(n-1))) / dble(steps_per_year)
+!               mean_Q10_adjustment = (tmp + mean_Q10_adjustment) * 0.5d0
+               ! determine the mean life span (days)
+               tmp = sum(POOLS((n-steps_per_year):(n-1),2)) &
+                   / sum(FLUXES((n-steps_per_year):(n-1),10) + FLUXES((n-steps_per_year):(n-1),23))
+               ! i.e. we cannot / should not update the leaf lifespan if there has
+               ! been no turnover and / or there is no foliar pool.
+               ! 2933 = 365.25 * 8 years
+               if (tmp > 0d0 .and. tmp < 2933d0) then
+                   ! We assume that leaf life span is weighted 50:50 between the
+                   ! previous year and its history
+                   leaf_life = (tmp + leaf_life) * 0.5d0
+               end if
+           end if ! new calendar year
+       endif ! n /= 1
 
        !
        ! litter creation with time dependancies

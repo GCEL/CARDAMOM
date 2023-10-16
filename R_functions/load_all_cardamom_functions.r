@@ -20,8 +20,10 @@ load_r_libraries<-function(){
     library(parallel)
     #if(!require(rgdal)) {install.packages("rgdal")}
     #library(rgdal)
-    if(!require(raster)) {install.packages("raster")}
-    library(raster)
+    #if(!require(raster)) {install.packages("raster")}
+    #library(raster)
+    if(!require(terra)) {install.packages("terra")}
+    library(terra)
     #library(rhdf5) # from bioconductor - not currently used
     if(!require(sp)) {install.packages("sp")}
     library(sp)
