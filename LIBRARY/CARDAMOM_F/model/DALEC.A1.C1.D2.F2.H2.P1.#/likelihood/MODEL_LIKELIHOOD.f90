@@ -2342,7 +2342,7 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+		sqrt_scale_likelihood = sqrt_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
 	end if	
 
     ! the likelihood scores for each observation are subject to multiplication
@@ -2757,7 +2757,7 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+		log_scale_likelihood = log_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
 	end if	
 
 !    ! Debugging print statement
