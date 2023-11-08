@@ -271,6 +271,15 @@ cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
     nopars=array(32+6,dim=c(length(ctessel_pft)))
     nofluxes=array(45,dim=c(length(ctessel_pft)))
     cardamom_model_details=list(name="DALEC.A3.C1.D2.F2.H2.P1.#",shortname="DALEC.30.",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars)
+  } else if (modelname == "DALEC.M2.#" | modelname == "DALEC_GRASS") {
+    # information contains is
+    # The model name
+    # Number of met parameters
+    # Number of model parameters to be optimised
+    nopools=array(6,dim=c(length(ctessel_pft)))
+    nopars=array(34,dim=c(length(ctessel_pft)))
+    nofluxes=array(23,dim=c(length(ctessel_pft)))
+    cardamom_model_details=list(name="DALEC.M2.#",shortname="DALEC_GRASS",nopools=nopools,nofluxes=nofluxes,nomet=14,nopars=nopars)
   } else {
     # No model name was matched
     stop(paste("the inputed model name ('",modelname,"') could not be matched in the available library"))
