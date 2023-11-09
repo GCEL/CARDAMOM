@@ -14,7 +14,7 @@ source("./R_functions/load_all_cardamom_functions.r")
 
 ## projname
 # Give a runid
-projname="NW_Grass"
+projname="North_Wyke"
 
 ## Language
 # i.e. "Fortran", "C"
@@ -48,11 +48,11 @@ pft_wanted=FALSE # Impacts crop model only
 path_to_landsea="default" # If gridded analysis, any raster layer with >0 values will be taken as the mask area. To ignore = "default"
 
 ## Met paths
-path_to_met_source="/exports/csce/datastore/geos/groups/gcel/ECMWF/ERA5/0.125deg_global/"
+path_to_met_source=" "
 #path_to_met_source="/exports/csce/datastore/geos/groups/gcel/Trendy_v11_met/monthly/"
 #path_to_met_source="/exports/csce/datastore/geos/groups/gcel/ECMWF/ERA5/0.125deg_global/"
 # path_to_lai=" " #"/exports/csce/datastore/geos/groups/gcel/LAI_ESTIMATES/MCD15A2H.061/global_0.0625deg/"
-path_to_lai = "/exports/csce/datastore/geos/groups/gcel/EOCIS/DALEC_GRASS/"
+path_to_lai = " "
 path_to_fapar = " "
 path_to_crop_management=" "
 path_to_sand_clay=" " #"/exports/csce/datastore/geos/groups/gcel/SoilGrids/version2/processed/global_5km/"
@@ -78,8 +78,8 @@ met_interp=TRUE
 met_source="site_specific" # "trendy_v9" or "trendy_v11" or "ERA" or "isimip3a" or "site_specific"
 lai_source="site_specific" # "COPERNICUS" or "MODIS" or "site_specific"
 fapar_source=" " # "COPERNICUS" or "MODIS" or "site_specific"
-Csom_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
-sand_clay_source="site_specific" # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
+Csom_source=" " # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
+sand_clay_source=" " # "SoilGrids" or "SoilGrids_v2" or "HWSD" or "site_specific
 soilwater_initial_source = " " # initial soil water fraction (m3/m3)
 Evap_source=" "        # " " or "site_specific"
 Cwood_inc_source = " " # "site_specific" or " " or "Rainfor"
@@ -87,7 +87,7 @@ Cwood_mortality_source = " " # "site_specific" or " " or "Rainfor"
 fire_source=" " # " " or "site_specific" or "Global_Combined"
 GPP_source=" " 	# " " or "site_specific" or "Global_Combined"
 Reco_source=" " 	# " " or "site_specific"
-NEE_source="site_specific" # " " or "site_specific"
+NEE_source=" " # " " or "site_specific"
 nbe_source = " " # " " or "site_specific" or "Global_Combined" or "GEOSCHEM" or "OCO2MIP"
 harvest_source = ""
 # i.e. single value valid for beginning of simulation
@@ -98,7 +98,7 @@ Clit_initial_source=" " #"site_specific"  	# " " or "site_specific"
 # i.e. time series of stock estimates
 Cfol_stock_source=" " 	# " " or "site_specific"
 Cfolmax_stock_source=" " 	# " " or "site_specific"
-Cwood_stock_source="site_specific" 	# " " or "site_specific" or "McNicol" or "Saatchi_2021" or "ESA_CCI_Biomass"
+Cwood_stock_source=" " 	# " " or "site_specific" or "McNicol" or "Saatchi_2021" or "ESA_CCI_Biomass"
 Cstem_stock_source=" "      # " " or "site_specific"
 Cagb_stock_source=" " 	# " " or "site_specific"
 Ccoarseroot_stock_source=" " 	# " " or "site_specific"
@@ -118,17 +118,17 @@ snow_source=" "
 # start year
 years_to_do=as.character(c(2017:2022)) 
 # is this run "site" level or over a "grid"?
-cardamom_type="grid"
-cardamom_grid_type="wgs84" # "UK" or "wgs84", no value needed if site run
+cardamom_type="site"
+cardamom_grid_type=" " # "UK" or "wgs84", no value needed if site run
 # if type = "grid" then at what spatial resolution (UK = m, wgs84 = degree)?
-cardamom_resolution=1
+cardamom_resolution=1e5
 
 # site names if specific locations e.g. "UKGri"
-sites_cardamom=c("FI-Hyy")
+sites_cardamom=c("North_Wyke")
 # lat/long of sites, if type = "grid" then these these are bottom left and top right corners
-sites_cardamom_lat=61.84741
-sites_cardamom_long=24.29477
-timestep_type="monthly"
+sites_cardamom_lat=50.77
+sites_cardamom_long=-3.91
+timestep_type="weekly"
 select_country = FALSE # If gridded run and path_to_landsea = "default", 
                        # select country based on site_cardamom. Use function
                        # available_countries() for compatible country names.
