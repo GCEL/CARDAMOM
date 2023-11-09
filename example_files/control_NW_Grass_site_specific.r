@@ -157,7 +157,7 @@ request_cost_function_scaling = 0 # 0 = Default, no normaliation of the likeliho
 # stage  2 : Submit the project to eddie
 # stage  3 : Copy back results and process vectors
 # stage  4 : Do some standard figure creation (and further processing for gridded analysis)
-stage=-1
+stage=1
 repair=1 # to force (=1) re-run processed results or driver files if they already exist
 grid_override=FALSE # force site specific files to be saved and figures to be generated when in "grid" operation
 
