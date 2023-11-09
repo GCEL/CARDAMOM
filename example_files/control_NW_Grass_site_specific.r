@@ -116,7 +116,7 @@ snow_source=" "
 
 ## sites for analysis
 # start year
-years_to_do=as.character(c(2017:2022)) 
+years_to_do=as.character(c(2017:2020)) 
 # is this run "site" level or over a "grid"?
 cardamom_type="site"
 cardamom_grid_type=" " # "UK" or "wgs84", no value needed if site run
