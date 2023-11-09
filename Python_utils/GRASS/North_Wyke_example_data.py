@@ -29,6 +29,8 @@ df_met = pd.DataFrame(met.transpose(), columns = colnames, index = pd.date_range
 df_met['doy'] = df_met.index.dayofyear
 df_met['mint_C'] = df_met['minT']
 df_met['maxt_C'] = df_met['maxT']
+df_met['swrad_Wm2'] = df_met['srad']
+df_met['vpd_kPa'] = df_met['21d_vpd'] / 100
 
 df_obs_lai = pd.DataFrame(obs_lai, columns = ['LAI_m2m2'], index = pd.date_range('2017-01-01', periods = nodays, freq='7D'))
 df_obs_lai['LAI_unc_m2m2'] = df_obs_lai['LAI_m2m2'] * 0.0921436 + 0.2124204
