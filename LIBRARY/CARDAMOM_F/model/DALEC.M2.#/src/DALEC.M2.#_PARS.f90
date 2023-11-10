@@ -68,7 +68,7 @@ module MODEL_PARAMETERS
     PI%parmax(7) = 0.1d0 
 
     ! TOR SOM [1e-7, 0.001]
-    PI%parmin(8) = 1e-07d0 
+    PI%parmin(8) = 0.0000001d0 
     PI%parmax(8) = 0.0001d0 
 
     ! T factor (Q10) [0.018,  0.08]
