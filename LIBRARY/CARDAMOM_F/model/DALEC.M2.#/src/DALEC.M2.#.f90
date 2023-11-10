@@ -1,7 +1,7 @@
 ! grassland model developed from DALEC_GIS_DFOL_FR
 ! ----------------------------------------------------------------------------------------------------------------
 ! POOLS:   1.labile 2.foliar 3.root                        ! PARAMETERS:
-!         *4.wood   5.litter 6.som                         !
+!         *4.wood   5.litter 6.som                         !
 ! ------------------------------------------               ! 1.  Decomposition rate
 ! FLUXES:  1.GPP                                           ! 2.  Fraction of GPP respired 
 ! (daily)  2.temprate                                      ! 3.  GSI sens for leaf growth
@@ -13,7 +13,7 @@
 !          8.labile consumption -> leaves                  ! 9.  Temp factor Q10 (1.2-1.6)
 !          9.leaffall factor                               ! 10. Photosynthetic N use efficiency
 !          10.leaf litter production                       ! 11. GSI max labile turnover
-!         *11.woodlitter production                        ! 12. GSI min temperature threshold (K)
+!         *11.woodlitter production                        ! 12. GSI min temperature threshold (K)
 !          12.rootlitter production                        ! 13. GSI max temperature threshold (K)
 !          13.respiration het litter                       ! 14. GSI min photoperiod threshold (sec)
 !          14.respiration het som                          ! 15. LCA - g.C.leaf_m-2
@@ -127,7 +127,7 @@ contains
                           ,nopars   & ! number of paremeters in vector
                           ,nomet    & ! number of meteorological fields
                           ,nopools  & ! number of model pools
-                          ,nofluxes & ! number of model fluxes
+                          ,nofluxes ! number of model fluxes
 
     double precision, intent(in) :: deltat(nodays)    & ! time step in decimal days
                                    ,lat               & ! site latitude (degrees)
