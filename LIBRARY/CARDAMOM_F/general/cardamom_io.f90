@@ -10,6 +10,7 @@ module cardamom_io
   ! Edinburgh CARDAMOM code and subsequent modifications by:
   ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
   ! J. F. Exbrayat (University of Edinburgh)
+  ! S. Zhu updated the DALEC_Grass (DALEC.M2.#)
   ! See function / subroutine specific comments for exceptions and contributors
   !!!!!!!!!!!
 
@@ -145,8 +146,9 @@ module cardamom_io
         DATAin%nofluxes = 41
     else if (DATAin%ID == 16) then
         ! ID = 16 - DALEC.M2.#
-        write(*,*) "Oh dear... DALEC.M2.# ID not valid = ",DATAin%ID
-        stop
+        DATAin%nopools = 6
+        DATAin%nopars = 34
+        DATAin%nofluxes = 23
     else if (DATAin%ID == 17) then
         ! ID = 17 - DALEC.A1.H2.M2.#
         write(*,*) "Oh dear... DALEC.A1.H2.M2.# ID not valid = ",DATAin%ID
