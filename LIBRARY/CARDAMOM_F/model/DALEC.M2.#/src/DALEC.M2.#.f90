@@ -85,7 +85,21 @@ implicit none
 ! explicit publics
 public :: CARBON_MODEL           &
          ,acm                    &
-         ,linear_model_gradient  
+         ,linear_model_gradient  &
+         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         ! placeholders to be compatible with CARDAMOM
+         ,soil_frac_clay, soil_frac_sand, nos_soil_layers &
+         ,Rg_from_labile, harvest_residue_to_litter, harvest_residue_to_som &
+         ,harvest_residue_to_woodlitter, harvest_extracted_labile &
+         ,harvest_extracted_foliar, harvest_extracted_roots, harvest_extracted_wood &
+         ,harvest_extracted_litter, harvest_extracted_woodlitter, harvest_extracted_som &
+         ,harvest_residue_labile, harvest_residue_foliar, harvest_residue_roots &
+         ,harvest_residue_wood, fire_emiss_labile, fire_emiss_foliar, fire_emiss_roots &
+         ,fire_emiss_wood, fire_emiss_litter, fire_emiss_woodlitter, fire_emiss_som &
+         ,fire_litter_labile, fire_litter_foliar, fire_litter_roots, fire_litter_wood &
+         ,fire_litter_litter, fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter &
+         ,fire_residue_to_woodlitter, fire_residue_to_som
+         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! ACM related parameters
 double precision, parameter :: pi = 3.1415927
@@ -101,7 +115,18 @@ integer :: gsi_lag_remembered
 
 double precision, allocatable, dimension(:) :: tmp_x, tmp_m
 
-
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! placefolder for CARDAMOM
+integer, parameter :: nos_root_layers = 2, nos_soil_layers = nos_root_layers + 1
+double precision, dimension(nos_soil_layers) :: soil_frac_clay,soil_frac_sand ! clay and soil fractions of soil
+double precision, allocatable, dimension(:) :: Rg_from_labile, harvest_residue_to_litter, harvest_residue_to_som &
+,harvest_residue_to_woodlitter, harvest_extracted_labile, harvest_extracted_foliar, harvest_extracted_roots &
+,harvest_extracted_wood, harvest_extracted_litter, harvest_extracted_woodlitter, harvest_extracted_som &
+,harvest_residue_labile, harvest_residue_foliar, harvest_residue_roots, harvest_residue_wood, fire_emiss_labile &
+,fire_emiss_foliar, fire_emiss_roots, fire_emiss_wood, fire_emiss_litter, fire_emiss_woodlitter, fire_emiss_som &
+,fire_litter_labile, fire_litter_foliar, fire_litter_roots,fire_litter_wood, fire_litter_litter &
+,fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter, fire_residue_to_woodlitter, fire_residue_to_som &
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 contains
 
 !
@@ -191,6 +216,74 @@ contains
     foliage_frac_res  = 0.05  ! fraction of removed foliage that goes to litter
     labile_frac_res   = 0.05  ! fraction of removed labile that goes to litter
     roots_frac_death  = 0.01  ! fraction of roots that dies and goes to litter
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! placefolder for CARDAMOM
+    allocate(Rg_from_labile(nodays))
+    Rg_from_labile = 0d0
+    allocate(harvest_residue_to_litter(nodays))
+    harvest_residue_to_litter = 0d0
+    allocate(harvest_residue_to_som(nodays))
+    harvest_residue_to_som = 0d0
+    allocate(harvest_residue_to_woodlitter(nodays))
+    harvest_residue_to_woodlitter = 0d0
+    allocate(harvest_extracted_labile(nodays))
+    harvest_extracted_labile = 0d0
+    allocate(harvest_extracted_foliar(nodays))
+    harvest_extracted_foliar = 0d0
+    allocate(harvest_extracted_roots(nodays))
+    harvest_extracted_roots = 0d0
+    allocate(harvest_extracted_wood(nodays))
+    harvest_extracted_wood = 0d0
+    allocate(harvest_extracted_litter(nodays))
+    harvest_extracted_litter = 0d0
+    allocate(harvest_extracted_woodlitter(nodays))
+    harvest_extracted_woodlitter = 0d0
+    allocate(harvest_extracted_som(nodays))
+    harvest_extracted_som = 0d0
+    allocate(harvest_residue_labile(nodays))
+    harvest_residue_labile = 0d0
+    allocate(harvest_residue_foliar(nodays))
+    harvest_residue_foliar = 0d0
+    allocate(harvest_residue_roots(nodays))
+    harvest_residue_roots = 0d0
+    allocate(harvest_residue_wood(nodays))
+    harvest_residue_wood = 0d0
+    allocate(fire_emiss_labile(nodays))
+    fire_emiss_labile = 0d0
+    allocate(fire_emiss_foliar(nodays))
+    fire_emiss_foliar = 0d0
+    allocate(fire_emiss_roots(nodays))
+    fire_emiss_roots = 0d0
+    allocate(fire_emiss_wood(nodays))
+    fire_emiss_wood = 0d0
+    allocate(fire_emiss_litter(nodays))
+    fire_emiss_litter = 0d0
+    allocate(fire_emiss_woodlitter(nodays))
+    fire_emiss_woodlitter = 0d0
+    allocate(fire_emiss_som(nodays))
+    fire_emiss_som = 0d0
+    allocate(fire_litter_labile(nodays))
+    fire_litter_labile = 0d0
+    allocate(fire_litter_foliar(nodays))
+    fire_litter_foliar = 0d0
+    allocate(fire_litter_roots(nodays))
+    fire_litter_roots = 0d0
+    allocate(fire_litter_wood(nodays))
+    fire_litter_wood = 0d0
+    allocate(fire_litter_litter(nodays))
+    fire_litter_litter = 0d0
+    allocate(fire_litter_woodlitter(nodays))
+    fire_litter_woodlitter = 0d0
+    allocate(fire_litter_som(nodays))
+    fire_litter_som = 0d0
+    allocate(fire_residue_to_litter(nodays))
+    fire_residue_to_litter = 0d0
+    allocate(fire_residue_to_woodlitter(nodays))
+    fire_residue_to_woodlitter = 0d0
+    allocate(fire_residue_to_som(nodays))
+  ! fire_residue_to_som = 0d0
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if (start == 1) then
 
@@ -438,9 +531,6 @@ contains
       POOLS(n+1,5) = POOLS(n,5) + (FLUXES(n,10)+FLUXES(n,12)-FLUXES(n,13)-FLUXES(n,15))*deltat(n)
       ! som pool = som_pool[†-1] + (litter2som - resp_het_som + wood_litter_prod)
       POOLS(n+1,6) = POOLS(n,6) + (FLUXES(n,15)-FLUXES(n,14)+FLUXES(n,11))*deltat(n)
-
- 
-
         
       ! CUTTING 
       ! ------------------------------------------------------------------------------------------------------------- ! 
@@ -579,7 +669,6 @@ contains
       endif ! end grazing process
 
     end do ! nodays loop
-
 
   end subroutine CARBON_MODEL
   
