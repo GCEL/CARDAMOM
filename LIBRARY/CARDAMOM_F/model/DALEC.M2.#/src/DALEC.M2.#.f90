@@ -80,7 +80,7 @@ implicit none
 
 
 ! make all private
-private
+! private
 
 ! explicit publics
 public :: CARBON_MODEL           &
