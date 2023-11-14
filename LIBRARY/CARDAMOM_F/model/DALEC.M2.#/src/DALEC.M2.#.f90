@@ -80,7 +80,7 @@ implicit none
 
 
 ! make all private
-! private
+private
 
 ! explicit publics
 public :: CARBON_MODEL           &
@@ -125,8 +125,10 @@ double precision, allocatable, dimension(:) :: Rg_from_labile, harvest_residue_t
 ,harvest_residue_labile, harvest_residue_foliar, harvest_residue_roots, harvest_residue_wood, fire_emiss_labile &
 ,fire_emiss_foliar, fire_emiss_roots, fire_emiss_wood, fire_emiss_litter, fire_emiss_woodlitter, fire_emiss_som &
 ,fire_litter_labile, fire_litter_foliar, fire_litter_roots,fire_litter_wood, fire_litter_litter &
-,fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter, fire_residue_to_woodlitter, fire_residue_to_som &
+,fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter, fire_residue_to_woodlitter, fire_residue_to_som
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 contains
 
 !
