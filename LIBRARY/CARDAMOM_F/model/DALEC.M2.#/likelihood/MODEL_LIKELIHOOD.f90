@@ -181,7 +181,7 @@ module model_likelihood_module
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 
     ! assess post running EDCs
     call assess_EDC2(PI%npars,DATAin%nomet,DATAin%nofluxes,DATAin%nopools &
