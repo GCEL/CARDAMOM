@@ -80,7 +80,7 @@ subroutine rdalec2(output_dim,MTT_dim,SS_dim &
      ! call the models
      call CARBON_MODEL(1,nodays,met,pars(1:nopars,i),deltat,nodays &
                       ,lat,lai,NEE,FLUXES,POOLS &
-                      ,nopars,nomet,nopools,nofluxes,GPP)
+                      ,nopars,nomet,nopools,nofluxes,GPP,REMOVED_C)
 !if (i == 1) then
 !    open(unit=666,file="/home/lsmallma/out.csv", &
 !         status='replace',action='readwrite' )
