@@ -10,6 +10,7 @@ module cardamom_structures
  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
  ! J. F. Exbrayat (University of Edinburgh)
  ! D. T. Milodowski (d.t.milodowski@ed.ac.uk, University of Edinburgh)
+ ! S. Zhu for DALEC_Grass adaptation (szhu4@ed.ac.uk, Univeristy of Edinburgh)
  ! See function / subroutine specific comments for exceptions and contributors
  !!!!!!!!!!!
 
@@ -129,7 +130,8 @@ public :: data_type, DATAin, emulator_parameters, emulator_pars, io_space
       ! saving computational speed by allocating memory to model output
       double precision, allocatable, dimension(:) :: M_GPP    & !
                                                     ,M_NEE    & !
-                                                    ,M_LAI      !
+                                                    ,M_LAI    & !
+                                                    ,REMOVED_C  !
       ! timing variable
       integer :: nos_years, steps_per_year
       double precision, allocatable, dimension(:) :: deltat ! time step (decimal day)
