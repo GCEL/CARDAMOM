@@ -251,7 +251,7 @@ module model_likelihood_module
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 
     ! if first set of EDCs have been passed, move on to the second
     if (DATAin%EDC == 1) then
@@ -305,14 +305,14 @@ module model_likelihood_module
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 !print*,"sanity_check: carbon_model done 1"
     ! next need to run the model itself
     call carbon_model(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,local_fluxes,local_pools,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 !print*,"sanity_check: carbon_model done 2"
     ! Compare outputs
     flux_error = sum(abs(DATAin%M_FLUXES - local_fluxes))
@@ -1408,7 +1408,7 @@ module model_likelihood_module
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 
     ! if first set of EDCs have been passed, move on to the second
     if (DATAin%EDC == 1) then
