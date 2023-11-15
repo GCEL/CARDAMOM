@@ -17,7 +17,7 @@ module model_likelihood_module
   private
 
   ! which to make open
-  public :: model_likelihood, find_edc_initial_values, sub_model_likelihood
+  public :: model_likelihood, find_edc_initial_values, sub_model_likelihood, sqrt_model_likelihood, log_model_likelihood
 
   ! declare needed types
   type EDCDIAGNOSTICS
@@ -274,6 +274,153 @@ module model_likelihood_module
     ML_obs_out = ML_obs_out + scale_likelihood(PI%npars,PARS)
 
   end subroutine sub_model_likelihood
+  subroutine sqrt_model_likelihood(PARS,ML_obs_out,ML_prior_out)
+    use MCMCOPT, only:  PI
+    use CARBON_MODEL_MOD, only: carbon_model
+    use cardamom_structures, only: DATAin
+
+    ! this subroutine is responsible for running the model,
+    ! calculation of the log-likelihood on a subsample of observation
+    ! for comparison assessment of parameter performance and use of the EDCs if they are
+    ! present / selected
+
+    implicit none
+
+    ! declare inputs
+    double precision, dimension(PI%npars), intent(inout) :: PARS ! current parameter vector
+    ! output
+    double precision, intent(inout) :: ML_obs_out, &  ! observation + EDC log-likelihood
+                                       ML_prior_out   ! prior log-likelihood
+    ! declare local variables
+    double precision :: EDC1, EDC2
+
+!    ! Debugging print statements
+!    print*,"sub_model_likelihood:"
+
+    ! initial values
+    ML_obs_out = 0d0 ; ML_prior_out = 0d0 ; EDC1 = 1d0 ; EDC2 = 1d0
+    ! if == 0 EDCs are checked only until the first failure occurs
+    ! if == 1 then all EDCs are checked irrespective of whether or not one has failed
+    EDCD%DIAG = 0
+
+    if (DATAin%EDC == 1) then
+
+        ! call EDCs which can be evaluated prior to running the model
+        call assess_EDC1(PARS,PI%npars,DATAin%meantemp, DATAin%meanrad,EDC1)
+
+        ! update the likelihood score based on EDCs driving total rejection
+        ! proposed parameters
+        ML_obs_out = log(EDC1)
+
+    endif !
+
+    ! run the dalec model
+    call carbon_model(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
+                     ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
+                     ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
+                     ,DATAin%M_GPP)
+
+    ! if first set of EDCs have been passed, move on to the second
+    if (DATAin%EDC == 1) then
+
+        ! check edc2
+        call assess_EDC2(PI%npars,DATAin%nomet,DATAin%nofluxes,DATAin%nopools  &
+                        ,DATAin%nodays,DATAin%deltat,DATAin%steps_per_year     &
+                        ,PI%parmax,PARS,DATAin%MET &
+                        ,DATAin%M_LAI,DATAin%M_NEE,DATAin%M_GPP,DATAin%M_POOLS &
+                        ,DATAin%M_FLUXES,DATAin%meantemp,EDC2)
+
+        ! Add EDC2 log-likelihood to absolute accept reject...
+        ML_obs_out = ML_obs_out + log(EDC2)
+
+    end if ! DATAin%EDC == 1
+
+    ! Calculate log-likelihood associated with priors
+    ! We always want this
+    ML_prior_out = likelihood_p(PI%npars,DATAin%parpriors,DATAin%parpriorunc,DATAin%parpriorweight,PARS)
+    ! calculate final model likelihood when compared to obs
+    ML_obs_out = ML_obs_out + sqrt_scale_likelihood(PI%npars,PARS)
+
+!    ! Debugging print statements
+!    print*,"sqrt_model_likelihood: done"
+
+  end subroutine sqrt_model_likelihood
+  !
+  !------------------------------------------------------------------
+  !
+  subroutine log_model_likelihood(PARS,ML_obs_out,ML_prior_out)
+    use MCMCOPT, only:  PI
+    use CARBON_MODEL_MOD, only: carbon_model
+    use cardamom_structures, only: DATAin
+
+    ! this subroutine is responsible for running the model,
+    ! calculation of the log-likelihood on a subsample of observation
+    ! for comparison assessment of parameter performance and use of the EDCs if they are
+    ! present / selected
+
+    implicit none
+
+    ! declare inputs
+    double precision, dimension(PI%npars), intent(inout) :: PARS ! current parameter vector
+    ! output
+    double precision, intent(inout) :: ML_obs_out, &  ! observation + EDC log-likelihood
+                                       ML_prior_out   ! prior log-likelihood
+    ! declare local variables
+    double precision :: EDC1, EDC2
+
+!    ! Debugging print statements
+!    print*,"sub_model_likelihood:"
+
+    ! initial values
+    ML_obs_out = 0d0 ; ML_prior_out = 0d0 ; EDC1 = 1d0 ; EDC2 = 1d0
+    ! if == 0 EDCs are checked only until the first failure occurs
+    ! if == 1 then all EDCs are checked irrespective of whether or not one has failed
+    EDCD%DIAG = 0
+
+    if (DATAin%EDC == 1) then
+
+        ! call EDCs which can be evaluated prior to running the model
+        call assess_EDC1(PARS,PI%npars,DATAin%meantemp, DATAin%meanrad,EDC1)
+
+        ! update the likelihood score based on EDCs driving total rejection
+        ! proposed parameters
+        ML_obs_out = log(EDC1)
+
+    endif !
+
+    ! run the dalec model
+    call carbon_model(1,DATAin%nodays,DATAin%MET,PARS,DATAin%deltat &
+                     ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
+                     ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
+                     ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
+                     ,DATAin%M_GPP)
+
+    ! if first set of EDCs have been passed, move on to the second
+    if (DATAin%EDC == 1) then
+
+        ! check edc2
+        call assess_EDC2(PI%npars,DATAin%nomet,DATAin%nofluxes,DATAin%nopools  &
+                        ,DATAin%nodays,DATAin%deltat,DATAin%steps_per_year     &
+                        ,PI%parmax,PARS,DATAin%MET &
+                        ,DATAin%M_LAI,DATAin%M_NEE,DATAin%M_GPP,DATAin%M_POOLS &
+                        ,DATAin%M_FLUXES,DATAin%meantemp,EDC2)
+
+        ! Add EDC2 log-likelihood to absolute accept reject...
+        ML_obs_out = ML_obs_out + log(EDC2)
+
+    end if ! DATAin%EDC == 1
+
+    ! Calculate log-likelihood associated with priors
+    ! We always want this
+    ML_prior_out = likelihood_p(PI%npars,DATAin%parpriors,DATAin%parpriorunc,DATAin%parpriorweight,PARS)
+    ! calculate final model likelihood when compared to obs
+    ML_obs_out = ML_obs_out + log_scale_likelihood(PI%npars,PARS)
+
+!    ! Debugging print statements
+!    print*,"log_model_likelihood: done"
+
+  end subroutine log_model_likelihood
   !
   !------------------------------------------------------------------
   !
