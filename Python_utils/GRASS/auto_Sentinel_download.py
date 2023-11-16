@@ -1,7 +1,28 @@
+'''
+Auto-dowloading Sentinel data
+Author: Songyan Zhu
+Contact: szhu4@ed.ac.uk
+---------Log of Changes-------------
+Created: 2023-11-14
+Updated: 2023-11-16
+    |-> Make it operational
+'''
+
 # Import credentials
+import yaml
 import requests
+import argparse
 import pandas as pd
+import geopandas as gpd
 from creds import *
+
+def load_yaml_config(p):
+    with open(p, "r") as stream:
+        try:
+            yamlfile = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            assert(exc)
+    return yamlfile
 
 def get_access_token(username: str, password: str) -> str:
     data = {
@@ -22,28 +43,58 @@ def get_access_token(username: str, password: str) -> str:
         )
     return r.json()["access_token"]
 
+def load_config(p):
+    cfg = load_yaml_config(p)
+    username = cfg['username']
+    password = cfg['password']
+    start_date = cfg['start_date']
+    end_date = cfg['end_date']
+    data_collection = cfg['data_collection']
+    roi_str = cfg['roi_str']
+    roi_file = cfg['roi_file']
+
+    # ----------------------------------------------------------------------------------
+    if roi_file:
+        shp = gpd.read_file(roi_file)
+        if shp.crs.to_epsg() != 4326: shp = shp.to_crs(4326)
+        roi = shp.geometry.to_wkt()[0] + "'" # only takes the first row!
+    elif roi_str:
+        roi = roi_str
+    else:
+        raise Exception('Either roi_file or roi_str must exist in the configuration!')
+
+    return username, password, start_date, end_date, data_collection, roi
+
+def retrieve(p_config):
+    username, password, start_date, end_date, data_collection, roi = load_config(p_config)
+
+    json = requests.get(f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq '{data_collection}' and OData.CSC.Intersects(area=geography'SRID=4326;{roi}) and ContentDate/Start gt {start_date}T00:00:00.000Z and ContentDate/Start lt {end_date}T00:00:00.000Z").json()
+    dfd = pd.DataFrame.from_dict(json['value'])
+    n_files = len(dfd)
+    print(f'Beginning to retrieve {n_files} {data_collection} files...')
+    for cnt in dfd.index:
+        image_id = dfd.loc[cnt, 'Id']
+        savename = data_collection + '-' + str(cnt).zfill(4) + '-' + dfd.loc[cnt, 'OriginDate'].split('T')[0].replace('-', '') + '.zip'
+
+        url = f"https://zipper.dataspace.copernicus.eu/odata/v1/Products({image_id})/$value"
+        access_token = get_access_token(username, password)
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        session = requests.Session()
+        session.headers.update(headers)
+        response = session.get(url, headers=headers, stream=True)
+
+        with open(savename, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    file.write(chunk)
+        print(f'{cnt + 1} done, {n_files - cnt} remaining...')
+        print('-' * 100)
+        
 if __name__ == '__main__':
-    username = ''
-    password = ''
-    start_date = "2022-06-01"
-    end_date = "2022-06-10"
-    data_collection = "SENTINEL-2"
-    aoi = "POLYGON((4.220581 50.958859,4.521264 50.953236,4.545977 50.906064,4.541858 50.802029,4.489685 50.763825,4.23843 50.767734,4.192435 50.806369,4.189689 50.907363,4.220581 50.958859))'"
-    access_token = get_access_token(username, password)
-
-    json = requests.get(f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq '{data_collection}' and OData.CSC.Intersects(area=geography'SRID=4326;{aoi}) and ContentDate/Start gt {start_date}T00:00:00.000Z and ContentDate/Start lt {end_date}T00:00:00.000Z").json()
-    pd.DataFrame.from_dict(json['value']).head(5)
-
-
-    url = f"https://zipper.dataspace.copernicus.eu/odata/v1/Products(acdd7b9a-a5d4-5d10-9ac8-554623b8a0c9)/$value"
-
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    session = requests.Session()
-    session.headers.update(headers)
-    response = session.get(url, headers=headers, stream=True)
-
-    with open("product.zip", "wb") as file:
-        for chunk in response.iter_content(chunk_size=8192):
-            if chunk:
-                file.write(chunk)
+    # Example: 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", nargs = "?", default = 'auto_Sentinel_download.yaml', type = str)
+    args = parser.parse_args()
+    p_config = args.p
+    retrieve(p_config)
