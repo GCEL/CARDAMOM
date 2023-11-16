@@ -95,7 +95,7 @@ def retrieve(p_config):
         print('-' * 100)
         
 if __name__ == '__main__':
-    # Example: 
+    # Example: auto_Sentinel_download.py
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", nargs = "?", default = 'auto_Sentinel_download.yaml', type = str)
     args = parser.parse_args()
