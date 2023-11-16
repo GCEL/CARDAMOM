@@ -6,6 +6,7 @@ Contact: szhu4@ed.ac.uk
 Created: 2023-11-14
 Updated: 2023-11-16
     |-> Make it operational
+To do: only download L2A
 '''
 
 # Import credentials
