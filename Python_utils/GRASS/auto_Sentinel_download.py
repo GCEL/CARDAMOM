@@ -4,9 +4,10 @@ Author: Songyan Zhu
 Contact: szhu4@ed.ac.uk
 ---------Log of Changes-------------
 Created: 2023-11-14
-Updated: 2023-11-16
+Updated: 2023-11-15
     |-> Make it operational
-To do: only download L2A
+Updated: 2023-11-16
+    |-> Only retrieve L2A product
 '''
 
 # Import credentials
@@ -71,6 +72,7 @@ def retrieve(p_config):
 
     json = requests.get(f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq '{data_collection}' and OData.CSC.Intersects(area=geography'SRID=4326;{roi}) and ContentDate/Start gt {start_date}T00:00:00.000Z and ContentDate/Start lt {end_date}T00:00:00.000Z").json()
     dfd = pd.DataFrame.from_dict(json['value'])
+    dfd = dfd[dfd['S3Path'].str.contains('/L2A/')] # Only L2A products
     n_files = len(dfd)
     print(f'Beginning to retrieve {n_files} {data_collection} files...')
     for cnt in dfd.index:
