@@ -19,6 +19,7 @@ import sys
 import yaml
 import zipfile
 import argparse
+import shutil
 from pathlib import Path
 
 def load_yaml_config(p):
@@ -60,6 +61,8 @@ def unzip_sentinel(root_proj, data_collection):
             os.remove(src)
         except Exception as e:
             print(e)
+            with open('auto_SNAP_LAI_logging.txt', 'a') as f:
+                f.write(src + '\n')
             
 def generate_biophysics(root_proj, data_collection):
     from snappy import ProductIO
@@ -101,6 +104,7 @@ def generate_biophysics(root_proj, data_collection):
             ProductIO.writeProduct(prod_bio, savefile.as_posix(), 'NetCDF4-CF') # "GeoTIFF-BigTIFF"
             print(f'{cnt + 1} done, {n_files - cnt} remaining...')
             print('-' * 100)
+            shutil.rmtree(p.parent)
         except Exception as e:
             print(e)
 
