@@ -101,6 +101,8 @@ def retrieve(p_config):
             print('-' * 100)
         except Exception as e:
             print(e)
+            with open('auto_Sentinel_download_logging.txt', 'a') as f:
+                f.write(e + '|' + savename + '|' + image_id + 'n')
         
 if __name__ == '__main__':
     # Example: python auto_Sentinel_download.py
