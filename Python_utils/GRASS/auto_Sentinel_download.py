@@ -16,6 +16,7 @@ import requests
 import argparse
 import pandas as pd
 import geopandas as gpd
+from pathlib import Path
 from creds import *
 
 def load_yaml_config(p):
@@ -76,26 +77,30 @@ def retrieve(p_config):
     n_files = len(dfd)
     print(f'Beginning to retrieve {n_files} {data_collection} files...')
     for cnt in dfd.index:
-        image_id = dfd.loc[cnt, 'Id']
-        savename = data_collection + '-' + str(cnt).zfill(4) + '-' + dfd.loc[cnt, 'OriginDate'].split('T')[0].replace('-', '') + '.zip'
+        try:
+            image_id = dfd.loc[cnt, 'Id']
+            savename = data_collection + '-' + str(cnt).zfill(4) + '-' + dfd.loc[cnt, 'OriginDate'].split('T')[0].replace('-', '') + '.zip'
+            if Path(savename).exists(): continue
 
-        url = f"https://zipper.dataspace.copernicus.eu/odata/v1/Products({image_id})/$value"
-        access_token = get_access_token(username, password)
-        headers = {"Authorization": f"Bearer {access_token}"}
+            url = f"https://zipper.dataspace.copernicus.eu/odata/v1/Products({image_id})/$value"
+            access_token = get_access_token(username, password)
+            headers = {"Authorization": f"Bearer {access_token}"}
 
-        session = requests.Session()
-        session.headers.update(headers)
-        response = session.get(url, headers=headers, stream=True)
+            session = requests.Session()
+            session.headers.update(headers)
+            response = session.get(url, headers=headers, stream=True)
 
-        with open(savename, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    file.write(chunk)
-        print(f'{cnt + 1} done, {n_files - cnt} remaining...')
-        print('-' * 100)
+            with open(savename, "wb") as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        file.write(chunk)
+            print(f'{cnt + 1} done, {n_files - cnt} remaining...')
+            print('-' * 100)
+        except Exception as e:
+            print(e)
         
 if __name__ == '__main__':
-    # Example: auto_Sentinel_download.py
+    # Example: python auto_Sentinel_download.py
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", nargs = "?", default = 'auto_Sentinel_download.yaml', type = str)
     args = parser.parse_args()
