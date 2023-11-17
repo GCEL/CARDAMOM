@@ -10,8 +10,11 @@ and Python 3.6 virtual environment activated!
 Created: 2023-11-16
 Updated: 2023-11-16
     |-> Make it operational
+Updated: 2023-11-17
+    |-> Auto-delete zip files
 '''
 
+import os
 import enum
 import sys
 import yaml
@@ -54,6 +57,7 @@ def unzip_sentinel(root_proj, data_collection):
         print(dest, src.stem)
         with zipfile.ZipFile(src.as_posix(),"r") as zip_ref:
             zip_ref.extractall(dest.as_posix())
+        os.remove(src)
             
 def generate_biophysics(root_proj, data_collection):
     from snappy import ProductIO
