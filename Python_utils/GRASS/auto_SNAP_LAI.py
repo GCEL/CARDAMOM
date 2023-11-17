@@ -70,36 +70,39 @@ def generate_biophysics(root_proj, data_collection):
     n_files = len(paths)
     print(f'Beginning to retrieve {n_files} {data_collection} files...')
     for cnt, p in enumerate(paths):
-        print(p.stem)
-        p = list(p.glob('MTD*.xml'))[0]
-        savefile = root_proj.joinpath(p.parent.stem + '.nc')
-        if savefile.exists(): 
+        try:
+            print(p.stem)
+            p = list(p.glob('MTD*.xml'))[0]
+            savefile = root_proj.joinpath(p.parent.stem + '.nc')
+            if savefile.exists(): 
+                print(f'{cnt + 1} done, {n_files - cnt} remaining...')
+                print('-' * 100)
+                continue
+
+            # -----------------------------------------------------------------------
+            prod = ProductIO.readProduct(p.as_posix())
+
+            GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+            HashMap = jpy.get_type('java.util.HashMap')
+
+            parameters = HashMap()
+            parameters.put('targetResolution', 20)
+            prod_resampled = GPF.createProduct('Resample', parameters, prod)
+            # -----------------------------------------------------------------------
+            # https://forum.step.esa.int/t/biophysical-parameter-snappy/11507/3
+            parameters = HashMap()
+            parameters.put('computeCab', True)
+            parameters.put('computeCw', True)
+            parameters.put('computeFapar', True)
+            parameters.put('computeFcover', True)
+            parameters.put('computeLAI', True)
+            prod_bio = GPF.createProduct('BiophysicalOp',parameters,prod_resampled)
+            # -----------------------------------------------------------------------
+            ProductIO.writeProduct(prod_bio, savefile.as_posix(), 'NetCDF4-CF') # "GeoTIFF-BigTIFF"
             print(f'{cnt + 1} done, {n_files - cnt} remaining...')
             print('-' * 100)
-            continue
-
-        # -----------------------------------------------------------------------
-        prod = ProductIO.readProduct(p.as_posix())
-
-        GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-        HashMap = jpy.get_type('java.util.HashMap')
-
-        parameters = HashMap()
-        parameters.put('targetResolution', 20)
-        prod_resampled = GPF.createProduct('Resample', parameters, prod)
-        # -----------------------------------------------------------------------
-        # https://forum.step.esa.int/t/biophysical-parameter-snappy/11507/3
-        parameters = HashMap()
-        parameters.put('computeCab', True)
-        parameters.put('computeCw', True)
-        parameters.put('computeFapar', True)
-        parameters.put('computeFcover', True)
-        parameters.put('computeLAI', True)
-        prod_bio = GPF.createProduct('BiophysicalOp',parameters,prod_resampled)
-        # -----------------------------------------------------------------------
-        ProductIO.writeProduct(prod_bio, savefile.as_posix(), 'NetCDF4-CF') # "GeoTIFF-BigTIFF"
-        print(f'{cnt + 1} done, {n_files - cnt} remaining...')
-        print('-' * 100)
+        except Exception as e:
+            print(e)
 
 if __name__ == '__main__':
     # Example: python auto_SNAP_LAI.py -m unzip
