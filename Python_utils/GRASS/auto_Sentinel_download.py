@@ -18,7 +18,7 @@ import yaml
 import requests
 import argparse
 import pandas as pd
-import geopandas as gpd
+# import geopandas as gpd
 from pathlib import Path
 from creds import *
 
@@ -60,12 +60,12 @@ def load_config(p):
     roi_file = cfg['roi_file']
 
     # ----------------------------------------------------------------------------------
-    if roi_file:
-        shp = gpd.read_file(roi_file)
-        if shp.crs.to_epsg() != 4326: shp = shp.to_crs(4326)
-        roi = shp.geometry.to_wkt()[0] + "'" # only takes the first row!
-    elif roi_str:
+    if roi_str:
         roi = roi_str
+    # elif roi_file:
+    #     shp = gpd.read_file(roi_file)
+    #     if shp.crs.to_epsg() != 4326: shp = shp.to_crs(4326)
+    #     roi = shp.geometry.to_wkt()[0] + "'" # only takes the first row!
     else:
         raise Exception('Either roi_file or roi_str must exist in the configuration!')
 
