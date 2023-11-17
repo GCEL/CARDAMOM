@@ -8,6 +8,9 @@ Updated: 2023-11-15
     |-> Make it operational
 Updated: 2023-11-16
     |-> Only retrieve L2A product
+    |-> Check file exisitence
+    |-> Add error catch
+    |-> Fix the '-1' remaining counting issue
 '''
 
 # Import credentials
@@ -94,7 +97,7 @@ def retrieve(p_config):
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         file.write(chunk)
-            print(f'{cnt + 1} done, {n_files - cnt} remaining...')
+            print(f'{cnt + 1} done, {n_files - cnt + 1} remaining...')
             print('-' * 100)
         except Exception as e:
             print(e)
