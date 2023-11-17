@@ -11,11 +11,10 @@ Created: 2023-11-16
 Updated: 2023-11-16
     |-> Make it operational
 Updated: 2023-11-17
-    |-> Auto-delete zip files
+    |-> Add error catching for unzip
 '''
 
 import os
-import enum
 import sys
 import yaml
 import zipfile
@@ -51,13 +50,16 @@ def init_env(p_config):
 def unzip_sentinel(root_proj, data_collection):
     paths = root_proj.glob(f'{data_collection}*.zip')
     for src in paths:
-        dest = src.parent.joinpath(data_collection)
-        # if dest.joinpath(src.stem + '.SAFE').exists():
-        #     print('yes')
-        print(dest, src.stem)
-        with zipfile.ZipFile(src.as_posix(),"r") as zip_ref:
-            zip_ref.extractall(dest.as_posix())
-        os.remove(src)
+        try:
+            dest = src.parent.joinpath(data_collection)
+            # if dest.joinpath(src.stem + '.SAFE').exists():
+            #     print('yes')
+            print(dest, src.stem)
+            with zipfile.ZipFile(src.as_posix(),"r") as zip_ref:
+                zip_ref.extractall(dest.as_posix())
+            os.remove(src)
+        except Exception as e:
+            print(e)
             
 def generate_biophysics(root_proj, data_collection):
     from snappy import ProductIO
@@ -100,6 +102,7 @@ def generate_biophysics(root_proj, data_collection):
         print('-' * 100)
 
 if __name__ == '__main__':
+    # Example: python auto_SNAP_LAI.py -m unzip
     # Example: python auto_SNAP_LAI.py -m lai
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", nargs = "?", default = 'auto_SNAP_LAI.yaml', type = str)
