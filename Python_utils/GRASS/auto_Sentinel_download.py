@@ -83,6 +83,8 @@ def retrieve(p_config):
         try:
             image_id = dfd.loc[cnt, 'Id']
             savename = data_collection + '-' + str(cnt).zfill(4) + '-' + dfd.loc[cnt, 'OriginDate'].split('T')[0].replace('-', '') + '.zip'
+            # if cnt != 13: continue
+            # if savename != 'SENTINEL-2-0013-20221202.zip': continue 
             if Path(savename).exists(): continue
 
             url = f"https://zipper.dataspace.copernicus.eu/odata/v1/Products({image_id})/$value"
@@ -102,7 +104,7 @@ def retrieve(p_config):
         except Exception as e:
             print(e)
             with open('auto_Sentinel_download_logging.txt', 'a') as f:
-                f.write(e + '|' + savename + '|' + image_id + 'n')
+                f.write(savename + '|' + image_id + '\n')
         
 if __name__ == '__main__':
     # Example: python auto_Sentinel_download.py
