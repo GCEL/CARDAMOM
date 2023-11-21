@@ -12,7 +12,7 @@ Updated: 2023-11-16
     |-> Add error catch
     |-> Fix the '-1' remaining counting issue
 Updated: 2023-11-21
-    |-> Check the OData retrieval limitations
+    |-> Check the OData retrieval limitations, the API seems only allow max 20 each search... 
 '''
 
 # Import credentials
