@@ -11,6 +11,8 @@ Updated: 2023-11-16
     |-> Check file exisitence
     |-> Add error catch
     |-> Fix the '-1' remaining counting issue
+Updated: 2023-11-21
+    |-> Check the OData retrieval limitations
 '''
 
 # Import credentials
