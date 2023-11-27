@@ -1,7 +1,16 @@
+'''
+Split regions into smaller rois for retrieving data from Copernicus Data Space Ecosystem 
+Author: Songyan Zhu
+Contact: szhu4@ed.ac.uk
+---------Log of Changes-------------
+Created: 2023-11-21
+Updated: 2023-11-27
+    |-> Make it standalone from the scigeo (also by szhu4) package
+'''
+
 import numpy as np
 
 # UK small
-
 
 minlon = -8.5
 maxlon = 2
