@@ -6,6 +6,8 @@ Contact: szhu4@ed.ac.uk
 Created: 2023-11-21
 Updated: 2023-11-27
     |-> Make it standalone from the scigeo (also by szhu4) package
+To do:
+    |-> Check the area of a tile to decide how many rois are needed.
 '''
 
 import numpy as np
