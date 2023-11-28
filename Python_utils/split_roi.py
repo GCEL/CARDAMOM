@@ -49,6 +49,6 @@ def split_roi(minlon, maxlon, minlat, maxlat, nrow, ncol):
 
 rois = split_roi(minlon, maxlon, minlat, maxlat, nrow, ncol)
 # rois = [roi[0] + roi[2] for roi in rois]
-rois = [f"POLYGON(({roi[0][0]} {roi[0][1]},{roi[1][0]} {roi[1][1]},{roi[2][0]},{roi[2][1]},{roi[3][0]} {roi[3][1]},{roi[0][0]} {roi[0][1]}))'" for roi in rois]
+rois = [f"POLYGON(({roi[0][0]} {roi[0][1]},{roi[1][0]} {roi[1][1]},{roi[2][0]} {roi[2][1]},{roi[3][0]} {roi[3][1]},{roi[0][0]} {roi[0][1]}))'" for roi in rois]
 print(len(rois))
 print(rois)
