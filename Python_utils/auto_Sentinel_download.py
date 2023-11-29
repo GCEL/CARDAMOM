@@ -11,8 +11,10 @@ Updated: 2023-11-16
     |-> Check file exisitence
     |-> Add error catch
     |-> Fix the '-1' remaining counting issue
-Updated: 2023-11-21
-    |-> Check the OData retrieval limitations, the API seems only allow max 20 each search... 
+Updated: 2023-11-28
+    |-> Log downloaded files.
+Updated: 2023-11-29
+    |-> Log downloaded files as image name instead of ID.
 '''
 
 # Import credentials
@@ -60,6 +62,11 @@ def load_config(p):
     data_collection = cfg['data_collection']
     roi_str = cfg['roi_str']
     roi_file = cfg['roi_file']
+    try:
+        downloaded_files = cfg['downloaded_files']
+    except Exception as e:
+        print(e)
+        downloaded_files = []
 
     # ----------------------------------------------------------------------------------
     if roi_str:
@@ -71,19 +78,22 @@ def load_config(p):
     else:
         raise Exception('Either roi_file or roi_str must exist in the configuration!')
 
-    return username, password, start_date, end_date, data_collection, roi
+    return username, password, start_date, end_date, data_collection, roi, downloaded_files
 
 def retrieve(p_config):
-    username, password, start_date, end_date, data_collection, roi = load_config(p_config)
+    username, password, start_date, end_date, data_collection, roi, downloaded_files = load_config(p_config)
 
     json = requests.get(f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq '{data_collection}' and OData.CSC.Intersects(area=geography'SRID=4326;{roi}) and ContentDate/Start gt {start_date}T00:00:00.000Z and ContentDate/Start lt {end_date}T00:00:00.000Z").json()
     dfd = pd.DataFrame.from_dict(json['value'])
+    print(f'Number of searched files: {len(dfd)}, it should be smaller than 20!')
     dfd = dfd[dfd['S3Path'].str.contains('/L2A/')] # Only L2A products
     n_files = len(dfd)
     print(f'Beginning to retrieve {n_files} {data_collection} files...')
     for cnt in dfd.index:
         try:
             image_id = dfd.loc[cnt, 'Id']
+            image_name = dfd.loc[cnt, 'Name']
+            if image_name in downloaded_files: continue
             savename = data_collection + '-' + str(cnt).zfill(4) + '-' + dfd.loc[cnt, 'OriginDate'].split('T')[0].replace('-', '') + '.zip'
             # if cnt != 13: continue
             # if savename != 'SENTINEL-2-0013-20221202.zip': continue 
@@ -101,7 +111,9 @@ def retrieve(p_config):
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         file.write(chunk)
-            print(f'{cnt + 1} done, {n_files - cnt + 1} remaining...')
+            print(f'{cnt + 1} done') # , {n_files - cnt + 1} remaining...
+            with open('auto_Sentinel_downloaded_files.txt', 'a') as f:
+                f.write(image_name + '\n')
             print('-' * 100)
         except Exception as e:
             print(e)
