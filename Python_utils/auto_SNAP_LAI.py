@@ -12,6 +12,9 @@ Updated: 2023-11-16
     |-> Make it operational
 Updated: 2023-11-17
     |-> Add error catching for unzip
+Updated: 2023-11-29
+    |-> Remove failed files for both unzipping and biophysical
+    |-> Save nc to root_proj.joinpath(data_collection)
 '''
 
 import os
@@ -62,7 +65,8 @@ def unzip_sentinel(root_proj, data_collection):
         except Exception as e:
             print(e)
             with open('auto_SNAP_LAI_logging.txt', 'a') as f:
-                f.write(src + '\n')
+                f.write(src.as_posix() + '\n')
+            os.remove(src)
             
 def generate_biophysics(root_proj, data_collection):
     from snappy import ProductIO
@@ -76,7 +80,7 @@ def generate_biophysics(root_proj, data_collection):
         try:
             print(p.stem)
             p = list(p.glob('MTD*.xml'))[0]
-            savefile = root_proj.joinpath(p.parent.stem + '.nc')
+            savefile = root_proj.joinpath(data_collection).joinpath(p.parent.stem + '.nc')
             if savefile.exists(): 
                 print(f'{cnt + 1} done, {n_files - cnt} remaining...')
                 print('-' * 100)
@@ -107,6 +111,7 @@ def generate_biophysics(root_proj, data_collection):
             shutil.rmtree(p.parent)
         except Exception as e:
             print(e)
+            shutil.rmtree(p.parent)
 
 if __name__ == '__main__':
     # Example: python auto_SNAP_LAI.py -m unzip
