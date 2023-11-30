@@ -257,7 +257,7 @@ module model_likelihood_module
     if (DATAin%EDC == 1) then
 
         ! check edc2
-        call assess_EDC2(PI%npars,DATAin%nomet,DATAin%nofluxes,DATAin%nopools &
+        call assess_EDC2(PI%npars,DATAin%nomet,DATAin%nofluxes,DATAin%nopools  &
                         ,DATAin%nodays,DATAin%deltat,PI%parmax,PARS,DATAin%MET &
                         ,DATAin%M_LAI,DATAin%M_NEE,DATAin%M_GPP,DATAin%M_POOLS &
                         ,DATAin%M_FLUXES,DATAin%meantemp,EDC2)
@@ -319,7 +319,7 @@ module model_likelihood_module
                      ,DATAin%nodays,DATAin%LAT,DATAin%M_LAI,DATAin%M_NEE &
                      ,DATAin%M_FLUXES,DATAin%M_POOLS,DATAin%nopars &
                      ,DATAin%nomet,DATAin%nopools,DATAin%nofluxes  &
-                     ,DATAin%M_GPP, DATAin%REMOVED_C)
+                     ,DATAin%M_GPP,DATAin%REMOVED_C)
 
     ! if first set of EDCs have been passed, move on to the second
     if (DATAin%EDC == 1) then
