@@ -59,6 +59,7 @@ subroutine rdalec2(output_dim,MTT_dim,SS_dim &
                                 ,wood_filter &
                                  ,lit_filter &
                                  ,som_filter
+  double precision, dimension(nodays,2) :: REMOVED_C
 
   ! zero initial conditions
   lai = 0d0 ; GPP = 0d0 ; NEE = 0d0 ; POOLS = 0d0 ; FLUXES = 0d0
