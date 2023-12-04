@@ -86,6 +86,7 @@ implicit none
 public :: CARBON_MODEL           &
          ,acm                    &
          ,linear_model_gradient  &
+         ,cica_time              &
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          ! placeholders to be compatible with CARDAMOM
          ,soil_frac_clay, soil_frac_sand, nos_soil_layers &
@@ -125,7 +126,7 @@ double precision, allocatable, dimension(:) :: Rg_from_labile, harvest_residue_t
 ,harvest_residue_labile, harvest_residue_foliar, harvest_residue_roots, harvest_residue_wood, fire_emiss_labile &
 ,fire_emiss_foliar, fire_emiss_roots, fire_emiss_wood, fire_emiss_litter, fire_emiss_woodlitter, fire_emiss_som &
 ,fire_litter_labile, fire_litter_foliar, fire_litter_roots,fire_litter_wood, fire_litter_litter &
-,fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter, fire_residue_to_woodlitter, fire_residue_to_som
+,fire_litter_woodlitter, fire_litter_som, fire_residue_to_litter, fire_residue_to_woodlitter, fire_residue_to_som, cica_time
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -284,6 +285,7 @@ contains
     allocate(fire_residue_to_woodlitter(nodays))
     fire_residue_to_woodlitter = 0d0
     allocate(fire_residue_to_som(nodays))
+    allocate(cica_time(nodays))
   ! fire_residue_to_som = 0d0
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
