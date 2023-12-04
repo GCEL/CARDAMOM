@@ -15,6 +15,8 @@ Updated: 2023-11-17
 Updated: 2023-11-29
     |-> Remove failed files for both unzipping and biophysical
     |-> Save nc to root_proj.joinpath(data_collection)
+Updated: 2023-11-30
+    |-> Save nc to the output folder
 '''
 
 import os
@@ -80,7 +82,8 @@ def generate_biophysics(root_proj, data_collection):
         try:
             print(p.stem)
             p = list(p.glob('MTD*.xml'))[0]
-            savefile = root_proj.joinpath(data_collection).joinpath(p.parent.stem + '.nc')
+            savefile = root_proj.joinpath(data_collection + '_out').joinpath(p.parent.stem + '.nc')
+            if not savefile.parent.exists(): savefile.parent.mkdir(parents = True, exist_ok = True)
             if savefile.exists(): 
                 print(f'{cnt + 1} done, {n_files - cnt} remaining...')
                 print('-' * 100)
