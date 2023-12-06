@@ -1,3 +1,0 @@
-cd /exports/csce/datastore/geos/groups/gcel/EOCIS/DALEC_GRASS/migration/CARDAMOM/example_files
-R
-source("/exports/csce/datastore/geos/groups/gcel/EOCIS/DALEC_GRASS/migration/CARDAMOM/example_files/control_NW_Grass_site_specific.r")
