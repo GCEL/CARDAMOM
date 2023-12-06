@@ -222,71 +222,137 @@ contains
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! placefolder for CARDAMOM
-    allocate(Rg_from_labile(nodays))
-    Rg_from_labile = 0d0
-    allocate(harvest_residue_to_litter(nodays))
-    harvest_residue_to_litter = 0d0
-    allocate(harvest_residue_to_som(nodays))
-    harvest_residue_to_som = 0d0
-    allocate(harvest_residue_to_woodlitter(nodays))
-    harvest_residue_to_woodlitter = 0d0
-    allocate(harvest_extracted_labile(nodays))
-    harvest_extracted_labile = 0d0
-    allocate(harvest_extracted_foliar(nodays))
-    harvest_extracted_foliar = 0d0
-    allocate(harvest_extracted_roots(nodays))
-    harvest_extracted_roots = 0d0
-    allocate(harvest_extracted_wood(nodays))
-    harvest_extracted_wood = 0d0
-    allocate(harvest_extracted_litter(nodays))
-    harvest_extracted_litter = 0d0
-    allocate(harvest_extracted_woodlitter(nodays))
-    harvest_extracted_woodlitter = 0d0
-    allocate(harvest_extracted_som(nodays))
-    harvest_extracted_som = 0d0
-    allocate(harvest_residue_labile(nodays))
-    harvest_residue_labile = 0d0
-    allocate(harvest_residue_foliar(nodays))
-    harvest_residue_foliar = 0d0
-    allocate(harvest_residue_roots(nodays))
-    harvest_residue_roots = 0d0
-    allocate(harvest_residue_wood(nodays))
-    harvest_residue_wood = 0d0
-    allocate(fire_emiss_labile(nodays))
-    fire_emiss_labile = 0d0
-    allocate(fire_emiss_foliar(nodays))
-    fire_emiss_foliar = 0d0
-    allocate(fire_emiss_roots(nodays))
-    fire_emiss_roots = 0d0
-    allocate(fire_emiss_wood(nodays))
-    fire_emiss_wood = 0d0
-    allocate(fire_emiss_litter(nodays))
-    fire_emiss_litter = 0d0
-    allocate(fire_emiss_woodlitter(nodays))
-    fire_emiss_woodlitter = 0d0
-    allocate(fire_emiss_som(nodays))
-    fire_emiss_som = 0d0
-    allocate(fire_litter_labile(nodays))
-    fire_litter_labile = 0d0
-    allocate(fire_litter_foliar(nodays))
-    fire_litter_foliar = 0d0
-    allocate(fire_litter_roots(nodays))
-    fire_litter_roots = 0d0
-    allocate(fire_litter_wood(nodays))
-    fire_litter_wood = 0d0
-    allocate(fire_litter_litter(nodays))
-    fire_litter_litter = 0d0
-    allocate(fire_litter_woodlitter(nodays))
-    fire_litter_woodlitter = 0d0
-    allocate(fire_litter_som(nodays))
-    fire_litter_som = 0d0
-    allocate(fire_residue_to_litter(nodays))
-    fire_residue_to_litter = 0d0
-    allocate(fire_residue_to_woodlitter(nodays))
-    fire_residue_to_woodlitter = 0d0
-    allocate(fire_residue_to_som(nodays))
-    allocate(cica_time(nodays))
-  ! fire_residue_to_som = 0d0
+    if (.not.allocated(Rg_from_labile)) then
+      allocate(Rg_from_labile(nodays))
+      Rg_from_labile = 0d0
+    endif
+    if (.not.allocated(harvest_residue_to_litter)) then
+      allocate(harvest_residue_to_litter(nodays))
+      harvest_residue_to_litter = 0d0
+    endif
+    if (.not.allocated(harvest_residue_to_som)) then
+      allocate(harvest_residue_to_som(nodays))
+      harvest_residue_to_som = 0d0
+    endif
+    if (.not.allocated(harvest_residue_to_woodlitter)) then
+      allocate(harvest_residue_to_woodlitter(nodays))
+      harvest_residue_to_woodlitter = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_labile)) then
+      allocate(harvest_extracted_labile(nodays))
+      harvest_extracted_labile = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_foliar)) then
+      allocate(harvest_extracted_foliar(nodays))
+      harvest_extracted_foliar = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_roots)) then
+      allocate(harvest_extracted_roots(nodays))
+      harvest_extracted_roots = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_wood)) then
+      allocate(harvest_extracted_wood(nodays))
+      harvest_extracted_wood = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_litter)) then
+      allocate(harvest_extracted_litter(nodays))
+      harvest_extracted_litter = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_woodlitter)) then
+      allocate(harvest_extracted_woodlitter(nodays))
+      harvest_extracted_woodlitter = 0d0
+    endif
+    if (.not.allocated(harvest_extracted_som)) then
+      allocate(harvest_extracted_som(nodays))
+      harvest_extracted_som = 0d0
+    endif
+    if (.not.allocated(harvest_residue_labile)) then
+      allocate(harvest_residue_labile(nodays))
+      harvest_residue_labile = 0d0
+    endif
+    if (.not.allocated(harvest_residue_foliar)) then
+      allocate(harvest_residue_foliar(nodays))
+      harvest_residue_foliar = 0d0
+    endif
+    if (.not.allocated(harvest_residue_roots)) then
+      allocate(harvest_residue_roots(nodays))
+      harvest_residue_roots = 0d0
+    endif
+    if (.not.allocated(harvest_residue_wood)) then
+      allocate(harvest_residue_wood(nodays))
+      harvest_residue_wood = 0d0
+    endif
+    if (.not.allocated(fire_emiss_labile)) then
+      allocate(fire_emiss_labile(nodays))
+      fire_emiss_labile = 0d0
+    endif
+    if (.not.allocated(fire_emiss_foliar)) then
+      allocate(fire_emiss_foliar(nodays))
+      fire_emiss_foliar = 0d0
+    endif
+    if (.not.allocated(fire_emiss_roots)) then
+      allocate(fire_emiss_roots(nodays))
+      fire_emiss_roots = 0d0
+    endif
+    if (.not.allocated(fire_emiss_wood)) then
+      allocate(fire_emiss_wood(nodays))
+      fire_emiss_wood = 0d0
+    endif
+    if (.not.allocated(fire_emiss_litter)) then
+      allocate(fire_emiss_litter(nodays))
+      fire_emiss_litter = 0d0
+    endif
+    if (.not.allocated(fire_emiss_woodlitter)) then
+      allocate(fire_emiss_woodlitter(nodays))
+      fire_emiss_woodlitter = 0d0
+    endif
+    if (.not.allocated(fire_emiss_som)) then
+      allocate(fire_emiss_som(nodays))
+      fire_emiss_som = 0d0
+    endif
+    if (.not.allocated(fire_litter_labile)) then
+      allocate(fire_litter_labile(nodays))
+      fire_litter_labile = 0d0
+    endif
+    if (.not.allocated(fire_litter_foliar)) then
+      allocate(fire_litter_foliar(nodays))
+      fire_litter_foliar = 0d0
+    endif
+    if (.not.allocated(fire_litter_roots)) then
+      allocate(fire_litter_roots(nodays))
+      fire_litter_roots = 0d0
+    endif
+    if (.not.allocated(fire_litter_wood)) then
+      allocate(fire_litter_wood(nodays))
+      fire_litter_wood = 0d0
+    endif
+    if (.not.allocated(fire_litter_litter)) then
+      allocate(fire_litter_litter(nodays))
+      fire_litter_litter = 0d0
+    endif
+    if (.not.allocated(fire_litter_woodlitter)) then
+      allocate(fire_litter_woodlitter(nodays))
+      fire_litter_woodlitter = 0d0
+    endif
+    if (.not.allocated(fire_litter_som)) then
+      allocate(fire_litter_som(nodays))
+      fire_litter_som = 0d0
+    endif
+    if (.not.allocated(fire_residue_to_litter)) then
+      allocate(fire_residue_to_litter(nodays))
+      fire_residue_to_litter = 0d0
+    endif
+    if (.not.allocated(fire_residue_to_woodlitter)) then
+      allocate(fire_residue_to_woodlitter(nodays))
+      fire_residue_to_woodlitter = 0d0
+    endif
+    if (.not.allocated(fire_residue_to_som)) then
+      allocate(fire_residue_to_som(nodays))
+      ! fire_residue_to_som = 0d0
+    endif
+    if (.not.allocated(cica_time)) then
+      allocate(cica_time(nodays))
+    endif
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if (start == 1) then
@@ -535,7 +601,7 @@ contains
       POOLS(n+1,5) = POOLS(n,5) + (FLUXES(n,10)+FLUXES(n,12)-FLUXES(n,13)-FLUXES(n,15))*deltat(n)
       ! som pool = som_pool[†-1] + (litter2som - resp_het_som + wood_litter_prod)
       POOLS(n+1,6) = POOLS(n,6) + (FLUXES(n,15)-FLUXES(n,14)+FLUXES(n,11))*deltat(n)
-        
+
       ! CUTTING 
       ! ------------------------------------------------------------------------------------------------------------- ! 
         
@@ -578,7 +644,9 @@ contains
             POOLS(n+1,6) = max(0., POOLS(n+1,6))
 
           endif 
-
+      else
+        FLUXES(n,22) = 0d0 ! avoid NaN if not cutting or grazing !szhu4 06/12/2023
+        FLUXES(n,23) = 0d0 ! avoid NaN if not cutting or grazing !szhu4 06/12/2023
       endif ! end cutting process   
         
       ! GRAZING 
@@ -669,7 +737,9 @@ contains
               endif 
 
           endif 
-
+      else
+        FLUXES(n,22) = 0d0 ! avoid NaN if not cutting or grazing !szhu4 06/12/2023
+        FLUXES(n,23) = 0d0 ! avoid NaN if not cutting or grazing !szhu4 06/12/2023
       endif ! end grazing process
 
     end do ! nodays loop
