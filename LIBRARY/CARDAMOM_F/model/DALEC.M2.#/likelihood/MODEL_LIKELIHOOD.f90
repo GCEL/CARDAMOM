@@ -10,6 +10,7 @@ module model_likelihood_module
   ! All code translation into Fortran, integration into the University of
   ! Edinburgh CARDAMOM code and subsequent modifications by:
   ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+  ! S. Zhu (University of Edinburgh)
   ! See function / subroutine specific comments for exceptions and contributors
   !!!!!!!!!!!
 
@@ -527,7 +528,7 @@ module model_likelihood_module
 
     ! Straight forward GSI parameter bounds
     ! Temperature
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(15) < pars(14))) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(13) < pars(12))) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
     end if
     ! Photoperiod
