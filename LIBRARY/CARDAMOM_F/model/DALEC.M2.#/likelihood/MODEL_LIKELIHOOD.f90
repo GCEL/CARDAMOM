@@ -589,6 +589,7 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
     endif
 
+    ! !SZ: the following comments within this subroutine are unchanged!
     ! replanting 30 = labile ; 31 = foliar ; 32 = roots ; 33 = wood
     ! initial    18 = labile ; 19 = foliar ; 20 = roots ; 21 = wood
     ! initial replanting labile must be consistent with available wood storage
