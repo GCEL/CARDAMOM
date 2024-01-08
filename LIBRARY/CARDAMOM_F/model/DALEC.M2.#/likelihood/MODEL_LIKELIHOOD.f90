@@ -574,13 +574,13 @@ module model_likelihood_module
     ! constraint. This means that we effectively through trait-databased
     ! information constrain three important C-cycle traits.
 
-    ! Turnover of litter towards som (pars(1)*pars(8)) should be faster than turnover of som (pars(9))
-    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(9) > (pars(1)*pars(8)) ) then
+    ! Turnover of litter towards som (pars(1)*pars(7)) should be faster than turnover of som (pars(8))
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(8) > (pars(1)*pars(7)) ) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
     endif
 
     ! turnover of cwd (pars(35)) should be slower than fine litter turnover pars(8)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(35) > pars(8) ) ) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(35) > pars(7) ) ) then !SZ: DARLEC_Grass has no C CWD, aka pars(35), @TLS
         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
