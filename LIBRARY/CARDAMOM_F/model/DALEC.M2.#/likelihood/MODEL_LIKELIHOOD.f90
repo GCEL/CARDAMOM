@@ -1134,14 +1134,15 @@ module model_likelihood_module
         ! Csom
 !        in_out_som = sum(M_FLUXES(:,15)+M_FLUXES(:,20)+fire_residue_to_som+harvest_residue_to_som) &
 !                   / sum(M_FLUXES(:,14)+fire_emiss_som+fire_litter_som+harvest_loss_som)
-        in_som     = sum(M_FLUXES(io_start:io_finish,15)+M_FLUXES(io_start:io_finish,20) &
+        in_som     = sum(M_FLUXES(io_start:io_finish,15) &
+                        ! +M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
                         +fire_residue_to_som(io_start:io_finish)+harvest_residue_to_som(io_start:io_finish))
         out_som    = sum(M_FLUXES(io_start:io_finish,14) &
                         +fire_emiss_som(io_start:io_finish) &
                         +fire_litter_som(io_start:io_finish) &
                         +harvest_extracted_som(io_start:io_finish))
         in_out_som_yr1 = sum(M_FLUXES(1:steps_per_year,15)+ &
-                             M_FLUXES(1:steps_per_year,20)+ &
+                             M_FLUXES(1:steps_per_year,20)+ & !DALEC_Grass has no fire emission from root, @TLS
                              fire_residue_to_som(1:steps_per_year)+ &
                              harvest_residue_to_som(1:steps_per_year)) &
                        / sum(M_FLUXES(1:steps_per_year,14) &
@@ -1149,7 +1150,7 @@ module model_likelihood_module
                             +fire_litter_som(1:steps_per_year) &
                             +harvest_extracted_som(1:steps_per_year))
         in_out_som_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),15)+ &
-                             M_FLUXES((steps_per_year+1):(steps_per_year*2),20)+ &
+                            !  M_FLUXES((steps_per_year+1):(steps_per_year*2),20)+ & !DALEC_Grass has no fire emission from root, @TLS
                              fire_residue_to_som((steps_per_year+1):(steps_per_year*2))+ &
                              harvest_residue_to_som((steps_per_year+1):(steps_per_year*2))) &
                        / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),14) &
@@ -1162,24 +1163,27 @@ module model_likelihood_module
         in_woodlitter     = sum(M_FLUXES(io_start:io_finish,11) &
                             +fire_residue_to_woodlitter(io_start:io_finish) &
                             +harvest_residue_to_woodlitter(io_start:io_finish))
-        out_woodlitter    = sum(M_FLUXES(io_start:io_finish,20) &
-                            +M_FLUXES(io_start:io_finish,4) &
+        out_woodlitter    = sum(
+                            ! M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
+                            M_FLUXES(io_start:io_finish,4) &
                             +fire_emiss_woodlitter(io_start:io_finish) &
                             +fire_litter_woodlitter(io_start:io_finish) &
                             +harvest_extracted_woodlitter(io_start:io_finish))
         in_out_woodlitter_yr1 = sum(M_FLUXES(1:steps_per_year,11) &
                                 +fire_residue_to_woodlitter(1:steps_per_year) &
                                 +harvest_residue_to_woodlitter(1:steps_per_year)) &
-                           / sum(M_FLUXES(1:steps_per_year,20) &
-                                +M_FLUXES(1:steps_per_year,4) &
+                           / sum(
+                                ! M_FLUXES(1:steps_per_year,20) & !DALEC_Grass has no fire emission from root, @TLS
+                                M_FLUXES(1:steps_per_year,4) &
                                 +fire_emiss_woodlitter(1:steps_per_year) &
                                 +fire_litter_woodlitter(1:steps_per_year) &
                                 +harvest_extracted_woodlitter(1:steps_per_year))
         in_out_woodlitter_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
                                 +fire_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +harvest_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2))) &
-                           / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),20) &
-                                +M_FLUXES((steps_per_year+1):(steps_per_year*2),4) &
+                           / sum(
+                                ! M_FLUXES((steps_per_year+1):(steps_per_year*2),20) & !DALEC_Grass has no fire emission from root, @TLS
+                                M_FLUXES((steps_per_year+1):(steps_per_year*2),4) &
                                 +fire_emiss_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +fire_litter_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +harvest_extracted_woodlitter((steps_per_year+1):(steps_per_year*2)))
@@ -1256,7 +1260,7 @@ module model_likelihood_module
         SSwoodlitter = (SSwoodlitter/out_woodlitter) * jan_mean_pools(7)
         ! Steady state of som requires accounting for foliar, fine root and wood litter inputs
         ! and adjusting for the woodlitter input already included
-        SSsom = in_som - sum(M_FLUXES(io_start:io_finish,20))
+        SSsom = in_som ! - sum(M_FLUXES(io_start:io_finish,20)) !DALEC_Grass has no fire emission from root, @TLS
         ! Now repeat the process as done for woodlitter to estimate the inputs,
         ! adjusting for the fraction of woodlitter output which is respired not decomposed
         SSsom = SSsom + (SSwoodlitter * (out_woodlitter/jan_mean_pools(7)) * pars(1))
