@@ -584,8 +584,8 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
-    ! root turnover (pars(7)) should be greater than som turnover (pars(9)) at mean temperature
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(9)*temp_response) > pars(7)) then
+    ! root turnover (pars(6)) should be greater than som turnover (pars(8)) at mean temperature
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(8)*temp_response) > pars(6)) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
     endif
 
