@@ -523,8 +523,8 @@ module model_likelihood_module
     !
 
     ! calculate temperature response of decomposition processes
-    temp_response = exp(pars(10)*meantemp)
-    avN = 10d0**pars(11)
+    temp_response = exp(pars(9)*meantemp) !Q10 
+    avN = 10d0**pars(11) !SZ: DALEC_GRASS has no this par (log10 avg foliar N (gN.m-2)) @TLS
 
     ! Straight forward GSI parameter bounds
     ! Temperature
@@ -532,26 +532,26 @@ module model_likelihood_module
          EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
     end if
     ! Photoperiod
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(24) < pars(16))) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(20) < pars(14))) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
     end if
     ! VPD - may not be needed
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(26) < pars(25))) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(22) < pars(21))) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
     end if
 
     ! Photoperiod minimum cannot be substantially less than the observed minimum day length
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(16) < minval(DATAin%MET(11,:))-14400d0)) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(14) < minval(DATAin%MET(11,:))-14400d0)) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     end if
     ! Photoperiod maximum cannot be greater than the observed maximum day length
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(24) > maxval(DATAin%MET(11,:)))) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(20) > maxval(DATAin%MET(11,:)))) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
     end if
 
     ! VPD at which stress in at maximum should be no larger than max(VPDlag21) +
     ! 1500 Pa from the max VPD tolerated parameter
-    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(26) > maxval(DATAin%MET(12,:))+1500d0)) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(22) > maxval(DATAin%MET(12,:))+1500d0)) then
          EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     end if
 
@@ -559,13 +559,13 @@ module model_likelihood_module
     ! Kattge et al (2011) offers a prior of 3.4 - 30.7 gC/m2leaf/day.
     ! Here, to be cautious we will expand accepted range
     ! Thus CUE = NUE * avN -> 1.64 / 42.0
-!    tmp = avN * pars(36)
+!    tmp = avN * pars(36) !SZ: not for DALEC_Grass
 !    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 42.0d0 .or. tmp < 1.64d0) ) then
 !       EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
 !    endif
     ! Further constraint can be made by linking into LCA based on the range of
     ! max photosynthesis per gC leaf Kattge et al (2011) 0.2488 (0.041472 / 1.016064) gC/gC/day.
-!    tmp = tmp / pars(17)
+!    tmp = tmp / pars(15)
 !    if ((EDC1 == 1 .or. DIAG == 1) .and. (tmp > 1.016064d0 .or. tmp < 0.041472d0) ) then
 !       EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
 !    endif
