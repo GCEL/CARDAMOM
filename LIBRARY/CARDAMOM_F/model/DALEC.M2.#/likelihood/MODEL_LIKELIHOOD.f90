@@ -904,7 +904,7 @@ module model_likelihood_module
         EDC2 = 0d0 ; EDCD%PASSFAIL(14) = 0
     endif
     ! Restrict difference between root and foliar turnover to less than 5 fold
-!    if ((EDC2 == 1 .or. DIAG == 1) .and. (torfol > pars(7)*5d0 .or. torfol*5d0 < pars(7) )) then
+!    if ((EDC2 == 1 .or. DIAG == 1) .and. (torfol > pars(6)*5d0 .or. torfol*5d0 < pars(6) )) then
 !        EDC2 = 0d0 ; EDCD%PASSFAIL(11) = 0
 !    endif
     ! Restrict maximum leaf lifespan
@@ -914,7 +914,7 @@ module model_likelihood_module
     endif
 
     ! Average turnover of foliage should not be less than wood (pars(6))
-    if ((EDC2 == 1 .or. DIAG == 1) .and. torfol < pars(6) ) then
+    if ((EDC2 == 1 .or. DIAG == 1) .and. torfol < pars(6) ) then ! DARLEC_Grass has no wood @TLS
         EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
     endif
 
@@ -1280,7 +1280,7 @@ module model_likelihood_module
 !        if ( (in_out_som * jan_mean_pools(6)) < (in_out_woodlitter * jan_mean_pools(7)) ) then
 !            EDC2 = 0d0 ; EDCD%PASSFAIL(29) = 0
 !        end if
-!        if (pars(37) / (in_out_wood * jan_mean_pools(4)) > 0.60d0  ) then
+!        if (pars(37) / (in_out_wood * jan_mean_pools(4)) > 0.60d0  ) then !SZ: this comment is unchanged
 !            EDC2 = 0d0 ; EDCD%PASSFAIL(23) = 0
 !        end if
 
@@ -1762,9 +1762,9 @@ module model_likelihood_module
 !print*,"likelihood: Fire done"
     ! Assume physical property is best represented as the mean of value at beginning and end of times step
     if (DATAin%nlai > 0) then
-       ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(17) to convert foliage C to LAI
+       ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(15) to convert foliage C to LAI
        mid_state = ( ( DATAin%M_POOLS(1:DATAin%nodays,2) + DATAin%M_POOLS(2:(DATAin%nodays+1),2) ) &
-                 * 0.5d0 ) / pars(17)
+                 * 0.5d0 ) / pars(15)
        ! Split loop to allow vectorisation
        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
@@ -1936,7 +1936,7 @@ module model_likelihood_module
 
     ! Leaf C:N is derived from multiple parameters
     if (DATAin%otherpriors(3) > -9998) then
-        tot_exp = pars(17) / (10d0**pars(11))
+        tot_exp = pars(15) / (10d0**pars(11)) !SZ: Dalec_Grass does not have log10 avg foliar N (gN.m-2), @TLS
         tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
         likelihood = likelihood-tot_exp
     end if
@@ -1947,7 +1947,7 @@ module model_likelihood_module
     if (DATAin%otherpriors(5) > -9998) then
         ! Estimate the mean annual input to the wood pool (gC.m-2.yr-1) and remove
         ! the yr-1 by multiplying by residence time (yr)
-!        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0))
+!        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0)) !SZ: DALEC_Grass has no wood pool
         input = sum(DATAin%M_FLUXES(:,7))
         output = sum(DATAin%M_POOLS(:,4) / (DATAin%M_FLUXES(:,11)+fire_emiss_wood+fire_litter_wood))
         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
@@ -2128,9 +2128,9 @@ module model_likelihood_module
     ! LAI log-likelihood
     ! Assume physical property is best represented as the mean of value at beginning and end of times step
     if (DATAin%nlai > 0) then
-       ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(17) to convert foliage C to LAI
+       ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(15) to convert foliage C to LAI
        mid_state = ( ( DATAin%M_POOLS(1:DATAin%nodays,2) + DATAin%M_POOLS(2:(DATAin%nodays+1),2) ) &
-                 * 0.5d0 ) / pars(17)
+                 * 0.5d0 ) / pars(15)
        ! Split loop to allow vectorisation
        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
@@ -2302,7 +2302,7 @@ module model_likelihood_module
 
     ! Leaf C:N is derived from multiple parameters
     if (DATAin%otherpriors(3) > -9998) then
-        tot_exp = pars(17) / (10d0**pars(11))
+        tot_exp = pars(15) / (10d0**pars(11)) !SZ: DALEC_Grass has no log10 avg foliar N (gN.m-2), @TLS
         tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
         scale_likelihood = scale_likelihood-tot_exp
     end if
@@ -2313,7 +2313,7 @@ module model_likelihood_module
     if (DATAin%otherpriors(5) > -9998) then
         ! Estimate the mean annual input to the wood pool (gC.m-2.yr-1) and remove
         ! the yr-1 by multiplying by residence time (yr)
-!        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0))
+!        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0)) !DALEC_Grass has no wood pool
         input = sum(DATAin%M_FLUXES(:,7))
         output = sum(DATAin%M_POOLS(:,4) / (DATAin%M_FLUXES(:,11)+fire_emiss_wood+fire_litter_wood))
         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
@@ -2518,9 +2518,9 @@ module model_likelihood_module
 !     ! LAI log-likelihood
 !     ! Assume physical property is best represented as the mean of value at beginning and end of times step
 !     if (DATAin%nlai > 0) then
-!        ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(17) to convert foliage C to LAI
+!        ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(13) to convert foliage C to LAI
 !        mid_state = ( ( DATAin%M_POOLS(1:DATAin%nodays,2) + DATAin%M_POOLS(2:(DATAin%nodays+1),2) ) &
-!                  * 0.5d0 ) / pars(17)
+!                  * 0.5d0 ) / pars(15)
 !        ! Split loop to allow vectorisation
 !        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
 !                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
@@ -2729,7 +2729,7 @@ module model_likelihood_module
 !     if (DATAin%otherpriors(5) > -9998) then
 !         ! Estimate the mean annual input to the wood pool (gC.m-2.day-1) and
 !         ! remove the day-1 by multiplying by residence time (day)
-!         !tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0))
+!         !tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0)) !DALEC_Grass has no wood pool
 !         input = sum(DATAin%M_FLUXES(:,7))
 !         output = sum(DATAin%M_POOLS(:,4) / (DATAin%M_FLUXES(:,11)+DATAin%M_FLUXES(:,25)))
 !         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
