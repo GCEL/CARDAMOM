@@ -579,10 +579,10 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
     endif
 
-    ! turnover of cwd (pars(35)) should be slower than fine litter turnover pars(8)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(35) > pars(7) ) ) then !SZ: DARLEC_Grass has no C CWD, aka pars(35), @TLS
-        EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
-    endif
+    ! ! turnover of cwd (pars(35)) should be slower than fine litter turnover pars(8)
+    ! if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(35) > pars(7) ) ) then !SZ: DARLEC_Grass has no C CWD, aka pars(35), @TLS
+    !     EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
+    ! endif
 
     ! root turnover (pars(6)) should be greater than som turnover (pars(8)) at mean temperature
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(8)*temp_response) > pars(6)) then
@@ -913,10 +913,10 @@ module model_likelihood_module
         EDC2 = 0d0 ; EDCD%PASSFAIL(15) = 0
     endif
 
-    ! Average turnover of foliage should not be less than wood (pars(6))
-    if ((EDC2 == 1 .or. DIAG == 1) .and. torfol < pars(6) ) then ! DARLEC_Grass has no wood @TLS
-        EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
-    endif
+    ! ! Average turnover of foliage should not be less than wood (pars(6))
+    ! if ((EDC2 == 1 .or. DIAG == 1) .and. torfol < pars(6) ) then ! DARLEC_Grass has no wood @TLS
+    !     EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
+    ! endif
 
     ! In contrast to the leaf longevity labile carbon stocks can be quite long
     ! lived, particularly in forests.
@@ -1163,27 +1163,21 @@ module model_likelihood_module
         in_woodlitter     = sum(M_FLUXES(io_start:io_finish,11) &
                             +fire_residue_to_woodlitter(io_start:io_finish) &
                             +harvest_residue_to_woodlitter(io_start:io_finish))
-        out_woodlitter    = sum(
-                            ! M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
-                            M_FLUXES(io_start:io_finish,4) &
+        out_woodlitter    = sum(M_FLUXES(io_start:io_finish,4) & ! M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
                             +fire_emiss_woodlitter(io_start:io_finish) &
                             +fire_litter_woodlitter(io_start:io_finish) &
                             +harvest_extracted_woodlitter(io_start:io_finish))
         in_out_woodlitter_yr1 = sum(M_FLUXES(1:steps_per_year,11) &
                                 +fire_residue_to_woodlitter(1:steps_per_year) &
                                 +harvest_residue_to_woodlitter(1:steps_per_year)) &
-                           / sum(
-                                ! M_FLUXES(1:steps_per_year,20) & !DALEC_Grass has no fire emission from root, @TLS
-                                M_FLUXES(1:steps_per_year,4) &
+                           / sum(M_FLUXES(1:steps_per_year,4) & ! M_FLUXES(1:steps_per_year,20) & !DALEC_Grass has no fire emission from root, @TLS
                                 +fire_emiss_woodlitter(1:steps_per_year) &
                                 +fire_litter_woodlitter(1:steps_per_year) &
                                 +harvest_extracted_woodlitter(1:steps_per_year))
         in_out_woodlitter_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
                                 +fire_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +harvest_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2))) &
-                           / sum(
-                                ! M_FLUXES((steps_per_year+1):(steps_per_year*2),20) & !DALEC_Grass has no fire emission from root, @TLS
-                                M_FLUXES((steps_per_year+1):(steps_per_year*2),4) &
+                           / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),4) & ! M_FLUXES((steps_per_year+1):(steps_per_year*2),20) & !DALEC_Grass has no fire emission from root, @TLS
                                 +fire_emiss_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +fire_litter_woodlitter((steps_per_year+1):(steps_per_year*2)) &
                                 +harvest_extracted_woodlitter((steps_per_year+1):(steps_per_year*2)))
@@ -1938,12 +1932,12 @@ module model_likelihood_module
         likelihood = likelihood-tot_exp
     end if
 
-    ! Leaf C:N is derived from multiple parameters
-    if (DATAin%otherpriors(3) > -9998) then
-        tot_exp = pars(15) / (10d0**pars(11)) !SZ: Dalec_Grass does not have log10 avg foliar N (gN.m-2), @TLS
-        tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
-        likelihood = likelihood-tot_exp
-    end if
+    ! ! Leaf C:N is derived from multiple parameters
+    ! if (DATAin%otherpriors(3) > -9998) then
+    !     tot_exp = pars(15) / (10d0**pars(11)) !SZ: Dalec_Grass does not have log10 avg foliar N (gN.m-2), @TLS
+    !     tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
+    !     likelihood = likelihood-tot_exp
+    ! end if
 
     ! Estimate the biological steady state attractor on the wood pool.
     ! NOTE: this arrangement explicitly neglects the impact of harvest disturbance on
@@ -2304,12 +2298,12 @@ module model_likelihood_module
         scale_likelihood = scale_likelihood-tot_exp
     end if
 
-    ! Leaf C:N is derived from multiple parameters
-    if (DATAin%otherpriors(3) > -9998) then
-        tot_exp = pars(15) / (10d0**pars(11)) !SZ: DALEC_Grass has no log10 avg foliar N (gN.m-2), @TLS
-        tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
-        scale_likelihood = scale_likelihood-tot_exp
-    end if
+    ! ! Leaf C:N is derived from multiple parameters
+    ! if (DATAin%otherpriors(3) > -9998) then
+    !     tot_exp = pars(15) / (10d0**pars(11)) !SZ: DALEC_Grass has no log10 avg foliar N (gN.m-2), @TLS
+    !     tot_exp =  DATAin%otherpriorweight(3) * ((tot_exp-DATAin%otherpriors(3))/DATAin%otherpriorunc(3))**2
+    !     scale_likelihood = scale_likelihood-tot_exp
+    ! end if
 
     ! Estimate the biological steady state attractor on the wood pool.
     ! NOTE: this arrangement explicitly neglects the impact of disturbance on
