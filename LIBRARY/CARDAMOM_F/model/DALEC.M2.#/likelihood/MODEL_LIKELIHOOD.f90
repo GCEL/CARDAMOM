@@ -2167,18 +2167,20 @@ module model_likelihood_module
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nreco))
     endif
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! Cwood increment log-likelihood
-    if (DATAin%nCwood_inc > 0) then
-       tot_exp = 0d0
-       do n = 1, DATAin%nCwood_inc
-         dn = DATAin%Cwood_incpts(n)
-         s = max(0,dn-nint(DATAin%Cwood_inc_lag(dn)))+1
-         ! Estimate the mean allocation to wood over the lag period
-         tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
-         tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
-       end do
-       scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCwood_inc))
-    endif
+    ! if (DATAin%nCwood_inc > 0) then
+    !    tot_exp = 0d0
+    !    do n = 1, DATAin%nCwood_inc
+    !      dn = DATAin%Cwood_incpts(n)
+    !      s = max(0,dn-nint(DATAin%Cwood_inc_lag(dn)))+1
+    !      ! Estimate the mean allocation to wood over the lag period
+    !      tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
+    !      tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
+    !    end do
+    !    scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCwood_inc))
+    ! endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! Cwood mortality log-likelihood
     if (DATAin%nCwood_mortality > 0) then
