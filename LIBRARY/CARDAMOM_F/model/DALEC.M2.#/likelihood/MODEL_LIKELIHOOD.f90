@@ -1821,31 +1821,35 @@ module model_likelihood_module
        likelihood = likelihood-tot_exp
     endif
 
-    ! Cwood increment log-likelihood
-    if (DATAin%nCwood_inc > 0) then
-       tot_exp = 0d0
-       do n = 1, DATAin%nCwood_inc
-         dn = DATAin%Cwood_incpts(n)
-         s = max(0,dn-nint(DATAin%Cwood_inc_lag(dn)))+1
-         ! Estimate the mean allocation to wood over the lag period
-         tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
-         tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
-       end do
-       likelihood = likelihood-tot_exp
-    endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! ! Cwood increment log-likelihood
+    ! if (DATAin%nCwood_inc > 0) then
+    !    tot_exp = 0d0
+    !    do n = 1, DATAin%nCwood_inc
+    !      dn = DATAin%Cwood_incpts(n)
+    !      s = max(0,dn-nint(DATAin%Cwood_inc_lag(dn)))+1
+    !      ! Estimate the mean allocation to wood over the lag period
+    !      tmp_var = sum(DATAin%M_FLUXES(s:dn,7)) / DATAin%Cwood_inc_lag(dn)
+    !      tot_exp = tot_exp+((tmp_var-DATAin%Cwood_inc(dn)) / DATAin%Cwood_inc_unc(dn))**2
+    !    end do
+    !    likelihood = likelihood-tot_exp
+    ! endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    ! Cwood mortality log-likelihood
-    if (DATAin%nCwood_mortality > 0) then
-       tot_exp = 0d0
-       do n = 1, DATAin%nCwood_mortality
-         dn = DATAin%Cwood_mortalitypts(n)
-         s = max(0,dn-nint(DATAin%Cwood_mortality_lag(dn)))+1
-         ! Estimate the mean allocation to wood over the lag period
-         tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
-         tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
-       end do
-       likelihood = likelihood-tot_exp
-    endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! ! Cwood mortality log-likelihood
+    ! if (DATAin%nCwood_mortality > 0) then
+    !    tot_exp = 0d0
+    !    do n = 1, DATAin%nCwood_mortality
+    !      dn = DATAin%Cwood_mortalitypts(n)
+    !      s = max(0,dn-nint(DATAin%Cwood_mortality_lag(dn)))+1
+    !      ! Estimate the mean allocation to wood over the lag period
+    !      tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
+    !      tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
+    !    end do
+    !    likelihood = likelihood-tot_exp
+    ! endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
@@ -1884,18 +1888,20 @@ module model_likelihood_module
        likelihood = likelihood-tot_exp
     endif
 
-    ! Cwood log-likelihood (i.e. branch, stem and CR)
-    if (DATAin%nCwood_stock > 0) then
-       ! Create vector of (Wood_t0 + Wood_t1) * 0.5
-       mid_state = ( DATAin%M_POOLS(1:DATAin%nodays,4) + DATAin%M_POOLS(2:(DATAin%nodays+1),4) ) &
-                 * 0.5d0
-       ! Vectorised version of loop to estimate cost function
-       tot_exp = sum(( (mid_state(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)) &
-                       -DATAin%Cwood_stock(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))&
-                     / DATAin%Cwood_stock_unc(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))**2)
-       ! Combine with existing likelihood estimate
-       likelihood = likelihood-tot_exp
-    endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! ! Cwood log-likelihood (i.e. branch, stem and CR)
+    ! if (DATAin%nCwood_stock > 0) then
+    !    ! Create vector of (Wood_t0 + Wood_t1) * 0.5
+    !    mid_state = ( DATAin%M_POOLS(1:DATAin%nodays,4) + DATAin%M_POOLS(2:(DATAin%nodays+1),4) ) &
+    !              * 0.5d0
+    !    ! Vectorised version of loop to estimate cost function
+    !    tot_exp = sum(( (mid_state(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)) &
+    !                    -DATAin%Cwood_stock(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))&
+    !                  / DATAin%Cwood_stock_unc(DATAin%Cwood_stockpts(1:DATAin%nCwood_stock)))**2)
+    !    ! Combine with existing likelihood estimate
+    !    likelihood = likelihood-tot_exp
+    ! endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! Croots log-likelihood
     if (DATAin%nCroots_stock > 0) then
@@ -1962,16 +1968,18 @@ module model_likelihood_module
     ! Estimate the biological steady state attractor on the wood pool.
     ! NOTE: this arrangement explicitly neglects the impact of harvest disturbance on
     ! residence time (i.e. biomass removal)
-    if (DATAin%otherpriors(5) > -9998) then
-        ! Estimate the mean annual input to the wood pool (gC.m-2.yr-1) and remove
-        ! the yr-1 by multiplying by residence time (yr)
-!        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0)) !SZ: DALEC_Grass has no wood pool
-        input = sum(DATAin%M_FLUXES(:,7))
-        output = sum(DATAin%M_POOLS(:,4) / (DATAin%M_FLUXES(:,11)+fire_emiss_wood+fire_litter_wood))
-        tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
-        tot_exp =  DATAin%otherpriorweight(5) * ((tot_exp-DATAin%otherpriors(5))/DATAin%otherpriorunc(5))**2
-        likelihood = likelihood-tot_exp
-    endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     if (DATAin%otherpriors(5) > -9998) then
+!         ! Estimate the mean annual input to the wood pool (gC.m-2.yr-1) and remove
+!         ! the yr-1 by multiplying by residence time (yr)
+! !        tot_exp = (sum(DATAin%M_FLUXES(:,7)) / dble(DATAin%nodays)) * (pars(6) ** (-1d0)) !SZ: DALEC_Grass has no wood pool
+!         input = sum(DATAin%M_FLUXES(:,7))
+!         output = sum(DATAin%M_POOLS(:,4) / (DATAin%M_FLUXES(:,11)+fire_emiss_wood+fire_litter_wood))
+!         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
+!         tot_exp =  DATAin%otherpriorweight(5) * ((tot_exp-DATAin%otherpriors(5))/DATAin%otherpriorunc(5))**2
+!         likelihood = likelihood-tot_exp
+!     endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -2202,18 +2210,20 @@ module model_likelihood_module
     ! endif
     !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    ! Cwood mortality log-likelihood
-    if (DATAin%nCwood_mortality > 0) then
-       tot_exp = 0d0
-       do n = 1, DATAin%nCwood_mortality
-         dn = DATAin%Cwood_mortalitypts(n)
-         s = max(0,dn-nint(DATAin%Cwood_mortality_lag(dn)))+1
-         ! Estimate the mean allocation to wood over the lag period
-         tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
-         tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
-       end do
-       scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCwood_mortality))
-    endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! ! Cwood mortality log-likelihood
+    ! if (DATAin%nCwood_mortality > 0) then
+    !    tot_exp = 0d0
+    !    do n = 1, DATAin%nCwood_mortality
+    !      dn = DATAin%Cwood_mortalitypts(n)
+    !      s = max(0,dn-nint(DATAin%Cwood_mortality_lag(dn)))+1
+    !      ! Estimate the mean allocation to wood over the lag period
+    !      tmp_var = sum(DATAin%M_FLUXES(s:dn,11)) / DATAin%Cwood_mortality_lag(dn)
+    !      tot_exp = tot_exp+((tmp_var-DATAin%Cwood_mortality(dn)) / DATAin%Cwood_mortality_unc(dn))**2
+    !    end do
+    !    scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCwood_mortality))
+    ! endif
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! Cfoliage log-likelihood
     if (DATAin%nCfol_stock > 0) then
