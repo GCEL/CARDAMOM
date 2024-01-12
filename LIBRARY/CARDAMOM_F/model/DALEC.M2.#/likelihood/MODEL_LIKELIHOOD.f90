@@ -872,7 +872,9 @@ module model_likelihood_module
     sumlab = sum(M_FLUXES(:,5))
     sumfol = sum(M_FLUXES(:,8))
     sumroot = sum(M_FLUXES(:,6))
-    sumwood = sum(M_FLUXES(:,7))
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! sumwood = sum(M_FLUXES(:,7))
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! initialise and then calculate mean gpp values
     fauto = sumrauto / sumgpp            ! i.e. Ra:GPP = 1-CUE
@@ -886,7 +888,9 @@ module model_likelihood_module
     ! NPP allocations; note that because of possible labile accumulation this
     ! might not be equal to 1
     fNPP = sumfol * sumnpp
-    wNPP = sumwood * sumnpp
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! wNPP = sumwood * sumnpp
+    !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     rNPP = sumroot * sumnpp
 
     ! derive mean pools
@@ -1018,7 +1022,9 @@ module model_likelihood_module
         sumlab_yr1 = sum(M_FLUXES(1:steps_per_year,5)) ; sumlab_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),5))
         sumfol_yr1 = sum(M_FLUXES(1:steps_per_year,8)) ; sumfol_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),8))
         sumroot_yr1 = sum(M_FLUXES(1:steps_per_year,6)) ; sumroot_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),6))
-        sumwood_yr1 = sum(M_FLUXES(1:steps_per_year,7)) ; sumwood_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),7))
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! sumwood_yr1 = sum(M_FLUXES(1:steps_per_year,7)) ; sumwood_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),7))
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Determine the input / output ratio
 
@@ -1084,22 +1090,24 @@ module model_likelihood_module
                                            +harvest_residue_roots((steps_per_year+1):(steps_per_year*2)))
         ! Cwood
 !        in_out_wood = sumwood / sum(M_FLUXES(:,11)+fire_emiss_wood+fire_litter_wood+harvest_loss_wood)
-        in_wood     = sum(M_FLUXES(io_start:io_finish,7))
-        out_wood    = sum(M_FLUXES(io_start:io_finish,11) &
-                         +fire_emiss_wood(io_start:io_finish) &
-                         +fire_litter_wood(io_start:io_finish) &
-                         +harvest_extracted_wood(io_start:io_finish) &
-                         +harvest_residue_wood(io_start:io_finish))
-        in_out_wood_yr1 = sumwood_yr1 / sum(M_FLUXES(1:steps_per_year,11) &
-                                           +fire_emiss_wood(1:steps_per_year) &
-                                           +fire_litter_wood(1:steps_per_year) &
-                                           +harvest_extracted_wood(1:steps_per_year) &
-                                           +harvest_residue_wood(1:steps_per_year))
-        in_out_wood_yr2 = sumwood_yr2 / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
-                                           +fire_emiss_wood((steps_per_year+1):(steps_per_year*2)) &
-                                           +fire_litter_wood((steps_per_year+1):(steps_per_year*2)) &
-                                           +harvest_extracted_wood((steps_per_year+1):(steps_per_year*2)) &
-                                           +harvest_residue_wood((steps_per_year+1):(steps_per_year*2)))
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! in_wood     = sum(M_FLUXES(io_start:io_finish,7))
+        ! out_wood    = sum(M_FLUXES(io_start:io_finish,11) &
+        !                  +fire_emiss_wood(io_start:io_finish) &
+        !                  +fire_litter_wood(io_start:io_finish) &
+        !                  +harvest_extracted_wood(io_start:io_finish) &
+        !                  +harvest_residue_wood(io_start:io_finish))
+        ! in_out_wood_yr1 = sumwood_yr1 / sum(M_FLUXES(1:steps_per_year,11) &
+        !                                    +fire_emiss_wood(1:steps_per_year) &
+        !                                    +fire_litter_wood(1:steps_per_year) &
+        !                                    +harvest_extracted_wood(1:steps_per_year) &
+        !                                    +harvest_residue_wood(1:steps_per_year))
+        ! in_out_wood_yr2 = sumwood_yr2 / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
+        !                                    +fire_emiss_wood((steps_per_year+1):(steps_per_year*2)) &
+        !                                    +fire_litter_wood((steps_per_year+1):(steps_per_year*2)) &
+        !                                    +harvest_extracted_wood((steps_per_year+1):(steps_per_year*2)) &
+        !                                    +harvest_residue_wood((steps_per_year+1):(steps_per_year*2)))
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! Clitter
 !        in_out_lit = sum(M_FLUXES(:,10) &
 !                        +M_FLUXES(:,12) &
@@ -1160,27 +1168,29 @@ module model_likelihood_module
         ! Cwoodlitter
 !        in_out_woodlitter = sum(M_FLUXES(:,11)+fire_residue_to_woodlitter+harvest_residue_to_woodlitter) &
 !                       / sum(M_FLUXES(:,20)+M_FLUXES(:,4)+fire_emiss_woodlitter+fire_litter_woodlitter+harvest_loss_woodlitter)
-        in_woodlitter     = sum(M_FLUXES(io_start:io_finish,11) &
-                            +fire_residue_to_woodlitter(io_start:io_finish) &
-                            +harvest_residue_to_woodlitter(io_start:io_finish))
-        out_woodlitter    = sum(M_FLUXES(io_start:io_finish,4) & ! M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
-                            +fire_emiss_woodlitter(io_start:io_finish) &
-                            +fire_litter_woodlitter(io_start:io_finish) &
-                            +harvest_extracted_woodlitter(io_start:io_finish))
-        in_out_woodlitter_yr1 = sum(M_FLUXES(1:steps_per_year,11) &
-                                +fire_residue_to_woodlitter(1:steps_per_year) &
-                                +harvest_residue_to_woodlitter(1:steps_per_year)) &
-                           / sum(M_FLUXES(1:steps_per_year,4) & ! M_FLUXES(1:steps_per_year,20) & !DALEC_Grass has no fire emission from root, @TLS
-                                +fire_emiss_woodlitter(1:steps_per_year) &
-                                +fire_litter_woodlitter(1:steps_per_year) &
-                                +harvest_extracted_woodlitter(1:steps_per_year))
-        in_out_woodlitter_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
-                                +fire_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2)) &
-                                +harvest_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2))) &
-                           / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),4) & ! M_FLUXES((steps_per_year+1):(steps_per_year*2),20) & !DALEC_Grass has no fire emission from root, @TLS
-                                +fire_emiss_woodlitter((steps_per_year+1):(steps_per_year*2)) &
-                                +fire_litter_woodlitter((steps_per_year+1):(steps_per_year*2)) &
-                                +harvest_extracted_woodlitter((steps_per_year+1):(steps_per_year*2)))
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! in_woodlitter     = sum(M_FLUXES(io_start:io_finish,11) &
+        !                     +fire_residue_to_woodlitter(io_start:io_finish) &
+        !                     +harvest_residue_to_woodlitter(io_start:io_finish))
+        ! out_woodlitter    = sum(M_FLUXES(io_start:io_finish,4) & ! M_FLUXES(io_start:io_finish,20) & !DALEC_Grass has no fire emission from root, @TLS
+        !                     +fire_emiss_woodlitter(io_start:io_finish) &
+        !                     +fire_litter_woodlitter(io_start:io_finish) &
+        !                     +harvest_extracted_woodlitter(io_start:io_finish))
+        ! in_out_woodlitter_yr1 = sum(M_FLUXES(1:steps_per_year,11) &
+        !                         +fire_residue_to_woodlitter(1:steps_per_year) &
+        !                         +harvest_residue_to_woodlitter(1:steps_per_year)) &
+        !                    / sum(M_FLUXES(1:steps_per_year,4) & ! M_FLUXES(1:steps_per_year,20) & !DALEC_Grass has no fire emission from root, @TLS
+        !                         +fire_emiss_woodlitter(1:steps_per_year) &
+        !                         +fire_litter_woodlitter(1:steps_per_year) &
+        !                         +harvest_extracted_woodlitter(1:steps_per_year))
+        ! in_out_woodlitter_yr2 = sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),11) &
+        !                         +fire_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2)) &
+        !                         +harvest_residue_to_woodlitter((steps_per_year+1):(steps_per_year*2))) &
+        !                    / sum(M_FLUXES((steps_per_year+1):(steps_per_year*2),4) & ! M_FLUXES((steps_per_year+1):(steps_per_year*2),20) & !DALEC_Grass has no fire emission from root, @TLS
+        !                         +fire_emiss_woodlitter((steps_per_year+1):(steps_per_year*2)) &
+        !                         +fire_litter_woodlitter((steps_per_year+1):(steps_per_year*2)) &
+        !                         +harvest_extracted_woodlitter((steps_per_year+1):(steps_per_year*2)))
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Assess pool dynamics relative to their own steady state attractors
         ! Based on Bloom et al (2016), PNAS. Combination of the in/out ratio and
@@ -1217,10 +1227,12 @@ module model_likelihood_module
         ! Wood
 !        Rs = in_out_wood * (jan_mean_pools(4) / jan_first_pools(4))
 !        if (abs(Rs-in_out_wood) > 0.1d0 .or. abs(log(in_out_wood)) > EQF10) then
-        if (abs(abs(log(in_out_wood_yr1)) - abs(log(in_out_wood_yr2))) > etol .or. &
-            abs(log(in_wood/out_wood)) > EQF2) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(25) = 0
-        end if
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! if (abs(abs(log(in_out_wood_yr1)) - abs(log(in_out_wood_yr2))) > etol .or. &
+        !     abs(log(in_wood/out_wood)) > EQF2) then
+        !     EDC2 = 0d0 ; EDCD%PASSFAIL(25) = 0
+        ! end if
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Foliage and root litter
 !        Rs = in_out_lit * (jan_mean_pools(5) / jan_first_pools(5))
@@ -1241,10 +1253,12 @@ module model_likelihood_module
         ! Coarse+fine woody debris
 !        Rs = in_out_woodlitter * (jan_mean_pools(7) / jan_first_pools(7))
 !        if (abs(Rs-in_out_woodlitter) > 0.1d0 .or. abs(log(in_out_woodlitter)) > EQF10) then
-        if (abs(abs(log(in_out_woodlitter_yr1)) - abs(log(in_out_woodlitter_yr2))) > etol .or. &
-            abs(log(in_woodlitter/out_woodlitter)) > EQF2) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(28) = 0
-        end if
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! if (abs(abs(log(in_out_woodlitter_yr1)) - abs(log(in_out_woodlitter_yr2))) > etol .or. &
+        !     abs(log(in_woodlitter/out_woodlitter)) > EQF2) then
+        !     EDC2 = 0d0 ; EDCD%PASSFAIL(28) = 0
+        ! end if
+!!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Determine the steady state estimate of wood (gC/m2)
         SSwood = (in_wood/out_wood) * jan_mean_pools(4)
