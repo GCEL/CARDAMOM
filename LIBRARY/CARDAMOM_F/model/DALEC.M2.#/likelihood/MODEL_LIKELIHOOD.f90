@@ -1261,28 +1261,34 @@ module model_likelihood_module
 !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ! Determine the steady state estimate of wood (gC/m2)
-        SSwood = (in_wood/out_wood) * jan_mean_pools(4)
-        ! Based on the wood SS (gC/m2) and the sum fractional loss per day determine the mean input to woodlitter...
-        SSwoodlitter = SSwood * (out_wood/jan_mean_pools(4))
-        ! ...then estimate the actual steady state wood litter
-        SSwoodlitter = (SSwoodlitter/out_woodlitter) * jan_mean_pools(7)
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! SSwood = (in_wood/out_wood) * jan_mean_pools(4)
+        ! ! Based on the wood SS (gC/m2) and the sum fractional loss per day determine the mean input to woodlitter...
+        ! SSwoodlitter = SSwood * (out_wood/jan_mean_pools(4))
+        ! ! ...then estimate the actual steady state wood litter
+        ! SSwoodlitter = (SSwoodlitter/out_woodlitter) * jan_mean_pools(7)
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! Steady state of som requires accounting for foliar, fine root and wood litter inputs
         ! and adjusting for the woodlitter input already included
         SSsom = in_som ! - sum(M_FLUXES(io_start:io_finish,20)) !DALEC_Grass has no fire emission from root, @TLS
         ! Now repeat the process as done for woodlitter to estimate the inputs,
         ! adjusting for the fraction of woodlitter output which is respired not decomposed
-        SSsom = SSsom + (SSwoodlitter * (out_woodlitter/jan_mean_pools(7)) * pars(1))
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! SSsom = SSsom + (SSwoodlitter * (out_woodlitter/jan_mean_pools(7)) * pars(1))
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! Accounting for losses and scaling to SSsom
         SSsom = (SSsom / out_som) * jan_mean_pools(6)
         ! It is reasonable to assume that the steady state for woody litter
         ! should be ~ less than half that of woody biomass...
-        if (SSwoodlitter / SSwood > 0.60d0  ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(29) = 0
-        end if
-        ! ... and less than soil organic matter
-        if ( SSsom < SSwoodlitter ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(30) = 0
-        end if
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! if (SSwoodlitter / SSwood > 0.60d0  ) then
+        !     EDC2 = 0d0 ; EDCD%PASSFAIL(29) = 0
+        ! end if
+        ! ! ... and less than soil organic matter
+        ! if ( SSsom < SSwoodlitter ) then
+        !     EDC2 = 0d0 ; EDCD%PASSFAIL(30) = 0
+        ! end if
+        !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! It is reasonable to assume that the steady state for woody litter
 !        ! should be ~ less than half that of woody biomass...
 !        if ((in_out_woodlitter * jan_mean_pools(7)) / (in_out_wood * jan_mean_pools(4)) > 0.60d0  ) then
