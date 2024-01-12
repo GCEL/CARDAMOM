@@ -2073,6 +2073,7 @@ module model_likelihood_module
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
         scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nnbe))
+        print*,"scale - nbe",scale_likelihood !SZ: print likehood, for debugging only
     endif ! nnbe > 0
 !print*,"scale_likelihood: NBE done"
 !print*,"scale_likelihood: GPP"
