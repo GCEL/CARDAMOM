@@ -2161,7 +2161,12 @@ module model_likelihood_module
        ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(15) to convert foliage C to LAI
        mid_state = ( ( DATAin%M_POOLS(1:DATAin%nodays,2) + DATAin%M_POOLS(2:(DATAin%nodays+1),2) ) &
                  * 0.5d0 ) / pars(15)
-       print*,"scale - M_POOLS",DATAin%M_POOLS(1:DATAin%nodays,2) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS labile:",DATAin%M_POOLS(1:DATAin%nodays,1) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS foliar:",DATAin%M_POOLS(1:DATAin%nodays,2) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS root:",DATAin%M_POOLS(1:DATAin%nodays,3) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS wood*:",DATAin%M_POOLS(1:DATAin%nodays,4) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS litter:",DATAin%M_POOLS(1:DATAin%nodays,5) !SZ: print likehood, for debugging only
+       print*,"scale - M_POOLS som:",DATAin%M_POOLS(1:DATAin%nodays,6) !SZ: print likehood, for debugging only
        ! Split loop to allow vectorisation
        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
