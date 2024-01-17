@@ -2030,6 +2030,7 @@ module model_likelihood_module
 !    endif
     ! NBE Log-likelihood
     ! NBE partitioned between the mean flux and seasonal anomalies
+    print*,"scale - begin",scale_likelihood !SZ: print likehood, for debugging only
     if (DATAin%nnbe > 0) then
 !        ! Determine the mean value for model, observtion and uncertainty estimates
 !        obs   = sum(DATAin%NBE(DATAin%nbepts(1:DATAin%nnbe))) &
@@ -2112,6 +2113,7 @@ module model_likelihood_module
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
         scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%ngpp))
+        print*,"scale - gpp",scale_likelihood !SZ: print likehood, for debugging only
     endif
 !print*,"scale_likelihood: GPP done"
 !print*,"scale_likelihood: Fire"
@@ -2150,6 +2152,7 @@ module model_likelihood_module
         end do ! loop years
         ! Update the likelihood score with the anomaly estimates
         scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nFire))
+        print*,"scale - fire",scale_likelihood !SZ: print likehood, for debugging only
     endif
 !print*,"scale_likelihood: Fire done"
     ! LAI log-likelihood
@@ -2158,6 +2161,7 @@ module model_likelihood_module
        ! Create vector of (LAI_t0 + LAI_t1) * 0.5, note / pars(15) to convert foliage C to LAI
        mid_state = ( ( DATAin%M_POOLS(1:DATAin%nodays,2) + DATAin%M_POOLS(2:(DATAin%nodays+1),2) ) &
                  * 0.5d0 ) / pars(15)
+       print*,"scale - M_POOLS",DATAin%M_POOLS(1:DATAin%nodays,2) !SZ: print likehood, for debugging only
        ! Split loop to allow vectorisation
        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
@@ -2175,6 +2179,7 @@ module model_likelihood_module
          endif
        end do
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nlai))
+       print*,"scale - lai",scale_likelihood !SZ: print likehood, for debugging only
     endif
 
     ! NEE likelihood
@@ -2182,6 +2187,7 @@ module model_likelihood_module
        tot_exp = sum(((DATAin%M_NEE(DATAin%neepts(1:DATAin%nnee))-DATAin%NEE(DATAin%neepts(1:DATAin%nnee))) &
                        /DATAin%NEE_unc(DATAin%neepts(1:DATAin%nnee)))**2)
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nnee))
+       print*,"scale - nee",scale_likelihood !SZ: print likehood, for debugging only
     endif
 
     ! Reco likelihood
@@ -2194,6 +2200,7 @@ module model_likelihood_module
          tot_exp = tot_exp+((tmp_var-DATAin%Reco(dn))/DATAin%Reco_unc(dn))**2
        end do
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nreco))
+       print*,"scale - reco",scale_likelihood !SZ: print likehood, for debugging only
     endif
 
     !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2237,6 +2244,7 @@ module model_likelihood_module
                      / DATAin%Cfol_stock_unc(DATAin%Cfol_stockpts(1:DATAin%nCfol_stock)))**2)
        ! Sum with current likelihood score
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCfol_stock))
+       print*,"scale - Cfol_stock",scale_likelihood !SZ: print likehood, for debugging only
     endif
 
     ! Annual foliar maximum
@@ -2261,6 +2269,7 @@ module model_likelihood_module
          tot_exp = tot_exp+((tmp_var-DATAin%Cfolmax_stock(dn)) / DATAin%Cfolmax_stock_unc(dn))**2
        end do
        scale_likelihood = scale_likelihood-(tot_exp/dble(DATAin%nCfolmax_stock))
+       print*,"scale - Cfolmax_stock",scale_likelihood !SZ: print likehood, for debugging only
     endif
 
     !!!!!!!!!!!!!!!!!!!!!!!!!! SZ commented out for DALEC_Grass as it hsa no wood pool, 20240112!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
