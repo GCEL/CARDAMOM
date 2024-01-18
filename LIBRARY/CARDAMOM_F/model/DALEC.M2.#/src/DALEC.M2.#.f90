@@ -416,7 +416,7 @@ contains
       ! calculate LAI value
       
       ! fixed LMA :
-      LMA = pars(15)
+      LMA = pars(15) !SZ debugging log: LMA is fine, keeps around 36 18/01/2024
       LAI(n) = POOLS(n,2) / LMA 
 
       ! load next met / lai values for ACM
