@@ -2167,6 +2167,7 @@ module model_likelihood_module
        print*,"scale - M_POOLS wood*:",DATAin%M_POOLS(1:DATAin%nodays,4) !SZ: print likehood, for debugging only
        print*,"scale - M_POOLS litter:",DATAin%M_POOLS(1:DATAin%nodays,5) !SZ: print likehood, for debugging only
        print*,"scale - M_POOLS som:",DATAin%M_POOLS(1:DATAin%nodays,6) !SZ: print likehood, for debugging only
+       print*,"scale - M_GPP:",DATAin%M_FLUXES(1:DATAin%nodays,1) !SZ: print likehood, for debugging only
        ! Split loop to allow vectorisation
        tot_exp = sum(((mid_state(DATAin%laipts(1:DATAin%nlai))-DATAin%LAI(DATAin%laipts(1:DATAin%nlai))) &
                        /DATAin%LAI_unc(DATAin%laipts(1:DATAin%nlai)))**2)
