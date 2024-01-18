@@ -417,7 +417,7 @@ contains
       
       ! fixed LMA :
       LMA = pars(15) !SZ debugging log: LMA is fine, keeps around 36 18/01/2024
-      LAI(n) = POOLS(n,2) / LMA 
+      LAI(n) = POOLS(n,2) / LMA !SZ debugging log: the issue is with POOLS(n, 2)
 
       ! load next met / lai values for ACM
       gpppars(1)=LAI(n)   ! LAI
