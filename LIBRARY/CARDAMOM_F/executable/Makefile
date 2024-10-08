@@ -10,6 +10,7 @@ linker_style   = dynamic  # dynamic or static
 
 general_SOURCES = ../misc/math_functions.f90  \
                   ../misc/oksofar.f90  \
+                  ../misc/brent_zero/brent_zero.f90  \
                   ../general/cardamom_structures.f90 \
                   ../method/MHMCMC/MCMC_FUN/MHMCMC_STRUCTURES.f90 \
                   ../model/DALEC_CDEA_FR/src/DALEC_CDEA_FR_PARS.f90 \
