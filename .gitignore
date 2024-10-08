@@ -1,0 +1,24 @@
+# Fortran files
+**/*.mod
+**/*.exe
+#*.bin
+**/*.so
+**/*.o
+
+## Scorep
+*.scorep_init.c
+
+## Text editor aux
+**/*.swp
+
+## Results directory
+FI-Hyy_example/RESULTS/
+
+## Misc
+*.DS_Store*
+.vscode/
+CARDAMOM_F/executable/make_dep
+## potential copyright issue
+CARDAMOM_F/misc/brent_zero/cardamom_zbrent.*
+
+**/*gprof*.txt
