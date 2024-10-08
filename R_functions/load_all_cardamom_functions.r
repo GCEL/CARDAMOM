@@ -79,7 +79,9 @@ list_o_functions=list_o_functions[loser_list]
 loser_list=grepl(".r",list_o_functions)
 list_o_functions=list_o_functions[loser_list]
 # now go throught the list can call the files
+if (length(list_o_functions) >=1 ){
 for (i in seq(1, length(list_o_functions))) {
-#    print(paste("...loading R script = ",list_o_functions[i],sep=""))
+    #print(paste("...loading R script = ",list_o_functions[i],sep=""))
     source(list_o_functions[i])
+}
 }
