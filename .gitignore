@@ -15,9 +15,12 @@
 FI-Hyy_example/RESULTS/
 
 ## Misc
+LIBRARY/Makefile 
 *.DS_Store*
 .vscode/
 CARDAMOM_F/executable/make_dep
+LIBRARY/zbrent-testcompile/
+
 ## potential copyright issue
 CARDAMOM_F/misc/brent_zero/cardamom_zbrent.*
 

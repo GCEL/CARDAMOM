@@ -27,7 +27,7 @@ module cardamom_zbrent
 
     ! Interfaces are the correct way to pass procedures as arguments.
     interface
-      double precision pure function func( xval )
+      double precision function func( xval )
         double precision, intent(in):: xval
       end function func
     end interface
