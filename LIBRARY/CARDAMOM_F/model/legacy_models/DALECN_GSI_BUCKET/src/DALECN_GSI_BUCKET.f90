@@ -2147,7 +2147,7 @@ contains
 
     ! field capacity calculations for saxton eqns !
     
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 

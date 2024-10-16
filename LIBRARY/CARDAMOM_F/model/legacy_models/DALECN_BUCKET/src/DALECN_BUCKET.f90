@@ -2089,7 +2089,7 @@ contains
     ! based on potential hydraulic flow, air temperature and absorbed radiation.
     ! 2) calculates absorbed shortwave radiation (W.m-2) as function of LAI
 
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 
@@ -2522,7 +2522,7 @@ contains
 
     ! field capacity calculations for saxton eqns !
     
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 

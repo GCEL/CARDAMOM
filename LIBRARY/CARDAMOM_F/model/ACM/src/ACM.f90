@@ -1039,7 +1039,7 @@ contains
   !
   subroutine calculate_stomatal_conductance(deltaWP, Rtot)
 
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     ! Determines 1) an approximation of canopy conductance (gc) mmolH2O.m-2.s-1
     ! based on potential hydraulic flow, air temperature and absorbed radiation.
@@ -1506,7 +1506,7 @@ contains
 
     ! field capacity calculations for saxton eqns !
     
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 

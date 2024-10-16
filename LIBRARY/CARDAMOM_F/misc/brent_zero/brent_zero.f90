@@ -1,6 +1,6 @@
 module brent_zero
   contains
-function zero ( called_from, f, a, b,  t, ftol )
+function zbrent ( called_from, f, a, b,  t_2, ftol )
 
 !*****************************************************************************80
 !
@@ -45,32 +45,33 @@ function zero ( called_from, f, a, b,  t, ftol )
 !    Input, real ( kind = dp ) A, B, the endpoints of the change of 
 !    sign interval.
 !
-!    Input, real ( kind = dp ) MACHEP, an estimate for the relative machine
-!    precision.
 !
-!    Input, real ( kind = dp ) T, a positive error tolerance.
+!    Input, real ( kind = dp ) T_2, a positive error tolerance, 2*T.
+
+!    Input, real ( kind = dp ) ftol, tolerance on function magnitude.
 !
 !    Input, external real ( kind = dp ) F, the name of a user-supplied
 !    function, of the form "FUNCTION F ( X )", which evaluates the
 !    function whose zero is being sought.
 !
-!    Output, real ( kind = dp ) ZERO, the estimated value of a zero of
+!    Output, real ( kind = dp ) zbrent, the estimated value of a zero of
 !    the function F.
 !
-!    2024 jklebes: 
+!    2024 jklebes modified for CARDAMOM: 
 !       - pulled this function from brent.f90 and wrapped it in a module
+!       - renamed from ZERO to zbrent
 !       - kind 8 -> dp
-!       - wrap function argument in interface
-!       - arguements number an order to match calls in CARDAMOM
+!       - wrap function argument in interface.  Not pure.
+!       - arguments number and order to match calls in CARDAMOM
 !       - added loop counter and limit ITMAX = 8 after cardamom
-!       - exit vs return
 !       - adjusted tolerances setting to match CARDAMOM
 !         - added ftol
 !         - MACHEP-brent had input argument, cardamom had hard-coded 6d-8, 
 !                    I use intrinsic
-!       TODO is maxiter = 8 too small ?
+!       - argument t halved on entry to match cardamom zbrent
   implicit none
   integer, parameter:: dp = kind(1.d0)
+  real ( kind = dp )  :: zbrent
   character(len=*), intent(in):: called_from  ! name of procedure calling (used to pass through for errors)
   real ( kind = dp ), intent(in):: a, b
   real ( kind = dp ) c
@@ -88,15 +89,15 @@ function zero ( called_from, f, a, b,  t, ftol )
   real ( kind = dp ) sa
   real ( kind = dp ) sb
   real ( kind = dp ), intent(in) ::  ftol   ! tolerance on magnitude of f
-  real ( kind = dp ), intent(in) ::  t  ! input, = 2*t 
+  real ( kind = dp ), intent(in) ::  t_2  ! input, = 2*t 
+  real ( kind = dp )  ::  t  
   real ( kind = dp ) tol      ! for iteratively updated tolerance
-  real ( kind = dp ) zero 
   integer            :: iter
   integer, parameter:: ITMAX = 8
 
   
   interface
-     pure function f( val )
+     function f( val )
       integer, parameter:: dp = selected_real_kind(15, 9)
       real ( kind = dp ), intent(in):: val
       real ( kind = dp )            :: f
@@ -104,6 +105,7 @@ function zero ( called_from, f, a, b,  t, ftol )
   end interface
 
   machep = epsilon(0d0)
+  t = 0.5_dp*t_2
 
 !
 !  Make local copies of A and B.
@@ -137,7 +139,7 @@ function zero ( called_from, f, a, b,  t, ftol )
     m = 0.5D+00 * ( c-sb )
 
     if ( abs ( m ) <= tol .or. abs(fb) < ftol ) then
-      zero = sb
+      zbrent = sb
       return
     end if
 
@@ -206,7 +208,7 @@ function zero ( called_from, f, a, b,  t, ftol )
 
   end do
 
-  zero = sb
+  zbrent = sb
 
   return
 end function

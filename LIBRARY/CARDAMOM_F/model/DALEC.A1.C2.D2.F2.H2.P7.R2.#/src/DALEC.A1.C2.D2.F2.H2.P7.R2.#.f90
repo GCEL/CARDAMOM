@@ -1710,7 +1710,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Determines an approximation of canopy scale stomatal conductance (gc)
     ! mmolH2O.m-2.s-1 based on potential hydraulic flow, air temperature and absorbed radiation.
 
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 
@@ -2120,7 +2120,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! field capacity calculations for saxton eqns !
     
-    use cardamom_zbrent, only: zbrent
+    use brent_zero, only: zbrent
 
     implicit none
 
