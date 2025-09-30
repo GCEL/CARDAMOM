@@ -29,7 +29,7 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine rdalec4(output_dim,MTT_dim,SS_dim &
+subroutine rdalec32(output_dim,MTT_dim,SS_dim &
                   ,met,pars &
                   ,out_var1,out_var2,out_var3,out_var4,out_var5 &
                   ,lat,nopars,nomet &
@@ -316,4 +316,4 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
   ! return back to the subroutine then
   return
 
-end subroutine rdalec4
+end subroutine rdalec32
