@@ -280,7 +280,7 @@ read_parameter_chains<- function(PROJECT_in,n) {
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.R1.005" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.006" ||
       PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.007" || PROJECT_in$model$name == "DALEC.A2.C1.D2.F2.H2.P1.020" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P2.018" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P5.021" ||
-      PROJECT_in$model$name == "DALEC.A4.C6.D2.F2.H2.P11.031") {
+      PROJECT_in$model$name == "DALEC.A4.C6.D2.F2.H2.P11.031" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H4.P1.032" ) {
       param_sets_out[c(12,15),,] = ((param_sets_out[c(12,15),,]-1)%%365.25)+1
   }
   if (PROJECT_in$model$name == "DALEC.C5.D1.F2.P1.013") {

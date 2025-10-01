@@ -7668,9 +7668,273 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     states_all$NPP_roots_fraction = NPP_fraction[,2]
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
+  } else if (model_name == "DALEC.A1.C1.D2.F2.H4.P1.032") {
+    output_dim = 65 ; MTT_dim = 6 ; SS_dim = 6
+    dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
+    tmp=.Fortran( "rdalec32",output_dim=as.integer(output_dim)
+                  ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
+                  ,met=as.double(t(met))
+                  ,pars=as.double(pars_in)
+                  ,out_var1=as.double(array(0,dim=c(nos_iter,(dim(met)[1]),output_dim)))
+                  ,out_var2=as.double(array(0,dim=c(nos_iter,MTT_dim)))
+                  ,out_var3=as.double(array(0,dim=c(nos_iter,SS_dim)))
+                  ,out_var4=as.double(array(0,dim=c(nos_iter,output_dim)))
+                  ,out_var5=as.double(array(0,dim=c(nos_iter,noyears,output_dim)))                                    
+                  ,lat=as.double(lat)
+                  ,nopars=as.integer(PROJECT$model$nopars[site]),nomet=as.integer(dim(met)[2])
+                  ,nofluxes=as.integer(PROJECT$model$nofluxes[site]),nopools=as.integer(PROJECT$model$nopools[site])
+                  ,nodiags=as.integer(PROJECT$model$nodiags[site]),nodays=as.integer(dim(met)[1])
+                  ,nos_years=as.integer(noyears)
+                  ,deltat=as.double(array(0,dim=c(as.integer(dim(met)[1])))),nos_iter=as.integer(nos_iter)
+                  ,soil_frac_clay_in=as.double(c(soil_info[3],soil_info[4],soil_info[4]))
+                  ,soil_frac_sand_in=as.double(c(soil_info[1],soil_info[2],soil_info[2])))
+    output = tmp$out_var1        ; output = array(output, dim=c(nos_iter,(dim(met)[1]),output_dim))
+    output_mean = tmp$out_var4   ; output_mean = array(output_mean, dim=c(nos_iter,output_dim))
+    output_annual = tmp$out_var5 ; output_annual = array(output_annual, dim=c(nos_iter,noyears,output_dim))      
+    MTT_years = tmp$out_var2     ; MTT_years = array(MTT_years, dim=c(nos_iter,MTT_dim))
+    SS_gCm2 = tmp$out_var3       ; SS_gCm2 = array(SS_gCm2, dim=c(nos_iter,SS_dim))
+    # Unload the current dalec shared object
+    dyn.unload(paste(PROJECT$exepath,"/dalec.so", sep=""))
+    rm(tmp) ; gc()
+    # create output object
+    states_all=list(# Ecosystem fluxes
+      gpp_gCm2day = output[,,1],
+      mean_gpp_gCm2day = output_mean[,1],
+      mean_annual_gpp_gCm2day = output_annual[,,1],
+      rauto_gCm2day = output[,,2],
+      mean_rauto_gCm2day = output_mean[,2],
+      mean_annual_rauto_gCm2day = output_annual[,,2],
+      rhet_litter_gCm2day = output[,,3],
+      mean_rhet_litter_gCm2day = output_mean[,3],
+      mean_annual_rhet_litter_gCm2day = output_annual[,,3],
+      rhet_som_gCm2day = output[,,4],
+      mean_rhet_som_gCm2day = output_mean[,4],
+      mean_annual_rhet_som_gCm2day = output_annual[,,4],
+      fire_gCm2day = output[,,5],
+      mean_fire_gCm2day = output_mean[,5],
+      mean_annual_fire_gCm2day = output_annual[,,5],
+      harvest_gCm2day = output[,,6],
+      mean_harvest_gCm2day = output_mean[,6],
+      mean_annual_harvest_gCm2day = output_annual[,,6],
+      # Internal fluxes
+      alloc_foliage_gCm2day = output[,,7],
+      mean_alloc_foliage_gCm2day = output_mean[,7],
+      mean_annual_alloc_foliage_gCm2day = output_annual[,,7],
+      alloc_labile_gCm2day = output[,,8],
+      mean_alloc_labile_gCm2day = output_mean[,8],
+      mean_annual_alloc_labile_gCm2day = output_annual[,,8],
+      alloc_roots_gCm2day = output[,,9],
+      mean_alloc_roots_gCm2day = output_mean[,9],
+      mean_annual_alloc_roots_gCm2day = output_annual[,,9],
+      alloc_wood_gCm2day = output[,,10],
+      mean_alloc_wood_gCm2day = output_mean[,10],
+      mean_annual_alloc_wood_gCm2day = output_annual[,,10],
+      labile_to_foliage_gCm2day = output[,,11],
+      mean_labile_to_foliage_gCm2day = output_mean[,11],
+      mean_annual_labile_to_foliage_gCm2day = output_annual[,,11],
+      foliage_to_litter_gCm2day = output[,,12],
+      mean_foliage_to_litter_gCm2day = output_mean[,12],
+      mean_annual_foliage_to_litter_gCm2day = output_annual[,,12],
+      roots_to_litter_gCm2day = output[,,13],
+      mean_roots_to_litter_gCm2day = output_mean[,13],
+      mean_annual_roots_to_litter_gCm2day = output_annual[,,13],
+      wood_to_litter_gCm2day = output[,,14],
+      mean_wood_to_litter_gCm2day = output_mean[,14],
+      mean_annual_wood_to_litter_gCm2day = output_annual[,,14],
+      litter_to_som_gCm2day = output[,,15],
+      mean_litter_to_som_gCm2day = output_mean[,15],
+      mean_annual_litter_to_som_gCm2day = output_annual[,,15],
+      # Disturbance fluxes
+      FIREemiss_labile_gCm2day = output[,,16],
+      mean_FIREemiss_labile_gCm2day = output_mean[,16],
+      mean_annual_FIREemiss_labile_gCm2day = output_annual[,,16],
+      FIRElitter_labile_gCm2day = output[,,17],
+      mean_FIRElitter_labile_gCm2day = output_mean[,17],
+      mean_annual_FIRElitter_labile_gCm2day = output_annual[,,17],
+      FIREemiss_foliage_gCm2day = output[,,18],
+      mean_FIREemiss_foliage_gCm2day = output_mean[,18],
+      mean_annual_FIREemiss_foliage_gCm2day = output_annual[,,18],
+      FIRElitter_foliage_gCm2day = output[,,19],
+      mean_FIRElitter_foliage_gCm2day = output_mean[,19],
+      mean_annual_FIRElitter_foliage_gCm2day = output_annual[,,19],
+      FIREemiss_roots_gCm2day = output[,,20],
+      mean_FIREemiss_roots_gCm2day = output_mean[,20],
+      mean_annual_FIREemiss_roots_gCm2day = output_annual[,,20],
+      FIRElitter_roots_gCm2day = output[,,21],
+      mean_FIRElitter_roots_gCm2day = output_mean[,21],
+      mean_annual_FIRElitter_roots_gCm2day = output_annual[,,21],
+      FIREemiss_wood_gCm2day = output[,,22],
+      mean_FIREemiss_wood_gCm2day = output_mean[,22],
+      mean_annual_FIREemiss_wood_gCm2day = output_annual[,,22],
+      FIRElitter_wood_gCm2day = output[,,23],
+      mean_FIRElitter_wood_gCm2day = output_mean[,23],
+      mean_annual_FIRElitter_wood_gCm2day = output_annual[,,23],
+      FIREemiss_litter_gCm2day = output[,,24],
+      mean_FIREemiss_litter_gCm2day = output_mean[,24],
+      mean_annual_FIREemiss_litter_gCm2day = output_annual[,,24],
+      FIRElitter_litter_gCm2day = output[,,25],
+      mean_FIRElitter_litter_gCm2day = output_mean[,25],
+      mean_annual_FIRElitter_litter_gCm2day = output_annual[,,25],
+      FIREemiss_som_gCm2day = output[,,26],
+      mean_FIREemiss_som_gCm2day = output_mean[,26],
+      mean_annual_FIREemiss_som_gCm2day = output_annual[,,26],
+      HARVESTextracted_labile_gCm2day = output[,,27],
+      mean_HARVESTextracted_labile_gCm2day = output_mean[,27],
+      mean_annual_HARVESTextracted_labile_gCm2day = output_annual[,,27],
+      HARVESTextracted_foliage_gCm2day = output[,,28],
+      mean_HARVESTextracted_foliage_gCm2day = output_mean[,28],
+      mean_annual_HARVESTextracted_foliage_gCm2day = output_annual[,,28],
+      HARVESTextracted_roots_gCm2day = output[,,29],
+      mean_HARVESTextracted_roots_gCm2day = output_mean[,29],
+      mean_annual_HARVESTextracted_roots_gCm2day = output_annual[,,29],
+      HARVESTextracted_wood_gCm2day = output[,,30],
+      mean_HARVESTextracted_wood_gCm2day = output_mean[,30],
+      mean_annual_HARVESTextracted_wood_gCm2day = output_annual[,,30],
+      HARVESTextracted_litter_gCm2day = output[,,31],
+      mean_HARVESTextracted_litter_gCm2day = output_mean[,31],
+      mean_annual_HARVESTextracted_litter_gCm2day = output_annual[,,31],
+      HARVESTextracted_som_gCm2day = output[,,32],
+      mean_HARVESTextracted_som_gCm2day = output_mean[,32],
+      mean_annual_HARVESTextracted_som_gCm2day = output_annual[,,32],
+      HARVESTlitter_labile_gCm2day = output[,,33],
+      mean_HARVESTlitter_labile_gCm2day = output_mean[,33],
+      mean_annual_HARVESTlitter_labile_gCm2day = output_annual[,,33],
+      HARVESTlitter_foliage_gCm2day = output[,,34],
+      mean_HARVESTlitter_foliage_gCm2day = output_mean[,34],
+      mean_annual_HARVESTlitter_foliage_gCm2day = output_annual[,,34],
+      HARVESTlitter_roots_gCm2day = output[,,35],
+      mean_HARVESTlitter_roots_gCm2day = output_mean[,35],
+      mean_annual_HARVESTlitter_roots_gCm2day = output_annual[,,35],
+      HARVESTlitter_wood_gCm2day = output[,,36],
+      mean_HARVESTlitter_wood_gCm2day = output_mean[,36],
+      mean_annual_HARVESTlitter_wood_gCm2day = output_annual[,,36],
+      # C pools (gC/m2)
+      labile_gCm2 = output[,,37],
+      mean_labile_gCm2 = output_mean[,37],
+      mean_annual_labile_gCm2 = output_annual[,,37],
+      foliage_gCm2 = output[,,38],
+      mean_foliage_gCm2 = output_mean[,38],
+      mean_annual_foliage_gCm2 = output_annual[,,38],
+      roots_gCm2 = output[,,39],
+      mean_roots_gCm2 = output_mean[,39],
+      mean_annual_roots_gCm2 = output_annual[,,39],
+      wood_gCm2 = output[,,40],
+      mean_wood_gCm2 = output_mean[,40],
+      mean_annual_wood_gCm2 = output_annual[,,40],
+      litter_gCm2 = output[,,41],
+      mean_litter_gCm2 = output_mean[,41],
+      mean_annual_litter_gCm2 = output_annual[,,41],
+      som_gCm2 = output[,,42],
+      mean_som_gCm2 = output_mean[,42],
+      mean_annual_som_gCm2 = output_annual[,,42],
+      # Water cycle related
+      ET_kgH2Om2day = output[,,43],
+      mean_ET_kgH2Om2day = output_mean[,43],
+      mean_annual_ET_kgH2Om2day = output_annual[,,43],
+      Etrans_kgH2Om2day = output[,,44],
+      mean_Etrans_kgH2Om2day = output_mean[,44],
+      mean_annual_Etrans_kgH2Om2day = output_annual[,,44],
+      Esoil_kgH2Om2day = output[,,45],
+      mean_Esoil_kgH2Om2day = output_mean[,45],
+      mean_annual_Esoil_kgH2Om2day = output_annual[,,45],
+      Ewetcanopy_kgH2Om2day = output[,,46],
+      mean_Ewetcanopy_kgH2Om2day = output_mean[,46],
+      mean_annual_Ewetcanopy_kgH2Om2day = output_annual[,,46],
+      runoff_kgH2Om2day = output[,,47],
+      mean_runoff_kgH2Om2day = output_mean[,47],
+      mean_annual_runoff_kgH2Om2day = output_annual[,,47],
+      underflow_kgH2Om2day = output[,,48],
+      mean_underflow_kgH2Om2day = output_mean[,48],
+      mean_annual_underflow_kgH2Om2day = output_annual[,,48],
+      SurfDrainage_kgH2Om2day = output[,,49],
+      mean_SurfDrainage_kgH2Om2day = output_mean[,49],
+      mean_annual_SurfDrainage_kgH2Om2day = output_annual[,,49],
+      SurfInfiltrated_kgH2Om2day = output[,,50],
+      mean_SurfInfiltrated_kgH2Om2day = output_mean[,50],
+      mean_annual_SurfInfiltrated_kgH2Om2day = output_annual[,,50],
+      Etrans_1st_root_layer_uptake_fraction = output[,,51],
+      mean_Etrans_1st_root_layer_uptake_fraction = output_mean[,51],
+      mean_annual_Etrans_1st_root_layer_uptake_fraction = output_annual[,,51],
+      Etrans_2nd_root_layer_uptake_fraction = output[,,52],
+      mean_Etrans_2nd_root_layer_uptake_fraction = output_mean[,52],
+      mean_annual_Etrans_2nd_root_layer_uptake_fraction = output_annual[,,52],
+      SurfWater_kgH2Om2 = output[,,53],
+      mean_SurfWater_kgH2Om2 = output_mean[,53],
+      mean_annual_SurfWater_kgH2Om2 = output_annual[,,53],
+      wSWP_MPa = output[,,54],
+      mean_wSWP_MPa = output_mean[,54],
+      mean_annual_wSWP_MPa = output_annual[,,54],
+      snow_kgH2Om2 = output[,,55],
+      mean_snow_kgH2Om2 = output_mean[,55],
+      mean_annual_snow_kgH2Om2 = output_annual[,,55],
+      # Canopy (phenology) properties
+      lai_m2m2 = output[,,56],
+      mean_lai_m2m2 = output_mean[,56],
+      mean_annual_lai_m2m2 = output_annual[,,56],
+      # Photosynthesis / C~water coupling related
+      gs_demand_supply_ratio = output[,,57],
+      mean_gs_demand_supply_ratio = output_mean[,57],
+      mean_annual_gs_demand_supply_ratio = output_annual[,,57],
+      gs_mmolH2Om2s = output[,,58],
+      mean_gs_mmolH2Om2s = output_mean[,58],
+      mean_annual_gs_mmolH2Om2s = output_annual[,,58],
+      APAR_MJm2day = output[,,59],
+      mean_APAR_MJm2day = output_mean[,59],
+      mean_annual_APAR_MJm2day = output_annual[,,59],
+      gb_mmolH2Om2s = output[,,60],
+      mean_gb_mmolH2Om2s = output_mean[,60],
+      mean_annual_gb_mmolH2Om2s = output_annual[,,60],
+      CiCa = output[,,61],
+      mean_CiCa = output_mean[,61],
+      mean_annual_CiCa = output_annual[,,61],
+      # Misc
+      RootDepth_m = output[,,62],
+      mean_RootDepth_m = output_mean[,62],
+      mean_annual_RootDepth_m = output_annual[,,62],
+      # Leaf water potential
+      LWP_MPa = output[,,63],
+      mean_LWP_MPa = output_mean[,63],
+      mean_annual_LWP_MPa = output_annual[,,63], 
+      # Canopy aerodynamic diagnostics
+      canopy_area_scaling_wind = output[,,64],
+      mean_canopy_area_scaling_wind = output_mean[,64],
+      mean_annual_canopy_area_scaling_wind = output_annual[,,64],
+      canopy_area_scaling_light = output[,,65],
+      mean_canopy_area_scaling_light = output_mean[,65],
+      mean_annual_canopy_area_scaling_light = output_annual[,,65],    
+      ## Aggregated variables
+      # Mean Transit times
+      MTT_labile_years = MTT_years[,1],
+      MTT_foliage_years = MTT_years[,2],
+      MTT_roots_years = MTT_years[,3],
+      MTT_wood_years = MTT_years[,4],
+      MTT_litter_years = MTT_years[,5],
+      MTT_som_years = MTT_years[,6],
+      # Steady state estimates
+      SS_labile_gCm2 = SS_gCm2[,1],
+      SS_foliage_gCm2 = SS_gCm2[,2],
+      SS_roots_gCm2 = SS_gCm2[,3],
+      SS_wood_gCm2 = SS_gCm2[,4],
+      SS_litter_gCm2 = SS_gCm2[,5],
+      SS_som_gCm2 = SS_gCm2[,6])
+    # Determine the NPP fraction of expressed NPP
+    # i.e. actual growth not GPP-Ra
+    NPP_fraction = apply(states_all$labile_to_foliage_gCm2day +
+                           states_all$alloc_foliage_gCm2day +
+                           states_all$alloc_roots_gCm2day +
+                           states_all$alloc_wood_gCm2day,1,mean)
+    NPP_fraction = cbind(apply(states_all$labile_to_foliage_gCm2day+states_all$alloc_foliage_gCm2day,1,mean),
+                         apply(states_all$alloc_roots_gCm2day,1,mean),
+                         apply(states_all$alloc_wood_gCm2day,1,mean)) / NPP_fraction
+    states_all$NPP_foliage_fraction = NPP_fraction[,1]
+    states_all$NPP_roots_fraction = NPP_fraction[,2]
+    states_all$NPP_wood_fraction = NPP_fraction[,3]
+    # Tidy up variables
+    rm(output,MTT_years,SS_gCm2)
   } else {
-      stop(paste("Model choice (",model_name,") does not have corresponding R interface",sep=""))
+    stop(paste("Model choice (",model_name,") does not have corresponding R interface",sep=""))
   }
+  
 
   # return state variable means
   return(states_all) ; gc(verbose=FALSE)

@@ -362,12 +362,20 @@ cardamom_model_details <-function(modelname,specific_pft,ctessel_pft) {
     nofluxes=array(49,dim=c(length(ctessel_pft)))
     nodiags=array(20,dim=c(length(ctessel_pft)))
     cardamom_model_details=list(name="DALEC.A3.C1.D2.F2.H2.P1.030",shortname="DALEC.30.",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars,nodiags=nodiags)
+  }else if (modelname == "DALEC.A1.C1.D2.F2.H4.P1.032" | modelname == "DALEC.32.") {
+    # information contains is
+    # The model name
+    # Number of met parameters
+    # Number of model parameters to be optimised
+    nopools=array(7,dim=c(length(ctessel_pft)))
+    nopars=array(32,dim=c(length(ctessel_pft)))
+    nofluxes=array(49,dim=c(length(ctessel_pft)))
+    nodiags=array(20,dim=c(length(ctessel_pft)))
+    cardamom_model_details=list(name="DALEC.A1.C1.D2.F2.H4.P1.032",shortname="DALEC.32.",nopools=nopools,nofluxes=nofluxes,nomet=16,nopars=nopars,nodiags=nodiags)
   } else {
     # No model name was matched
     stop(paste("the inputed model name ('",modelname,"') could not be matched in the available library"))
   } # If modelname == "..."
-
-
 } # end function cardamom_model_details
 
 ## Use byte compile
