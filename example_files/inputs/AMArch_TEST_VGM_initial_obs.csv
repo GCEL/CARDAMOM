@@ -1,0 +1,2 @@
+top_sand_initial_percent,bot_sand_initial_percent,top_clay_initial_percent,bot_clay_initial_percent,Csom_initial_gCm2,Csom_initial_unc_gCm2,Csom_initial_obs_unc_gCm2,Csom_initial_mod_unc_gCm2,top_residual_waterfrac_m3m3,bot_residual_waterfrac_m3m3,top_porosity_m3m3,bot_porosity_m3m3,top_pore_sizedist,bot_pore_sizedist,top_satconduct_ms,bot_satconduct_ms,top_airentry_m1,bot_airentry_m1
+24.11833191,28.93571472,61.15874863,56.52303696,17347,4551.806517,4208.296387,1734.7,0.078,0.078,0.43,0.43,1.56,1.56,2.89E-06,2.89E-06,3.6,3.6
