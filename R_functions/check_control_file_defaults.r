@@ -49,6 +49,8 @@ check_control_file_defaults<-function(paths) {
   if (exists("path_to_forestry") == FALSE)              {path_to_forestry <<- " "}
   if (exists("path_to_burnt_area") == FALSE)            {path_to_burnt_area <<- " "}
   if (exists("path_to_co2") == FALSE)                   {path_to_co2 <<- "./R_functions/"}
+  if (exists("path_to_vgm_pars") == FALSE)              {path_to_vgm_pars <<- " "}
+
   # Assimilated data paths 
   if (exists("path_to_lai") == FALSE)                   {path_to_lai <<- " "}
   if (exists("path_to_fapar") == FALSE)                 {path_to_fapar <<- " "}
@@ -71,6 +73,7 @@ check_control_file_defaults<-function(paths) {
   if (exists("burnt_area_source") == FALSE)             {burnt_area_source <<- " "}
   if (exists("deforestation_source") == FALSE)          {deforestation_source <<- " "}
   if (exists("sand_clay_source") == FALSE)              {sand_clay_source <<- " "}
+  if (exists("vgm_pars_source") == FALSE)               {vgm_pars_source <<- " "}
   # Assimilated data options 
   if (exists("lai_source") == FALSE)                    {lai_source <<- " "}
   if (exists("fapar_source") == FALSE)                  {fapar_source <<- " "}
@@ -147,6 +150,7 @@ check_control_file_defaults<-function(paths) {
   if (burnt_area_source != "site_specific" & burnt_area_source != " " & path_to_burnt_area == " ")     {stop(paste("specified 'burnt_area_source' and 'path_to_burnt_area' incompatible"))}
   if (deforestation_source != "site_specific" & deforestation_source != " " & path_to_forestry == " ") {stop(paste("specified 'deforestation_source' and 'path_to_forestry' incompatible"))}
   if (sand_clay_source != "site_specific" & sand_clay_source != " " & path_to_sand_clay == " ")        {stop(paste("specified 'sand_clay_source' and 'path_to_sand_clay' incompatible"))}
+  if (vgm_pars_source != "site_specific" & vgm_pars_source != " " & path_to_vgm_pars == " ")           {stop(paste("specified 'vgm_pars_source' and 'path_to_vgm_pars' incompatible"))}
   # Assimilated datasets, note these only consider those attached to gridded datasets
   if (lai_source != "site_specific" & lai_source != " " & path_to_lai == " ")                                    {stop(paste("specified 'lai_source' and 'path_to_lai' incompatible"))}
   if (fapar_source != "site_specific" & fapar_source != " " & path_to_fapar == " ")                              {stop(paste("specified 'fapar_source' and 'path_to_fapar' incompatible"))}

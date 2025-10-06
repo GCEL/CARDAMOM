@@ -95,7 +95,7 @@ write_bin_files<-function(n,PROJECT,cardamom_ext,latlon,timestep_days,noyears
                              ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                              ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
                              ,nbe_all,lca_all,gpp_all,Cwood_inc_all,Cwood_growth_all,Cwood_mortality_all
-                             ,fire_all,fapar_all, et_all
+                             ,fire_all,fapar_all, et_all, vgm_all
                              ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                              ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
             # update ctessel pft in the project and potentially the model information
@@ -381,7 +381,76 @@ cardamom_stage_1<-function(PROJECT) {
                                                              unc_var_name_out = "lca_uncertainty_gCm2")               
 
        } # if (PROJECT$model$name != "ACM")
-
+       vgm_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                                vgm_pars_source,path_to_vgm_pars,prefix = "residual_waterfrac_mean_0to30cm",
+                                                                est_var_name_in = "residual_waterfrac",
+                                                                unc_var_name_in = "residual_waterfrac_unc",
+                                                                est_var_name_out = "top_residual_waterfrac",
+                                                                unc_var_name_out = "")
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "residual_waterfrac_mean_30to100cm",
+                                                            est_var_name_in = "residual_waterfrac",
+                                                            unc_var_name_in = "residual_waterfrac_unc",
+                                                            est_var_name_out = "bot_residual_waterfrac",
+                                                            unc_var_name_out = "")
+       vgm_all$bot_residual_waterfrac = tmp$bot_residual_waterfrac ; rm(tmp) # update the list object with the next variable
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "porosity_mean_0to30cm",
+                                                            est_var_name_in = "porosity",
+                                                            unc_var_name_in = "porosity_unc",
+                                                            est_var_name_out = "top_porosity",
+                                                            unc_var_name_out = "")
+       vgm_all$top_porosity = tmp$top_porosity ; rm(tmp) # update the list object with the next variable
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "porosity_mean_30to100cm",
+                                                            est_var_name_in = "porosity",
+                                                            unc_var_name_in = "porosity_unc",
+                                                            est_var_name_out = "bot_porosity",
+                                                            unc_var_name_out = "")
+       vgm_all$bot_porosity = tmp$bot_porosity ; rm(tmp) # update the list object with the next variable
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "pore_size_dist_mean_0to30cm",
+                                                            est_var_name_in = "pore_size_dist",
+                                                            unc_var_name_in = "pore_size_dist_unc",
+                                                            est_var_name_out = "top_pore_size_dist",
+                                                            unc_var_name_out = "")
+       vgm_all$top_pore_size_dist = tmp$top_pore_size_dist ; rm(tmp) # update the list object with the next 
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "pore_size_dist_mean_30to100cm",
+                                                            est_var_name_in = "pore_size_dist",
+                                                            unc_var_name_in = "pore_size_dist_unc",
+                                                            est_var_name_out = "bot_pore_size_dist",
+                                                            unc_var_name_out = "")
+       vgm_all$bot_pore_size_dist = tmp$bot_pore_size_dist ; rm(tmp) # update the list object with the next variable
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "air_entry_mean_0to30cm",
+                                                            est_var_name_in = "air_entry",
+                                                            unc_var_name_in = "air_entry_unc",
+                                                            est_var_name_out = "top_air_entry",
+                                                            unc_var_name_out = "")
+       vgm_all$top_air_entry = tmp$top_air_entry ; rm(tmp) # update the list object with the next 
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "air_entry_mean_30to100cm",
+                                                            est_var_name_in = "air_entry",
+                                                            unc_var_name_in = "air_entry_unc",
+                                                            est_var_name_out = "bot_air_entry",
+                                                            unc_var_name_out = "")
+       vgm_all$bot_air_entry = tmp$bot_air_entry ; rm(tmp) # update the list object with the next variable
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "sat_conductivity_mean_0to30cm",
+                                                            est_var_name_in = "sat_conductivity",
+                                                            unc_var_name_in = "sat_conductivity_unc",
+                                                            est_var_name_out = "top_sat_conductivity",
+                                                            unc_var_name_out = "")
+       vgm_all$top_sat_conductivity = tmp$top_sat_conductivity ; rm(tmp) # update the list object with the next 
+       tmp = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                            vgm_pars_source,path_to_vgm_pars,prefix = "sat_conductivity_mean_30to100cm",
+                                                            est_var_name_in = "sat_conductivity",
+                                                            unc_var_name_in = "sat_conductivity_unc",
+                                                            est_var_name_out = "bot_sat_conductivity",
+                                                            unc_var_name_out = "")
+       vgm_all$bot_sat_conductivity = tmp$bot_sat_conductivity ; rm(tmp) # update the list object with the next variable
+       
        # Update user
        print("Loading completed, beginning writing out file write out")
 
@@ -400,7 +469,7 @@ cardamom_stage_1<-function(PROJECT) {
                            burnt_all = burnt_all, soilwater_all = soilwater_all, nbe_all = nbe_all, 
                            lca_all = lca_all, gpp_all = gpp_all, Cwood_inc_all = Cwood_inc_all,
                            Cwood_mortality_all = Cwood_mortality_all, fire_all = fire_all, 
-                           fapar_all = fapar_all, et_all = et_all)
+                           fapar_all = fapar_all, et_all = et_all, vgm_all = vgm_all)
 
       } else { # use parallel
 
@@ -415,7 +484,7 @@ cardamom_stage_1<-function(PROJECT) {
                               ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                               ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
                               ,nbe_all, lca_all,gpp_all,Cwood_inc_all,Cwood_mortality_all,fire_all
-                              ,fapar_all, et_all)    
+                              ,fapar_all, et_all, vgm_all)    
 
           } # site loop
 
