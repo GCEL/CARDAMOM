@@ -64,7 +64,9 @@ run_each_site<-function(n,PROJECT,repair,grid_override) {
 ## HACK to create S2 simulations for GCP / Trendy v13
 #drivers$met[,8] = 0
       # run parameters for full results / propogation
-      soil_info = c(drivers$top_sand,drivers$bot_sand,drivers$top_clay,drivers$bot_clay)
+      soil_info = c(drivers$top_sand,drivers$bot_sand,drivers$top_clay,drivers$bot_clay, drivers$top_residual_waterfrac, 
+                    drivers$bot_residual_waterfrac, drivers$top_porosity, drivers$bot_porosity, drivers$top_pore_size_dist, drivers$bot_pore_size_dist,
+                    drivers$top_air_entry, drivers$bot_air_entry,drivers$top_sat_conductivity, drivers$bot_sat_conductivity)
       if (use_parallel == FALSE) {print("running model ensemble")}
       states_all = simulate_all(n,PROJECT,PROJECT$model$name,drivers$met,parameters[1:PROJECT$model$nopars[n],,],
                                 drivers$lat,PROJECT$ctessel_pft[n],PROJECT$parameter_type,

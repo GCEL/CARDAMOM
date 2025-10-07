@@ -105,6 +105,26 @@ read_binary_file_format<- function(infile) {
       md$top_clay = static[14]
       # Bot clay %
       md$bot_clay = static[15]
+      # Top residual water fraction (m3m3) from Van-Genuchten Mualem
+      md$top_residual_waterfrac = static[16]
+      # Bottom residual water fraction (m3m3) from Van-Genuchten Mualem
+      md$bot_residual_waterfrac = static[17]
+      # Top porosity (m3m3) from Van-Genuchten Mualem
+      md$top_porosity = static[18]
+      # Bottom porosity (m3m3) from Van-Genuchten Mualem
+      md$bot_porosity = static[19]
+      # Top pore size distribution (-) from Van-Genuchten Mualem
+      md$top_pore_size_dist = static[20]
+      # Bottom pore size distribution (-) from Van-Genuchten Mualem
+      md$bot_pore_size_dist = static[21]
+      # Top air entry pressure (m-1) from Van-Genuchten Mualem
+      md$top_air_entry = static[22]
+      # Bottom air entry pressure (m-1) from Van-Genuchten Mualem
+      md$bot_air_entry = static[23]
+      # Top saturated hydraulic conductivity (ms-1) from Van-Genuchten Mualem
+      md$top_sat_conductivity = static[24]
+      # Bottom saturated hydraulic conductivity (ms-1) from Van-Genuchten Mualem
+      md$bot_sat_conductivity = static[25]
 
 
       # extract temporal data (met and obs)
