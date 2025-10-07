@@ -441,7 +441,9 @@ module cardamom_io
   subroutine read_binary_data(infile)
       use cardamom_structures, only: DATAin
       use CARBON_MODEL_MOD, only: soil_frac_clay,soil_frac_sand &
-                                 ,nos_soil_layers
+                                 ,nos_soil_layers, residual_waterfrac &
+								 ,porosity, sat_conductivity &
+								 ,pore_size_dist, air_entry
 
     ! subroutine opens and reads the binary data files provided by / for the
     ! CARDAMOM framework. This data is then loaded into the DATAin type
@@ -502,6 +504,17 @@ module cardamom_io
     soil_frac_sand(2:nos_soil_layers) = statdat(13) ! bot
     soil_frac_clay(1) = statdat(14) ! top soil clay percentage
     soil_frac_clay(2:nos_soil_layers) = statdat(15) ! bot
+	residual_waterfrac(1) = statdat(16) ! Top residual water fraction (m3m3) from Van-Genuchten Mualem
+	residual_waterfrac(2:nos_soil_layers) = statdat(17) ! bot
+	porosity(1) = statdat(18) ! Top porosity (m3m3) from Van-Genuchten Mualem
+	porosity(2:nos_soil_layers) = statdat(19) ! bot
+	pore_size_dist = statdat(20) ! Top pore size distribution (-) from Van-Genuchten Mualem
+	pore_size_dist(2:nos_soil_layers) = statdat(21) ! bot
+	air_entry = statdat(22) !  Top air entry pressure (m-1) from Van-Genuchten Mualem
+	air_entry(2:nos_soil_layers) = statdat(23) ! bot
+	sat_conductivity = statdat(24) ! Top saturated hydraulic conductivity (ms-1) from Van-Genuchten Mualem
+	sat_conductivity(2:nos_soil_layers) = statdat(25) ! bot
+
     ! call for model specific values
     call cardamom_model_library
 
