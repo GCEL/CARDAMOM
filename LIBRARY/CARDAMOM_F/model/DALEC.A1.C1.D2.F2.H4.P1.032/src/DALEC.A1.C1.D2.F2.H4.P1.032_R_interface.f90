@@ -39,7 +39,9 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
 				  , pore_size_dist_in, air_entry_in)
 
   use CARBON_MODEL_MOD, only: CARBON_MODEL, &
-                              soil_frac_clay, soil_frac_sand, nos_soil_layers
+                              soil_frac_clay, soil_frac_sand, nos_soil_layers, &
+							  residual_waterfrac, porosity, pore_size_dist,&
+							  air_entry, sat_conductivity
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by
