@@ -367,8 +367,8 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
       tmp = c(modelid,lat_degrees,dim(MET)[1],dim(MET)[2],dim(OBSMAT)[2],
               EDC,ctessel_pft,OBS$yield_class,OBS$age,nopars,force_random_search,
               OBS$top_sand[1],OBS$bot_sand[1],OBS$top_clay[1],OBS$bot_clay[1], OBS$top_residual_waterfrac[1],
-              OBS$bot_residual_waterfrac[1], OBS$top_porosity, OBS$bot_porosity[1], OBS$top_pore_size_dist, OBS$bot_pore_size_dist[1],
-              OBS$top_air_entry, OBS$bot_air_entry[1], OBS$top_sat_conductivity, OBS$bot_sat_conductivity[1])
+              OBS$bot_residual_waterfrac[1], OBS$top_porosity[1], OBS$bot_porosity[1], OBS$top_pore_size_dist[1], OBS$bot_pore_size_dist[1],
+              OBS$top_air_entry[1], OBS$bot_air_entry[1], OBS$top_sat_conductivity[1], OBS$bot_sat_conductivity[1])
       static_data[1:length(tmp)] = tmp
 
       # Define model parameter prior information

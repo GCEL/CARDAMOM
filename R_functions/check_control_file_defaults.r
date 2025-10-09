@@ -30,9 +30,9 @@
 #########################################################################################
 
 check_control_file_defaults<-function(paths) {
-
+  
   ## Set defaults incase missing, NOTE: <<- to assign global
-
+  
   
   # Analysis options
   if (exists("select_country") == FALSE)                {select_country <<- FALSE}
@@ -50,7 +50,6 @@ check_control_file_defaults<-function(paths) {
   if (exists("path_to_burnt_area") == FALSE)            {path_to_burnt_area <<- " "}
   if (exists("path_to_co2") == FALSE)                   {path_to_co2 <<- "./R_functions/"}
   if (exists("path_to_vgm_pars") == FALSE)              {path_to_vgm_pars <<- " "}
-
   # Assimilated data paths 
   if (exists("path_to_lai") == FALSE)                   {path_to_lai <<- " "}
   if (exists("path_to_fapar") == FALSE)                 {path_to_fapar <<- " "}
@@ -167,35 +166,33 @@ check_control_file_defaults<-function(paths) {
   if (gpp_source != "site_specific" & gpp_source != " " & path_to_gpp == " ")                                    {stop(paste("specified 'gpp_source' and 'path_to_gpp' incompatible"))}
   if (fire_source != "site_specific" & fire_source != " " & path_to_fire == " ")                                 {stop(paste("specified 'fire_source' and 'path_to_fire' incompatible"))}
   if (lca_source != "site_specific" & lca_source != " " & path_to_lca == " ")                                    {stop(paste("specified 'fire_source' and 'path_to_lca' incompatible"))}
-
+  
   # NOTE: current assimilated variables which have currently only been done on site scale, without gridded datasets
-#  if (exists("Evap_source") == FALSE)                   {Evap_source <<- " "}
-#  if (exists("fire_source") == FALSE)                   {fire_source <<- " "}
-#  if (exists("Reco_source") == FALSE)                   {Reco_source <<- " "}
-#  if (exists("nee_source") == FALSE)                    {nee_source <<- " "}
-#  if (exists("harvest_source") == FALSE)                {harvest_source <<- " "}
-#  if (exists("foliage_to_litter_source") == FALSE)      {foliage_to_litter_source <<- " "}
-#  if (exists("Cfol_initial_source") == FALSE)           {Cfol_initial_source <<- " "}
-#  if (exists("Croots_initial_source") == FALSE)         {Croots_initial_source <<- " "}
-#  if (exists("Clit_initial_source") == FALSE)           {Clit_initial_source <<- " "}
-#  if (exists("Cfol_stock_source") == FALSE)             {Cfol_stock_source <<- " "}
-#  if (exists("Cfolmax_stock_source") == FALSE)          {Cfolmax_stock_source <<- " "}
-#  if (exists("Cstem_stock_source") == FALSE)            {Cstem_stock_source <<- " "}
-#  if (exists("Cbranch_stock_source") == FALSE)          {Cbranch_stock_source <<- " "}
-#  if (exists("Cagb_stock_source") == FALSE)             {Cagb_stock_source <<- " "}
-#  if (exists("Ccoarseroot_stock_source") == FALSE)      {Ccoarseroot_stock_source <<- " "}
-#  if (exists("Croots_stock_source") == FALSE)           {Croots_stock_source <<- " "}
-#  if (exists("Clit_stock_source") == FALSE)             {Clit_stock_source <<- " "}
-#  if (exists("frac_Cwood_coarse_root_source") == FALSE) {frac_Cwood_coarse_root_source <<- " "}
-#  if (exists("minLWP_source") == FALSE)                 {minLWP_source <<- " "}
-#  if (exists("crop_management_source") == FALSE)        {crop_management_source <<- " "}
-#  if (exists("snow_source") == FALSE)                   {snow_source <<- " "}
-
+  #  if (exists("Evap_source") == FALSE)                   {Evap_source <<- " "}
+  #  if (exists("fire_source") == FALSE)                   {fire_source <<- " "}
+  #  if (exists("Reco_source") == FALSE)                   {Reco_source <<- " "}
+  #  if (exists("nee_source") == FALSE)                    {nee_source <<- " "}
+  #  if (exists("harvest_source") == FALSE)                {harvest_source <<- " "}
+  #  if (exists("foliage_to_litter_source") == FALSE)      {foliage_to_litter_source <<- " "}
+  #  if (exists("Cfol_initial_source") == FALSE)           {Cfol_initial_source <<- " "}
+  #  if (exists("Croots_initial_source") == FALSE)         {Croots_initial_source <<- " "}
+  #  if (exists("Clit_initial_source") == FALSE)           {Clit_initial_source <<- " "}
+  #  if (exists("Cfol_stock_source") == FALSE)             {Cfol_stock_source <<- " "}
+  #  if (exists("Cfolmax_stock_source") == FALSE)          {Cfolmax_stock_source <<- " "}
+  #  if (exists("Cstem_stock_source") == FALSE)            {Cstem_stock_source <<- " "}
+  #  if (exists("Cbranch_stock_source") == FALSE)          {Cbranch_stock_source <<- " "}
+  #  if (exists("Cagb_stock_source") == FALSE)             {Cagb_stock_source <<- " "}
+  #  if (exists("Ccoarseroot_stock_source") == FALSE)      {Ccoarseroot_stock_source <<- " "}
+  #  if (exists("Croots_stock_source") == FALSE)           {Croots_stock_source <<- " "}
+  #  if (exists("Clit_stock_source") == FALSE)             {Clit_stock_source <<- " "}
+  #  if (exists("frac_Cwood_coarse_root_source") == FALSE) {frac_Cwood_coarse_root_source <<- " "}
+  #  if (exists("minLWP_source") == FALSE)                 {minLWP_source <<- " "}
+  #  if (exists("crop_management_source") == FALSE)        {crop_management_source <<- " "}
+  #  if (exists("snow_source") == FALSE)                   {snow_source <<- " "}
+  
   return(print("Standard checks on control file completed"))
-
+  
 } # end function check_control_file_defaults
 
 ## Use byte compile
 check_control_file_defaults<-cmpfun(check_control_file_defaults)
-
-

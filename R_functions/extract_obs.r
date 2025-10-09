@@ -1271,17 +1271,17 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
       bot_satconduct_ms = output$bot_satconduct_ms
       
       
-    } else if (VGM_Pars == "site_specific") {
+    } else if (vgm_pars_source == "site_specific") {
       infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
       top_residual_waterfrac_m3m3 = read_site_specific_obs("top_residual_waterfrac_m3m3",infile)
       top_porosity_m3m3= read_site_specific_obs("top_porosity_m3m3",infile)
       top_pore_sizedist = read_site_specific_obs("top_pore_sizedist",infile)
-      top_airentry_m1 = read_site_specific_obs("top_airentry_m-1",infile)
+      top_airentry_m1 = read_site_specific_obs("top_airentry_m1",infile)
       top_satconduct_ms = read_site_specific_obs("top_satconduct_ms",infile)
       bot_residual_waterfrac_m3m3 = read_site_specific_obs("bot_residual_waterfrac_m3m3",infile)
       bot_porosity_m3m3= read_site_specific_obs("bot_porosity_m3m3",infile)
       bot_pore_sizedist = read_site_specific_obs("bot_pore_sizedist",infile)
-      bot_airentry_m1 = read_site_specific_obs("bot_airentry_m-1",infile)
+      bot_airentry_m1 = read_site_specific_obs("bot_airentry_m1",infile)
       bot_satconduct_ms = read_site_specific_obs("bot_satconduct_ms",infile)
     } else {
       # assume no data available (values for medium soils)
@@ -1291,8 +1291,6 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
       bot_porosity_m3m3 = 0.43 ; bot_pore_sizedist = 1.56 
       bot_airentry_m1 = 3.6;  bot_satconduct_ms = 2.89e-6
     }
-    
-    #print(paste("residual waterfrac",top_residual_waterfrac_m3m3,sep=""))
     
 
     ###
@@ -1305,11 +1303,11 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                 top_clay = top_clay, bot_clay = bot_clay, 
                 top_residual_waterfrac = top_residual_waterfrac_m3m3,
                 top_porosity = top_porosity_m3m3,
-                top_pore_size_dist = top_pore_size_dist,
+                top_pore_size_dist = top_pore_sizedist,
                 top_air_entry = top_airentry_m1,
                 top_sat_conductivity = top_satconduct_ms,
                 bot_residual_waterfrac = bot_residual_waterfrac_m3m3, 
-                bot_porosity = bot_porosity_m3m3, bot_pore_size_dist = bot_pore_size_dist,
+                bot_porosity = bot_porosity_m3m3, bot_pore_size_dist = bot_pore_sizedist,
                 bot_air_entry = bot_airentry_m1, bot_sat_conductivity= bot_satconduct_ms,
                 LAI = lai, LAI_unc = lai_unc, LAI_lag = lai_lag, 
                 GPP = GPP, GPP_unc = GPP_unc, GPP_lag = GPP_lag, 
