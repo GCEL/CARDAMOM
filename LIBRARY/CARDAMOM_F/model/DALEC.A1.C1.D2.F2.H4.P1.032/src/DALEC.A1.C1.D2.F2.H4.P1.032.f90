@@ -502,6 +502,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
 !    ! Debugging print statements
 !    print*,"carbon_model: "
+  ! Printing the first value of each parameter for debugging
+    print *, 'residual_waterfrac(1,1,1) = ', residual_waterfrac(1)
+    print *, 'porosity(1,1,1) = ', porosity(1)
+    print *, 'pore_size_dist(1,1,1) = ', pore_size_dist(1)
+    print *, 'air_entry(1,1,1) = ', air_entry(1)
+    print *, 'sat_conductivity(1,1,1) = ', sat_conductivity(1)
 
     ! Set some initial states
     infi = 0d0 ; FLUXES = 0d0 ; POOLS = 0d0 ; DIAGS = 0d0
