@@ -65,7 +65,9 @@ module CARBON_MODEL_MOD
            ,nodestatus       &
            ,xbestsplit       &
            ,nodepred         &
-           ,bestvar
+           ,bestvar          &
+		   ,conductivity_time&
+		   ,swp_time
   !!!!!!!!!
   ! Parameters
   !!!!!!!!!
@@ -322,7 +324,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                           daylength_hours, &
                                         daylength_seconds, &
                                       daylength_seconds_1, &
-                                            rainfall_time
+                                            rainfall_time, &
+										conductivity_time, &
+												 swp_time
   contains
   !
   !--------------------------------------------------------------------
@@ -535,7 +539,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     if (.not.allocated(deltat_1)) then
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
-                 daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays))
+                 daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
+				 conductivity_time(nodays), swp_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -918,7 +923,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        DIAGS(n,10) = wSWP      ! Soil water potential weighted by supply of water
        DIAGS(n,11) = rSWP      ! Soil water potential weighted by access water
        DIAGS(n,12) = Reff      ! Effective hydraulic resistance MPa.s.m2.mmol-1 H20
-
+		
+	 ! To print soil hydraulic conductivity
+	   conductivity_time(n) = soil_conductivity(1)
+	   swp_time(n) = SWP(1)
+	   
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
        ! Estimate stomatal conductance relative to its minimum / maximum, i.e. how

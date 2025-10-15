@@ -67,7 +67,8 @@ module CARBON_MODEL_MOD
            ,nodepred         &
            ,bestvar          &
 		   ,conductivity_time&
-		   ,relative_waterfrac_time
+		   ,relative_waterfrac_time&
+		   ,swp_time
 
   !!!!!!!!!
   ! Parameters
@@ -330,7 +331,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                       daylength_seconds_1, &
                                             rainfall_time, &
 										conductivity_time, &
-								  relative_waterfrac_time
+								  relative_waterfrac_time, &
+												 swp_time
   contains
   !
   !--------------------------------------------------------------------
@@ -550,7 +552,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
-				 conductivity_time(nodays), relative_waterfrac_time(nodays))
+				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -939,6 +941,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   ! To print soil hydraulic conductivity
 	   conductivity_time(n) = soil_conductivity(1)
 	   relative_waterfrac_time(n) = relative_water_frac(1)
+	   swp_time(n) = SWP(1)
 
 
        ! calculate radiation absorption and estimate stomatal conductance
@@ -3311,19 +3314,50 @@ end subroutine calculate_relative_water_frac
   !
   !----------------------------------------------------------------------
   !
-   subroutine soil_water_potential
+  subroutine soil_water_potential
 
-    ! Find SWP without updating waterfrac yet (we do that in !
-    ! waterthermal). Waterfrac is m3 m-3, soilwp is MPa.     !
+    ! Subroutine to calculate soil water potential (SWP) using the Van-Genuchten Mualem (VGM) Model
+	
+	! References: 
+	! Van Genuchten, M. T. (1980). A Closed form Equation for Predicting the Hydraulic Conductivity of Unsaturated Soils. 
+	!							   Soil Science Society of America Journal, 44(5), 892-898. 
+	! 							   https://doi.org/10.2136/sssaj1980.03615995004400050002x 
+	! Ducharne et al., (2017). The hydrol module of ORCHIDEE: Scientific documentation [rev 3977] and on, work in progress.
+	! Qiu et al., (2018). ORCHIDEE-PEAT (revision 4596), a model for northern peatland CO2, water, and energy fluxes on daily to annual scales.
+	!					  Geoscientific Model Development, 11(2), 497-519. https://doi.org/10.5194/gmd-11-497-2018 
+	! Fischer et al., (2007). The response of an Eastern Amazonian rain forest to drought stress: results and modelling analyses from a throughfall 
+	!						  exclusion experiment. Global Change Biology, 13(11), 2361-2378. https://doi.org/10.1111/j.1365-2486.2007.01417.x
+	
+	! Description: 
+	! SWP is the negative suction that water experiences in the soil due to capillary and adsorptive forces.
+	! It also controls how water moves through the soil and how much of it can be available to plants. In the VGM model
+	! SWP estimation depends on relative water fraction, which depends on water fraction, and the VGM parameters 
+	! porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). The units for the SWP in VGM model are meters,
+	! here we convert meters to MPa by multiplying by gravity to the minus 6 (g_ms2*1.0E-6).
+	
+	! Units: (MPa)
 
     implicit none
 
     integer :: i
-
-    ! reformulation aims to remove if statement within loop to hopefully improve
-    ! optimisation
-    SWP(1:nos_soil_layers) = -0.001d0 * potA(1:nos_soil_layers) &
-                           * soil_waterfrac(1:nos_soil_layers)**potB(1:nos_soil_layers)
+	double precision :: m(nos_soil_layers)
+	double precision :: soil_waterfrac(nos_soil_layers)
+	double precision :: relative_water_frac(nos_soil_layers)
+	
+	! Estimation of relative water fraction (theta_f) for each soil layer
+	do i = 1, nos_soil_layers
+		call calculate_relative_water_frac(i, soil_waterfrac(i), relative_water_frac(i))
+	end do
+	
+	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
+	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
+	! Units: (-)	
+	m = 1.0d0 - (1.0d0 / pore_size_dist(1:nos_soil_layers))
+	
+	! Estimation ofsoil water potential using the VGM model and parameters
+    SWP(1:nos_soil_layers) = (g_ms2 * 1.0E-6) * (-1.0d0 / air_entry(1:nos_soil_layers)) *&
+							 (relative_water_frac(1:nos_soil_layers)**(-1.0d0 / m) - 1.0d0)**(1.0d0 / pore_size_dist(1:nos_soil_layers))
+							 
     ! NOTE: profiling indiates that 'where' is slower for very short vectors
     do i = 1, nos_soil_layers
        if (SWP(i) < -20d0 .or. SWP(i) /= SWP(i)) SWP(i) = -20d0
