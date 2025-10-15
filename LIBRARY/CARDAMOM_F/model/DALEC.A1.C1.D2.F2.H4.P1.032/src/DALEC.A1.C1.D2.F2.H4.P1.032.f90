@@ -100,7 +100,9 @@ module CARBON_MODEL_MOD
                                Rcon = 8.3144d0,     & ! Universal gas constant (J.K-1.mol-1)
                           vonkarman = 0.41d0,       & ! von Karman's constant
                         vonkarman_1 = 2.439024d0,   & ! 1 / von Karman's constant
-                              cpair = 1004.6d0        ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
+                              cpair = 1004.6d0,     & ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
+							  g_ms2 = 9.80665         ! Gravity in m/s2; used in soil water potential to convert from meters to KPa, and MPa.
+
 
   ! hydraulic parameters
   double precision, parameter :: &
@@ -3070,8 +3072,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	implicit none
 
     integer, intent(in) :: nos_soil_layers
-    double precision, intent(in) :: waterfrac(nos_soil_layers)
-    double precision, intent(out) :: relative_water(nos_soil_layers)
+    double precision, intent(in) :: waterfrac
+    double precision, intent(out) :: relative_water
 
 
 	! calculate relative_water (m3/m3)
@@ -3082,13 +3084,14 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	! zero represents complete dryness, 1 represents complete saturation
 	
 	! to avoid waterfrac values below residual_waterfrac
-	where (relative_water < 0.001d0)
-        relative_water = 0.001d0
-    end where
+		
+	if (relative_water < 0.001d0) then
+		relative_water = 0.001d0
+	endif
 
-    where (relative_water > 1.0d0)
-        relative_water = 1.0d0
-    end where
+	if (relative_water > 1.0d0) then
+		relative_water = 1.0d0
+	endif
 
 
 end subroutine calculate_relative_water_frac
@@ -3174,22 +3177,49 @@ end subroutine calculate_relative_water_frac
   !-----------------------------------------------------------------
   !
   subroutine calculate_soil_conductivity(soil_layer,waterfrac,conductivity)
-
-    ! Calculate the soil conductivity (m s-1) of water based on soil
-    ! characteristics and current water content
-
-    implicit none
-
-    ! arguments
-    integer, intent(in) :: soil_layer
+	! Subroutine to calculate soil hydraulic conductivity (conductiviy) 
+	! Using the Van-Genuchten Mualem (VGM) Model
+	
+	! References:
+	! Van Genuchten, M. T. (1980). A Closed form Equation for Predicting the Hydraulic Conductivity of Unsaturated Soils. 
+	!							   Soil Science Society of America Journal, 44(5), 892-898. 
+	! 							   https://doi.org/10.2136/sssaj1980.03615995004400050002x 
+	! Ducharne et al., (2017). The hydrol module of ORCHIDEE: Scientific documentation [rev 3977] and on, work in progress.
+	! Qiu et al., (2018). ORCHIDEE-PEAT (revision 4596), a model for northern peatland CO2, water, and energy fluxes on daily to annual scales.
+	!					  Geoscientific Model Development, 11(2), 497-519. https://doi.org/10.5194/gmd-11-497-2018 
+	
+	! Description:
+	! Soil hydraulic conductivity (K), describes how rapidly water can move through the pore space in the soil under the influence of pressure 
+	! and a hydraulic gradient. Higher values of K indicate that the soil is allowing water to flow more easily. Conductivity estimations in the
+	! VGM model depend on relative water fraction, which dependends on water fraction, residual water fraction (m3/m3), and the VGM parametres 
+	! porosity (m3/m3), saturated hydraulic conductivity (m s-1) and pore size distribution (-).
+	
+	! Units: (m s-1)
+	
+	
+	implicit none
+	integer, intent(in) :: soil_layer
     double precision, intent(in) :: waterfrac
+    double precision :: relative_water_frac
     double precision, intent(out) :: conductivity
+    double precision :: m
+	
+	! Estimation of relative water fraction (theta_f) 
+	call calculate_relative_water_frac(soil_layer, waterfrac, relative_water_frac)
 
-    ! soil conductivity for the dynamic soil layers (i.e. not including core)
-    conductivity = cond1(soil_layer) * exp(cond2(soil_layer)+cond3(soil_layer)/waterfrac)
-
-    ! protection against floating point error
-    if (waterfrac < 0.05d0) conductivity = 1d-30
+	
+	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
+	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
+	! Units: (-)
+	m = 1.0d0 - (1.0d0 / pore_size_dist(soil_layer))
+	
+	! Estimation of hydraulic conductivity using the VGM model and parameters
+	conductivity = sat_conductivity(soil_layer) * (relative_water_frac**0.5d0) *&
+					(1.0d0 - (1.0d0 - relative_water_frac**(1.0d0/m))**m)**2d0
+   
+   
+	! protection against floating point error
+   if (waterfrac < 0.05d0) conductivity = 1d-30
 
   end subroutine calculate_soil_conductivity
   !
@@ -3281,7 +3311,7 @@ end subroutine calculate_relative_water_frac
   !
   !----------------------------------------------------------------------
   !
-  subroutine soil_water_potential
+   subroutine soil_water_potential
 
     ! Find SWP without updating waterfrac yet (we do that in !
     ! waterthermal). Waterfrac is m3 m-3, soilwp is MPa.     !
