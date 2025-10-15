@@ -41,7 +41,8 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
   use CARBON_MODEL_MOD, only: CARBON_MODEL, &
                               soil_frac_clay, soil_frac_sand, nos_soil_layers, &
 							  residual_waterfrac, porosity, pore_size_dist,&
-							  air_entry, sat_conductivity
+							  air_entry, sat_conductivity, &
+							  conductivity_time, relative_waterfrac_time
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by
@@ -206,6 +207,8 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      ! Canopy aerodynamic diagnostics
      out_var1(i,1:nodays,64) = DIAGS(1:nodays,14)          ! Canopy area scaling as a function of light
      out_var1(i,1:nodays,65) = DIAGS(1:nodays,15)          ! Canopy area scaking as a function of wind
+	 out_var1(i,1:nodays,66) = conductivity_time(1:nodays) ! Soil hydraulic conductivity
+	 out_var1(i,1:nodays,67) = relative_waterfrac_time(1:nodays) ! Relative water fraction
 
      !
      ! Calculate long-term mean of out_var1

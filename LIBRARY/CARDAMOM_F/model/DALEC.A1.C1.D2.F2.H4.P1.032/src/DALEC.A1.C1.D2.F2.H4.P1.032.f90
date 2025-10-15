@@ -65,7 +65,9 @@ module CARBON_MODEL_MOD
            ,nodestatus       &
            ,xbestsplit       &
            ,nodepred         &
-           ,bestvar
+           ,bestvar          &
+		   ,conductivity_time&
+		   ,relative_waterfrac_time
 
   !!!!!!!!!
   ! Parameters
@@ -223,7 +225,8 @@ module CARBON_MODEL_MOD
 									   sat_conductivity, & ! saturated hydraulic conductivity (m3.m-3) VGM
 									     pore_size_dist, & ! pore size distribution (-) VGM
 											  air_entry, & ! air entry pressure (m-1) VGM
-                        cond1, cond2, cond3, potA, potB    ! Saxton equation values
+                        cond1, cond2, cond3, potA, potB, & ! Saxton equation values
+									relative_water_frac    ! Relative water fraction VGM
 
   double precision :: root_reach, root_biomass, &
                              fine_root_biomass, & ! root depth, coarse+fine, and fine root biomass
@@ -323,7 +326,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                           daylength_hours, &
                                         daylength_seconds, &
                                       daylength_seconds_1, &
-                                            rainfall_time
+                                            rainfall_time, &
+										conductivity_time, &
+								  relative_waterfrac_time
   contains
   !
   !--------------------------------------------------------------------
@@ -542,7 +547,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     if (.not.allocated(deltat_1)) then
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
-                 daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays))
+                 daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
+				 conductivity_time(nodays), relative_waterfrac_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -588,6 +594,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! save the initial conditions for later
         field_capacity_initial = field_capacity
         porosity_initial = porosity
+	   
+
 
     else ! deltat_1 allocated?
 
@@ -925,6 +933,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        DIAGS(n,10) = wSWP      ! Soil water potential weighted by supply of water
        DIAGS(n,11) = rSWP      ! Soil water potential weighted by access water
        DIAGS(n,12) = Reff      ! Effective hydraulic resistance MPa.s.m2.mmol-1 H20
+	   
+	   ! To print soil hydraulic conductivity
+	   conductivity_time(n) = soil_conductivity(1)
+	   relative_waterfrac_time(n) = relative_water_frac(1)
+
 
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
@@ -3013,28 +3026,72 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
   !
   !-----------------------------------------------------------------
   !
-  subroutine soil_porosity(soil_frac_clay,soil_frac_sand)
+  !subroutine soil_porosity(soil_frac_clay,soil_frac_sand)
 
     ! Porosity is estimated from Saxton equations. !
 
-    implicit none
+   ! implicit none
 
     ! arguments
-    double precision, dimension(nos_soil_layers) :: soil_frac_clay &
-                                                   ,soil_frac_sand
+    !double precision, dimension(nos_soil_layers) :: soil_frac_clay &
+    !                                               ,soil_frac_sand
     ! local variables..
-    double precision, parameter :: H = 0.332d0, &
-                                 J = -7.251d-4, &
-                                  K = 0.1276d0
+    !double precision, parameter :: H = 0.332d0, &
+    !                             J = -7.251d-4, &
+    !                              K = 0.1276d0
 
     ! loop over soil layers..
-    porosity(1:nos_soil_layers) = H + J * soil_frac_sand(1:nos_soil_layers) + &
-                                  K * log10(soil_frac_clay(1:nos_soil_layers))
+    !porosity(1:nos_soil_layers) = H + J * soil_frac_sand(1:nos_soil_layers) + &
+     !                             K * log10(soil_frac_clay(1:nos_soil_layers))
     ! then assign same to core layer
-    porosity(nos_soil_layers+1) = porosity(nos_soil_layers)
+    !porosity(nos_soil_layers+1) = porosity(nos_soil_layers)
 
-  end subroutine soil_porosity
+  !end subroutine soil_porosity
   !
+  !-----------------------------------------------------------------
+  !
+  
+  subroutine calculate_relative_water_frac(nos_soil_layers, waterfrac, relative_water)
+	! Function to calculate relative water fraction (theta_f)
+	! Using the Van-Genuchten Mualem Model
+
+	! References: 
+	! Van Genuchten, M. T. (1980). A Closed form Equation for Predicting the Hydraulic Conductivity of Unsaturated Soils. 
+	!							Soil Science Society of America Journal, 44(5), 892-898. https://doi.org/10.2136/sssaj1980.03615995004400050002x 
+	! Ducharne et al., (2017). The hydrol module of ORCHIDEE: Scientific documentation [rev 3977] and on, work in progress.
+	
+	! Description:
+	! The relative water fraction represents the fraction of soil pores that are filled with 
+	! water retalive to the total water the soil can hold. It depends on available water in the
+	! soil, porosity, and residual water fraction (residual water fraction is the "last" amount of water
+	! that the soil can retain after this point there is no available water for drainage, plants, etc).
+	! Units: m3/m3
+	
+	implicit none
+
+    integer, intent(in) :: nos_soil_layers
+    double precision, intent(in) :: waterfrac(nos_soil_layers)
+    double precision, intent(out) :: relative_water(nos_soil_layers)
+
+
+	! calculate relative_water (m3/m3)
+    relative_water = (waterfrac - residual_waterfrac(nos_soil_layers)) / &
+	(porosity(nos_soil_layers) - residual_waterfrac(nos_soil_layers))
+
+	! Apply constraints for relative water fraction values
+	! zero represents complete dryness, 1 represents complete saturation
+	
+	! to avoid waterfrac values below residual_waterfrac
+	where (relative_water < 0.001d0)
+        relative_water = 0.001d0
+    end where
+
+    where (relative_water > 1.0d0)
+        relative_water = 1.0d0
+    end where
+
+
+end subroutine calculate_relative_water_frac
   !---------------------------------------------------------------------
   !
   subroutine initialise_soils(soil_frac_clay,soil_frac_sand)
@@ -3062,7 +3119,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        if (soil_frac_sand(i) > 70d0) soil_frac_sand(i) = 70d0
     end do
     ! calculate soil porosity (m3/m3)
-    call soil_porosity(soil_frac_clay,soil_frac_sand)
+    !call soil_porosity(soil_frac_clay,soil_frac_sand)
     ! calculate field capacity (m3/m-3)
     call calculate_field_capacity
 
@@ -3096,6 +3153,14 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     soil_waterfrac(nos_soil_layers+1) = field_capacity(nos_soil_layers)
     ! calculate initial soil water potential
     call soil_water_potential
+
+	! Seperately calculate relative water content as this applies to each layer
+    do i = 1, nos_soil_layers
+       call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
+    end do ! soil layers
+    ! but apply the lowest soil layer to the core as well in initial conditions
+    relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
+
 
     ! Seperately calculate the soil conductivity as this applies to each layer
     do i = 1, nos_soil_layers

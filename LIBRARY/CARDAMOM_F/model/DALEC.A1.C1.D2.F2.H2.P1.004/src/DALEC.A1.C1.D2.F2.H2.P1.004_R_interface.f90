@@ -34,11 +34,14 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
                   ,out_var1,out_var2,out_var3,out_var4,out_var5 &
                   ,lat,nopars,nomet &
                   ,nofluxes,nopools,nodiags,nodays,nos_years,deltat &
-                  ,nos_iter,soil_frac_clay_in,soil_frac_sand_in)
+                  ,nos_iter,soil_frac_clay_in,soil_frac_sand_in &
+				  ,residual_waterfrac_in, porosity_in, pore_size_dist_in &
+				  ,air_entry_in, sat_conductivity_in)
 
   use CARBON_MODEL_MOD, only: CARBON_MODEL, &
-                              soil_frac_clay, soil_frac_sand, nos_soil_layers
-                             
+                              soil_frac_clay, soil_frac_sand, nos_soil_layers, &
+							  residual_waterfrac, porosity, pore_size_dist,&
+							  air_entry, sat_conductivity
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
@@ -57,12 +60,18 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
                         ,nodays         & ! number of time steps in simulation
                         ,nos_years        ! number of years in simulation
 
-  double precision, intent(inout) :: deltat(nodays)     ! time step in decimal days
-  double precision, intent(in) :: met(nomet,nodays)   & ! met drivers, note reverse of needed
-                  ,soil_frac_clay_in(nos_soil_layers) & ! clay in soil (%)
-                  ,soil_frac_sand_in(nos_soil_layers) & ! sand in soil (%)
-                       ,pars(nopars,nos_iter)         & ! number of parameters
-                       ,lat                 ! site latitude (degrees)
+  double precision, intent(inout) :: deltat(nodays)         ! time step in decimal days
+  double precision, intent(in) :: met(nomet,nodays)       & ! met drivers, note reverse of needed
+                  ,soil_frac_clay_in(nos_soil_layers)     & ! clay in soil (%)
+                  ,soil_frac_sand_in(nos_soil_layers)     & ! sand in soil (%)
+				  ,residual_waterfrac_in(nos_soil_layers) & ! residual water fraction of the soil (m3m3)
+				  ,porosity_in(nos_soil_layers)           & ! porosity of soil (m3m3)
+				  ,pore_size_dist_in(nos_soil_layers)     & ! pore size distribution of the soil (-)
+				  ,air_entry_in(nos_soil_layers)          & ! air entry pressure (m-1) 
+				  ,sat_conductivity_in(nos_soil_layers)   & ! saturated hydraulic conductivity of soil (ms-1)
+				  ,pars(nopars,nos_iter)                  & ! number of parameters
+                  ,lat                                      ! site latitude (degrees)
+
 
   ! output declaration
   double precision, intent(out), dimension(nos_iter,nodays,output_dim) :: out_var1
@@ -90,6 +99,11 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
   ! update soil parameters
   soil_frac_clay(1:nos_soil_layers) = soil_frac_clay_in(1:nos_soil_layers)
   soil_frac_sand(1:nos_soil_layers) = soil_frac_sand_in(1:nos_soil_layers)
+  residual_waterfrac(1:nos_soil_layers) = residual_waterfrac_in(1:nos_soil_layers)
+  porosity(1:nos_soil_layers) = porosity_in(1:nos_soil_layers)
+  pore_size_dist(1:nos_soil_layers) = pore_size_dist_in(1:nos_soil_layers)
+  air_entry(1:nos_soil_layers) = air_entry_in(1:nos_soil_layers)
+  sat_conductivity(1:nos_soil_layers) = sat_conductivity_in(1:nos_soil_layers)
 
   ! generate deltat step from input data
   deltat(1) = met(1,1)

@@ -442,8 +442,8 @@ module cardamom_io
       use cardamom_structures, only: DATAin
       use CARBON_MODEL_MOD, only: soil_frac_clay,soil_frac_sand &
                                  ,nos_soil_layers, residual_waterfrac &
-								 ,porosity, sat_conductivity &
-								 ,pore_size_dist, air_entry
+								 ,porosity, pore_size_dist &
+								 ,air_entry, sat_conductivity
 
     ! subroutine opens and reads the binary data files provided by / for the
     ! CARDAMOM framework. This data is then loaded into the DATAin type

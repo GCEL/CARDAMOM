@@ -51,6 +51,11 @@ module CARBON_MODEL_MOD
            ,sw_par_fraction  &
            ,soil_frac_clay   &
            ,soil_frac_sand   &
+		   ,residual_waterfrac &
+		   ,porosity		 &
+		   ,pore_size_dist	 &
+		   ,air_entry		 &
+		   ,sat_conductivity &
            ,nos_soil_layers  &
            ,dim_1,dim_2      &
            ,nos_trees        &
@@ -61,7 +66,6 @@ module CARBON_MODEL_MOD
            ,xbestsplit       &
            ,nodepred         &
            ,bestvar
-
   !!!!!!!!!
   ! Parameters
   !!!!!!!!!
@@ -209,11 +213,15 @@ module CARBON_MODEL_MOD
                                             waterchange, & ! net water change by specific soil layers (m)
                                         water_grav_flow, & ! flow of water under gravity FROM each soil layer (kgH2O/m2/d)
                                          field_capacity, & ! soil field capacity (m3.m-3)
-                                 field_capacity_initial, &
+                                  field_capacity_initial, & ! 
                                          soil_waterfrac, & ! soil water content (m3.m-3)
                                                porosity, & ! soil layer porosity, (fraction)
-                                       porosity_initial, &
+                                       porosity_initial, & !
                                         layer_thickness, & ! thickness of soil layers (m)
+									 residual_waterfrac, & ! residual water fraction (m3.m-3) VGM
+									   sat_conductivity, & ! saturated hydraulic conductivity (m3.m-3) VGM
+									     pore_size_dist, & ! pore size distribution (-) VGM
+											  air_entry, & ! air entry pressure (m-1) VGM
                         cond1, cond2, cond3, potA, potB    ! Saxton equation values
 
   double precision :: root_reach, root_biomass, &
