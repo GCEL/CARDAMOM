@@ -3143,7 +3143,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P1.004") {
-      output_dim = 67 ; MTT_dim = 6 ; SS_dim = 6
+      output_dim = 68 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       tmp=.Fortran( "rdalec4",output_dim=as.integer(output_dim)
                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -3348,6 +3348,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       mean_annual_snow_kgH2Om2 = output_annual[,,55],
                       hydraulic_conductivity_ms = output[,,66],
                       soil_waterpot_MPa = output[,,67],
+                      field_capacity = output[,,68],
                       # Canopy (phenology) properties
                       lai_m2m2 = output[,,56],
                       mean_lai_m2m2 = output_mean[,56],
@@ -7776,7 +7777,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H4.P1.032") {
-    output_dim = 68 ; MTT_dim = 6 ; SS_dim = 6
+    output_dim = 69 ; MTT_dim = 6 ; SS_dim = 6
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
     tmp=.Fortran( "rdalec32",output_dim=as.integer(output_dim)
                   ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -7982,6 +7983,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       hydraulic_conductivity_ms = output[,,66],
       relative_waterfrac_m3m3 = output[,,67],
       soil_waterpot_MPa = output[,,68],
+      field_capacity = output[,,69],
       # Canopy (phenology) properties
       lai_m2m2 = output[,,56],
       mean_lai_m2m2 = output_mean[,56],
