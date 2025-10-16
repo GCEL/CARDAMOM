@@ -46,29 +46,30 @@ module CARBON_MODEL_MOD
   private
 
   ! explicit publics
-  public :: CARBON_MODEL     &
-           ,top_soil_depth   &
-           ,sw_par_fraction  &
-           ,soil_frac_clay   &
-           ,soil_frac_sand   &
-		   ,residual_waterfrac &
-		   ,porosity		 &
-		   ,pore_size_dist	 &
-		   ,air_entry		 &
-		   ,sat_conductivity &
-           ,nos_soil_layers  &
-           ,dim_1,dim_2      &
-           ,nos_trees        &
-           ,nos_inputs       &
-           ,leftDaughter     &
-           ,rightDaughter    &
-           ,nodestatus       &
-           ,xbestsplit       &
-           ,nodepred         &
-           ,bestvar          &
-		   ,conductivity_time&
-		   ,relative_waterfrac_time&
-		   ,swp_time
+  public :: CARBON_MODEL            &
+           ,top_soil_depth          &
+           ,sw_par_fraction         &
+           ,soil_frac_clay          &
+           ,soil_frac_sand          &
+		   ,residual_waterfrac      &
+		   ,porosity		        &
+		   ,pore_size_dist	        &
+		   ,air_entry		        &
+		   ,sat_conductivity        &
+           ,nos_soil_layers         &
+           ,dim_1,dim_2             &
+           ,nos_trees               &
+           ,nos_inputs              &
+           ,leftDaughter            &
+           ,rightDaughter           &
+           ,nodestatus              &
+           ,xbestsplit              &
+           ,nodepred                &
+           ,bestvar                 &
+		   ,conductivity_time       &
+		   ,relative_waterfrac_time &
+		   ,swp_time                &
+		   ,field_capacity_time
 
   !!!!!!!!!
   ! Parameters
@@ -332,7 +333,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                             rainfall_time, &
 										conductivity_time, &
 								  relative_waterfrac_time, &
-												 swp_time
+												 swp_time, &
+									  field_capacity_time
   contains
   !
   !--------------------------------------------------------------------
@@ -552,7 +554,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
-				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays))
+				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays), &
+				 field_capacity_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -942,7 +945,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   conductivity_time(n) = soil_conductivity(1)
 	   relative_waterfrac_time(n) = relative_water_frac(1)
 	   swp_time(n) = SWP(1)
-
+	   field_capacity_time(n) = field_capacity(1)
 
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
@@ -1844,9 +1847,20 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
   !
   subroutine calculate_field_capacity
 
-    use brent_zero, only: zbrent
+    ! Subroutine to estimate field capacity 
+	
+	! Description: 
+	! Field capacity is when the gravitational drainage in the soil slows down after a big rain event and the soil 
+	! is left with a stable amount of water available for plant uptake. Here we estimate field capacity by extractin the water fraction value
+	! when soil water potential equals 10KPa. Soil water potential depends on relative water content, which depends on water fraction, and the VGM
+	! parameters residual water fraction, porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). The units for the SWP in 
+	! VGM model are meters, here we convert meters to KPa by multiplying by gravity(g_ms2) (check function water_retention_eqns).
+	
+	! Units (m3/m3)
+
+	
+	use brent_zero, only: zbrent
     
-    ! field capacity calculations for saxton eqns !
 
     implicit none
 
@@ -1858,8 +1872,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     do i = 1 , nos_soil_layers+1
        water_retention_pass = i
        ! field capacity is water content at which SWP = -10 kPa
-       field_capacity(i) = zbrent('water_retention:water_retention_saxton_eqns', &
-                                   water_retention_saxton_eqns , x1 , x2 , 0.001d0, 0d0 )
+       field_capacity(i) = zbrent('water_retention:water_retention_eqns', &
+                                   water_retention_eqns , x1 , x2 , 0.001d0, 0d0 )
     enddo
 
   end subroutine calculate_field_capacity
@@ -2840,13 +2854,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     call soil_water_potential
 
 !    ! check water balance
-!    balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
-!    balance = balance &
-!            - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) &
-!            - initial_soilwater)
+    balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
+    balance = balance &
+            - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) &
+            - initial_soilwater)
 !
 !    if (abs(balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
-!        print*,"Soil water miss-balance (mm)",balance
+        print*,"Water Balance (mm)",balance
 !        print*,"Initial_soilwater (mm) = ",initial_soilwater
 !        print*,"Final_soilwater (mm) = ",sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
 !        print*,"State balance = ",sum(soil_waterfrac(1:nos_soil_layers)*layer_thickness(1:nos_soil_layers)*1d3)-initial_soilwater
@@ -3525,25 +3539,55 @@ end subroutine calculate_relative_water_frac
   !
   !------------------------------------------------------------------
   !
-  double precision function water_retention_saxton_eqns( xin )
+  double precision function water_retention_eqns( xin )
 
-    ! field capacity calculations for saxton eqns !
+   ! Subroutine to calculate soil water potential (SWP) using the Van-Genuchten Mualem (VGM) Model
+	! to use the SWP values for field capacity estimation at 10 KPa
 
-    implicit none
+	
+	! References: 
+	! Van Genuchten, M. T. (1980). A Closed form Equation for Predicting the Hydraulic Conductivity of Unsaturated Soils. 
+	!							   Soil Science Society of America Journal, 44(5), 892-898. 
+	! 							   https://doi.org/10.2136/sssaj1980.03615995004400050002x 
+	! Ducharne et al., (2017). The hydrol module of ORCHIDEE: Scientific documentation [rev 3977] and on, work in progress.
+	! Qiu et al., (2018). ORCHIDEE-PEAT (revision 4596), a model for northern peatland CO2, water, and energy fluxes on daily to annual scales.
+	!					  Geoscientific Model Development, 11(2), 497-519. https://doi.org/10.5194/gmd-11-497-2018 
+	! Fischer et al., (2007). The response of an Eastern Amazonian rain forest to drought stress: results and modelling analyses from a throughfall 
+	!						  exclusion experiment. Global Change Biology, 13(11), 2361-2378. https://doi.org/10.1111/j.1365-2486.2007.01417.x
+	
+	! Description: 
+	! SWP is the negative suction that water experiences in the soil due to capillary and adsorptive forces.
+	! It also controls how water moves through the soil and how much of it can be available to plants. In the VGM model
+	! SWP estimation depends on relative water fraction, which depends on water fraction, and the VGM parameters 
+	! porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). This estimation of SWP is used in the 
+	! subroutine to estimate field capacity. The units for the SWP in VGM model are meters, 
+	! here we convert meters to KPa by multiplying by gravity(g_ms2).
+	
+	! Units: (KPa)
 
-    ! arguments..
+	implicit none
+	double precision :: soil_wp
+	double precision :: m
     double precision, intent(in) :: xin
+	double precision :: relative_water_frac
 
-    ! local variables..
-    double precision :: soil_wp
+	! Estimation of relative water fraction (theta_f) 
+	call calculate_relative_water_frac(water_retention_pass, xin, relative_water_frac)
+	
+	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
+	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
+	! Units: (-)	
+	m = 1.0d0 - (1.0d0 / pore_size_dist(water_retention_pass))
+	
+	! Estimation ofsoil water potential using the VGM model and parameters
+	soil_wp = g_ms2 * (-1.0d0 / air_entry(water_retention_pass)) * &
+			(relative_water_frac**(-1.d0/m) - 1.d0)**(1.d0/pore_size_dist(water_retention_pass))
 
-    ! calculate the soil water potential (kPa)..
-    soil_wp = -potA(water_retention_pass) * xin**potB(water_retention_pass)
-    water_retention_saxton_eqns = soil_wp + 10d0    ! 10 kPa represents air-entry swp
+	water_retention_eqns = soil_wp + 10d0    ! 10 kPa represents air-entry swp
+	
+	return
 
-    return
-
-  end function water_retention_saxton_eqns
+  end function water_retention_eqns
   !
   !------------------------------------------------------------------
   !

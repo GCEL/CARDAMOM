@@ -46,28 +46,29 @@ module CARBON_MODEL_MOD
   private
 
   ! explicit publics
-  public :: CARBON_MODEL     &
-           ,top_soil_depth   &
-           ,sw_par_fraction  &
-           ,soil_frac_clay   &
-           ,soil_frac_sand   &
-		   ,residual_waterfrac &
-		   ,porosity		 &
-		   ,pore_size_dist	 &
-		   ,air_entry		 &
-		   ,sat_conductivity &
-           ,nos_soil_layers  &
-           ,dim_1,dim_2      &
-           ,nos_trees        &
-           ,nos_inputs       &
-           ,leftDaughter     &
-           ,rightDaughter    &
-           ,nodestatus       &
-           ,xbestsplit       &
-           ,nodepred         &
-           ,bestvar          &
-		   ,conductivity_time&
-		   ,swp_time
+  public :: CARBON_MODEL        &
+           ,top_soil_depth      &
+           ,sw_par_fraction     & 
+           ,soil_frac_clay      &
+           ,soil_frac_sand      &
+		   ,residual_waterfrac  &
+		   ,porosity		    &
+		   ,pore_size_dist	    &
+		   ,air_entry		    &
+		   ,sat_conductivity    &
+           ,nos_soil_layers     &
+           ,dim_1,dim_2         &
+           ,nos_trees           &
+           ,nos_inputs          &
+           ,leftDaughter        &
+           ,rightDaughter       &
+           ,nodestatus          &
+           ,xbestsplit          &
+           ,nodepred            &
+           ,bestvar             &
+		   ,conductivity_time   &
+		   ,swp_time            &
+		   ,field_capacity_time 
   !!!!!!!!!
   ! Parameters
   !!!!!!!!!
@@ -326,7 +327,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                       daylength_seconds_1, &
                                             rainfall_time, &
 										conductivity_time, &
-												 swp_time
+												 swp_time, &
+									  field_capacity_time
   contains
   !
   !--------------------------------------------------------------------
@@ -540,7 +542,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
-				 conductivity_time(nodays), swp_time(nodays))
+				 conductivity_time(nodays), swp_time(nodays), &
+				 field_capacity_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -927,6 +930,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	 ! To print soil hydraulic conductivity
 	   conductivity_time(n) = soil_conductivity(1)
 	   swp_time(n) = SWP(1)
+	   field_capacity_time(n) = field_capacity(1)
 	   
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
