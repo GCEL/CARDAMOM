@@ -69,7 +69,8 @@ module CARBON_MODEL_MOD
 		   ,conductivity_time       &
 		   ,relative_waterfrac_time &
 		   ,swp_time                &
-		   ,field_capacity_time
+		   ,field_capacity_time     &
+		   ,wb_time
 
   !!!!!!!!!
   ! Parameters
@@ -103,7 +104,7 @@ module CARBON_MODEL_MOD
                           vonkarman = 0.41d0,       & ! von Karman's constant
                         vonkarman_1 = 2.439024d0,   & ! 1 / von Karman's constant
                               cpair = 1004.6d0,     & ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
-							  g_ms2 = 9.80665         ! Gravity in m/s2; used in soil water potential to convert from meters to KPa, and MPa.
+							  g_ms2 = 9.80665d0         ! Gravity in mm/s2; used in soil water potential to convert from meters to KPa, and MPa.
 
 
   ! hydraulic parameters
@@ -230,7 +231,7 @@ module CARBON_MODEL_MOD
 									     pore_size_dist, & ! pore size distribution (-) VGM
 											  air_entry, & ! air entry pressure (m-1) VGM
                         cond1, cond2, cond3, potA, potB, & ! Saxton equation values
-									relative_water_frac    ! Relative water fraction VGM
+									relative_water_frac ! Relative water fraction VGM
 
   double precision :: root_reach, root_biomass, &
                              fine_root_biomass, & ! root depth, coarse+fine, and fine root biomass
@@ -281,8 +282,8 @@ module CARBON_MODEL_MOD
                              !soil_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                            !canopy_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                                 canopy_storage, & ! water storage on canopy (kgH2O.m-2)
-                          intercepted_rainfall    ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
-
+                          intercepted_rainfall, & ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
+									   balance
   ! Module level variables for ACM_GPP_ET parameters
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                             ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
@@ -334,7 +335,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 										conductivity_time, &
 								  relative_waterfrac_time, &
 												 swp_time, &
-									  field_capacity_time
+									  field_capacity_time, &
+									              wb_time
   contains
   !
   !--------------------------------------------------------------------
@@ -514,11 +516,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 !    ! Debugging print statements
 !    print*,"carbon_model: "
   ! Printing the first value of each parameter for debugging
-    print *, 'residual_waterfrac(1,1,1) = ', residual_waterfrac(1)
-    print *, 'porosity(1,1,1) = ', porosity(1)
-    print *, 'pore_size_dist(1,1,1) = ', pore_size_dist(1)
-    print *, 'air_entry(1,1,1) = ', air_entry(1)
-    print *, 'sat_conductivity(1,1,1) = ', sat_conductivity(1)
+    print *, 'residual_waterfrac = ', residual_waterfrac(1)
+    print *, 'porosity = ', porosity(1)
+    print *, 'pore_size_dist = ', pore_size_dist(1)
+    print *, 'air_entry= ', air_entry(1)
+    print *, 'sat_conductivity= ', sat_conductivity(1)
 
     ! Set some initial states
     infi = 0d0 ; FLUXES = 0d0 ; POOLS = 0d0 ; DIAGS = 0d0
@@ -555,7 +557,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
 				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays), &
-				 field_capacity_time(nodays))
+				 field_capacity_time(nodays), wb_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -944,7 +946,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   ! To print soil hydraulic conductivity
 	   conductivity_time(n) = soil_conductivity(1)
 	   relative_waterfrac_time(n) = relative_water_frac(1)
-	   swp_time(n) = SWP(1)
 	   field_capacity_time(n) = field_capacity(1)
 
        ! calculate radiation absorption and estimate stomatal conductance
@@ -1069,7 +1070,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,47) = infiltrated     ! soil surface infiltration by rain 
        FLUXES(n,48) = uptake_fraction(1) ! transpiration fraction extracted from 1st rooting layer (the soil surface)
        FLUXES(n,49) = uptake_fraction(2) ! transpiration fraction extracted from 2nd rooting layer (dynamic 2nd layer)
-
+	   
+	   ! Print swp_time
+	   swp_time(n) = SWP(1)
+	   wb_time(n) = balance
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
        !!!!!!!!!!
@@ -2613,7 +2617,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! local variables
     integer :: day, a
-    double precision :: depth_change, water_change, initial_soilwater, balance, mass_check, &
+    double precision :: depth_change, water_change, initial_soilwater, mass_check, &
                         Esoil_local, Esnow_local
     double precision, dimension(nos_root_layers) :: avail_flux, evaporation_losses, pot_evap_losses
     !logical :: iter_soil = .true.
@@ -2851,7 +2855,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     endif ! root reach beyond top layer
 
     ! Update soil water potential
-    call soil_water_potential
+    call soil_water_potential	
+    print*,"SWP",SWP
 
 !    ! check water balance
     balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
@@ -3102,7 +3107,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	
 	! to avoid waterfrac values below residual_waterfrac
 		
-	if (relative_water < 0.001d0) then
+	if (relative_water < 0.0d0) then
 		relative_water = 0.001d0
 	endif
 
@@ -3172,14 +3177,19 @@ end subroutine calculate_relative_water_frac
     ! Assume that the 'core' soil layer is field capacity
     soil_waterfrac(nos_soil_layers+1) = field_capacity(nos_soil_layers)
     ! calculate initial soil water potential
-    call soil_water_potential
-
+    
 	! Seperately calculate relative water content as this applies to each layer
     do i = 1, nos_soil_layers
        call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
     end do ! soil layers
-    ! but apply the lowest soil layer to the core as well in initial conditions
+	
+	! but apply the lowest soil layer to the core as well in initial conditions
     relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
+
+	call soil_water_potential
+
+
+  	!print *, 'relative water frac = ', relative_water_frac(1)
 
 
     ! Seperately calculate the soil conductivity as this applies to each layer
@@ -3347,7 +3357,7 @@ end subroutine calculate_relative_water_frac
 	! It also controls how water moves through the soil and how much of it can be available to plants. In the VGM model
 	! SWP estimation depends on relative water fraction, which depends on water fraction, and the VGM parameters 
 	! porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). The units for the SWP in VGM model are meters,
-	! here we convert meters to MPa by multiplying by gravity to the minus 6 (g_ms2*1.0E-6).
+	! here we convert meters to MPa by multiplying by gravity to the minus 6 (g_ms2*0.001).
 	
 	! Units: (MPa)
 
@@ -3356,12 +3366,15 @@ end subroutine calculate_relative_water_frac
     integer :: i
 	double precision :: m(nos_soil_layers)
 	double precision :: soil_waterfrac(nos_soil_layers)
-	double precision :: relative_water_frac(nos_soil_layers)
+	!double precision :: relative_water_frac(nos_soil_layers)
+	!double precision :: g_con
+	
+	!g_con = g_ms2/1.0E3 
 	
 	! Estimation of relative water fraction (theta_f) for each soil layer
-	do i = 1, nos_soil_layers
-		call calculate_relative_water_frac(i, soil_waterfrac(i), relative_water_frac(i))
-	end do
+	!do i = 1, nos_soil_layers
+	!	call calculate_relative_water_frac(i, soil_waterfrac(i), relative_water_frac(i))
+	!end do
 	
 	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
 	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
@@ -3369,9 +3382,11 @@ end subroutine calculate_relative_water_frac
 	m = 1.0d0 - (1.0d0 / pore_size_dist(1:nos_soil_layers))
 	
 	! Estimation ofsoil water potential using the VGM model and parameters
-    SWP(1:nos_soil_layers) = (g_ms2 * 1.0E-6) * (-1.0d0 / air_entry(1:nos_soil_layers)) *&
-							 (relative_water_frac(1:nos_soil_layers)**(-1.0d0 / m) - 1.0d0)**(1.0d0 / pore_size_dist(1:nos_soil_layers))
-							 
+    SWP(1:nos_soil_layers) = (g_ms2*1.0E-3) * (-1.0d0 / air_entry(1:nos_soil_layers)) *&
+							 (relative_water_frac(1:nos_soil_layers)**(-1.0d0 / m) - 1.0d0)&
+							 **(1.0d0 / pore_size_dist(1:nos_soil_layers))
+
+					
     ! NOTE: profiling indiates that 'where' is slower for very short vectors
     do i = 1, nos_soil_layers
        if (SWP(i) < -20d0 .or. SWP(i) /= SWP(i)) SWP(i) = -20d0

@@ -68,7 +68,8 @@ module CARBON_MODEL_MOD
            ,bestvar             &
 		   ,conductivity_time   &
 		   ,swp_time            &
-		   ,field_capacity_time 
+		   ,field_capacity_time &
+		   ,porosity_time
   !!!!!!!!!
   ! Parameters
   !!!!!!!!!
@@ -328,7 +329,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                             rainfall_time, &
 										conductivity_time, &
 												 swp_time, &
-									  field_capacity_time
+									  field_capacity_time, &
+									        porosity_time
   contains
   !
   !--------------------------------------------------------------------
@@ -543,7 +545,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
 				 conductivity_time(nodays), swp_time(nodays), &
-				 field_capacity_time(nodays))
+				 field_capacity_time(nodays), porosity_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -931,6 +933,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   conductivity_time(n) = soil_conductivity(1)
 	   swp_time(n) = SWP(1)
 	   field_capacity_time(n) = field_capacity(1)
+	   porosity_time(n) = porosity(1)
 	   
        ! calculate radiation absorption and estimate stomatal conductance
        call calculate_stomatal_conductance
