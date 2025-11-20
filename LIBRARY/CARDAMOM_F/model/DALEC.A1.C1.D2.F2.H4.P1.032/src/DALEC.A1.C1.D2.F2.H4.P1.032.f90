@@ -820,6 +820,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     layer_thickness(4) = top_soil_depth
     previous_depth = sum(layer_thickness(1:2))
     ! Needed to initialise soils
+	
     call calculate_Rtot
     call calculate_update_soil_water(transpiration,soilevaporation,snowsublimation,&
                                      0d0,FLUXES(1,29)) ! assume no evap or rainfall
@@ -2314,6 +2315,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! seperately calculate the soil conductivity as this applies to each layer
     do i = 1, nos_soil_layers
+	   call calculate_relative_water_frac(i, soil_waterfrac(i), relative_water_frac(i))
        call calculate_soil_conductivity(i,soil_waterfrac(i),soil_conductivity(i))
     end do ! soil layers
 
@@ -3100,7 +3102,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
 	! calculate relative_water (m3/m3)
     relative_water = (waterfrac - residual_waterfrac(nos_soil_layers)) / &
-	(porosity(nos_soil_layers) - residual_waterfrac(nos_soil_layers))
+	                 (porosity(nos_soil_layers) - residual_waterfrac(nos_soil_layers))
 
 	! Apply constraints for relative water fraction values
 	! zero represents complete dryness, 1 represents complete saturation
@@ -3189,9 +3191,6 @@ end subroutine calculate_relative_water_frac
 	call soil_water_potential
 
 
-  	!print *, 'relative water frac = ', relative_water_frac(1)
-
-
     ! Seperately calculate the soil conductivity as this applies to each layer
     do i = 1, nos_soil_layers
        call calculate_soil_conductivity(i,soil_waterfrac(i),soil_conductivity(i))
@@ -3225,15 +3224,14 @@ end subroutine calculate_relative_water_frac
 	
 	
 	implicit none
+	! arguments
 	integer, intent(in) :: soil_layer
     double precision, intent(in) :: waterfrac
-    double precision :: relative_water_frac
     double precision, intent(out) :: conductivity
+	
+	! Local
     double precision :: m
 	
-	! Estimation of relative water fraction (theta_f) 
-	call calculate_relative_water_frac(soil_layer, waterfrac, relative_water_frac)
-
 	
 	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
 	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
@@ -3241,8 +3239,8 @@ end subroutine calculate_relative_water_frac
 	m = 1.0d0 - (1.0d0 / pore_size_dist(soil_layer))
 	
 	! Estimation of hydraulic conductivity using the VGM model and parameters
-	conductivity = sat_conductivity(soil_layer) * (relative_water_frac**0.5d0) *&
-					(1.0d0 - (1.0d0 - relative_water_frac**(1.0d0/m))**m)**2d0
+	conductivity = sat_conductivity(soil_layer) * (relative_water_frac(soil_layer)**0.5d0) *&
+					(1.0d0 - (1.0d0 - relative_water_frac(soil_layer)**(1.0d0/m))**m)**2d0
    
    
 	! protection against floating point error
@@ -3366,15 +3364,7 @@ end subroutine calculate_relative_water_frac
     integer :: i
 	double precision :: m(nos_soil_layers)
 	double precision :: soil_waterfrac(nos_soil_layers)
-	!double precision :: relative_water_frac(nos_soil_layers)
-	!double precision :: g_con
 	
-	!g_con = g_ms2/1.0E3 
-	
-	! Estimation of relative water fraction (theta_f) for each soil layer
-	!do i = 1, nos_soil_layers
-	!	call calculate_relative_water_frac(i, soil_waterfrac(i), relative_water_frac(i))
-	!end do
 	
 	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
 	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
@@ -3581,13 +3571,17 @@ end subroutine calculate_relative_water_frac
 	! Units: (KPa)
 
 	implicit none
-	double precision :: soil_wp
-	double precision :: m
-    double precision, intent(in) :: xin
-	double precision :: relative_water_frac
+	
+	! arguments
+	double precision, intent(in) :: xin
+	
+	! Local variables
+	double precision :: soil_wp, &
+         	                  m, &
+	   relative_water_frac_local
 
 	! Estimation of relative water fraction (theta_f) 
-	call calculate_relative_water_frac(water_retention_pass, xin, relative_water_frac)
+	call calculate_relative_water_frac(water_retention_pass, xin, relative_water_frac_local)
 	
 	! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
 	! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductvitiy
@@ -3596,7 +3590,7 @@ end subroutine calculate_relative_water_frac
 	
 	! Estimation ofsoil water potential using the VGM model and parameters
 	soil_wp = g_ms2 * (-1.0d0 / air_entry(water_retention_pass)) * &
-			(relative_water_frac**(-1.d0/m) - 1.d0)**(1.d0/pore_size_dist(water_retention_pass))
+			(relative_water_frac_local**(-1.d0/m) - 1.d0)**(1.d0/pore_size_dist(water_retention_pass))
 
 	water_retention_eqns = soil_wp + 10d0    ! 10 kPa represents air-entry swp
 	

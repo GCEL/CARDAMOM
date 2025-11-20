@@ -43,7 +43,8 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
 							  residual_waterfrac, porosity, pore_size_dist,&
 							  air_entry, sat_conductivity, &
 							  conductivity_time, &
-							  swp_time, field_capacity_time, porosity_time
+							  swp_time, field_capacity_time, porosity_time, &
+							  wb_time
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by
@@ -213,6 +214,7 @@ subroutine rdalec4(output_dim,MTT_dim,SS_dim &
 	 out_var1(i,1:nodays,67) = swp_time(1:nodays)           ! Soil water potential 
      out_var1(i,1:nodays,68) = field_capacity_time(1:nodays) ! Field capacity
 	 out_var1(i,1:nodays,69) = porosity_time(1:nodays)
+	 out_var1(i,1:nodays,70) =  wb_time(1:nodays)
 	 
 	 !
      ! Calculate long-term mean of out_var1

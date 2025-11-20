@@ -69,7 +69,8 @@ module CARBON_MODEL_MOD
 		   ,conductivity_time   &
 		   ,swp_time            &
 		   ,field_capacity_time &
-		   ,porosity_time
+		   ,porosity_time       &
+		   ,wb_time
   !!!!!!!!!
   ! Parameters
   !!!!!!!!!
@@ -277,8 +278,9 @@ module CARBON_MODEL_MOD
                              !soil_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                            !canopy_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                                 canopy_storage, & ! water storage on canopy (kgH2O.m-2)
-                          intercepted_rainfall    ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
-
+                          intercepted_rainfall, &    ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
+                                       balance_2
+									   
   ! Module level variables for ACM_GPP_ET parameters
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                             ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
@@ -330,7 +332,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 										conductivity_time, &
 												 swp_time, &
 									  field_capacity_time, &
-									        porosity_time
+									        porosity_time, &
+											      wb_time
   contains
   !
   !--------------------------------------------------------------------
@@ -545,7 +548,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
 				 conductivity_time(nodays), swp_time(nodays), &
-				 field_capacity_time(nodays), porosity_time(nodays))
+				 field_capacity_time(nodays), porosity_time(nodays), &
+				 wb_time(nodays))
 
         !
         ! Timing variables which are needed first
@@ -1061,7 +1065,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
        !!!!!!!!!!
-
+	   wb_time(n) = balance_2
+	   
        ! reset values
        harvest_management = 0 ; burnt_area = 0d0
 
@@ -2831,13 +2836,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     call soil_water_potential
 
 !    ! check water balance
-!    balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
-!    balance = balance &
-!            - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) &
-!            - initial_soilwater)
+    balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
+    balance_2 = balance &
+             - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) &
+             - initial_soilwater)
 !
 !    if (abs(balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
-!        print*,"Soil water miss-balance (mm)",balance
+        print*,"water balance",balance_2
 !        print*,"Initial_soilwater (mm) = ",initial_soilwater
 !        print*,"Final_soilwater (mm) = ",sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
 !        print*,"State balance = ",sum(soil_waterfrac(1:nos_soil_layers)*layer_thickness(1:nos_soil_layers)*1d3)-initial_soilwater
