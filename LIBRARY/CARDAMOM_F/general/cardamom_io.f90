@@ -505,15 +505,15 @@ module cardamom_io
     soil_frac_clay(1) = statdat(14) ! top soil clay percentage
     soil_frac_clay(2:nos_soil_layers) = statdat(15) ! bot
 	residual_waterfrac(1) = statdat(16) ! Top residual water fraction (m3m3) from Van-Genuchten Mualem
-	residual_waterfrac(2:nos_soil_layers) = statdat(17) ! bot
+	residual_waterfrac(2:nos_soil_layers+1) = statdat(17) ! bot
 	porosity(1) = statdat(18) ! Top porosity (m3m3) from Van-Genuchten Mualem
-	porosity(2:nos_soil_layers) = statdat(19) ! bot
+	porosity(2:nos_soil_layers+1) = statdat(19) ! bot
 	pore_size_dist = statdat(20) ! Top pore size distribution (-) from Van-Genuchten Mualem
-	pore_size_dist(2:nos_soil_layers) = statdat(21) ! bot
+	pore_size_dist(2:nos_soil_layers+1) = statdat(21) ! bot
 	air_entry = statdat(22) !  Top air entry pressure (m-1) from Van-Genuchten Mualem
-	air_entry(2:nos_soil_layers) = statdat(23) ! bot
+	air_entry(2:nos_soil_layers+1) = statdat(23) ! bot
 	sat_conductivity = statdat(24) ! Top saturated hydraulic conductivity (ms-1) from Van-Genuchten Mualem
-	sat_conductivity(2:nos_soil_layers) = statdat(25) ! bot
+	sat_conductivity(2:nos_soil_layers+1) = statdat(25) ! bot
 
     ! call for model specific values
     call cardamom_model_library

@@ -52,9 +52,9 @@ module CARBON_MODEL_MOD
            ,soil_frac_clay          &
            ,soil_frac_sand          &
            ,residual_waterfrac      &
-           ,porosity		        &
+           ,porosity		            &
            ,pore_size_dist	        &
-           ,air_entry		        &
+           ,air_entry		            &
            ,sat_conductivity        &
            ,nos_soil_layers         &
            ,dim_1,dim_2             &
@@ -498,11 +498,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 !    ! Debugging print statements
 !    print*,"carbon_model: "
   ! Printing the first value of each parameter for debugging
-    !print *, 'residual_waterfrac = ', residual_waterfrac(1)
-    !print *, 'porosity = ', porosity(1)
-    !print *, 'pore_size_dist = ', pore_size_dist(1)
-    !print *, 'air_entry= ', air_entry(1)
-    !print *, 'sat_conductivity= ', sat_conductivity(1)
+    print *, 'residual_waterfrac = ', residual_waterfrac(1)
+    print *, 'porosity = ', porosity(1)
+    print *, 'pore_size_dist = ', pore_size_dist(1)
+    print *, 'air_entry= ', air_entry(1)
+    print *, 'sat_conductivity= ', sat_conductivity(1)
 
     ! Set some initial states
     infi = 0d0 ; FLUXES = 0d0 ; POOLS = 0d0 ; DIAGS = 0d0
@@ -801,21 +801,15 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     layer_thickness(4) = top_soil_depth
     previous_depth = sum(layer_thickness(1:2))
     ! Needed to initialise soils
-	
+
     call calculate_Rtot
-	
     call calculate_update_soil_water(transpiration,soilevaporation,snowsublimation,&
                                      0d0,FLUXES(1,29)) ! assume no evap or rainfall
 
     ! Store soil water content of the surface zone (mm)
     POOLS(1,7) = 1d3 * soil_waterfrac(1) * layer_thickness(1)
-    
-	!print*,"swc before loop",soil_waterfrac
-
 
     do n = start, finish
-	
-	!print*,"swc begining loop",soil_waterfrac
 
        !!!!!!!!!!
        ! assign drivers and update some prognostic variables
@@ -1039,27 +1033,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
        ! add any snow melt to the rainfall now that we have already dealt with the canopy interception
        rainfall = rainfall + snow_melt
-	   
-	   !print*, "a3", runoff
        ! do mass balance (i.e. is there enough water to support ET)
-	   
-	   
-	   print*, "porosity", porosity
-	   print*, "residual_waterfrac", residual_waterfrac
-	   print*, "n", pore_size_dist
-	   print*, "alpha", air_entry
-	   print*, "Ks", sat_conductivity
-	   
-
        call calculate_update_soil_water(transpiration,soilevaporation,snowsublimation, &
                                         ((rainfall-intercepted_rainfall)*seconds_per_day) &
                                        ,FLUXES(n,29))
-!    print*,"swc, water_grav_flow",soil_waterfrac,water_grav_flow
-
-	   
-		!print*,"swc after update_soils inside loop ",soil_waterfrac
-	   !print*, "a4", runoff
-
        ! now that soil mass balance has been updated we can add the wet canopy
        ! evaporation (kgH2O.m-2.day-1)
        FLUXES(n,29) = FLUXES(n,29) + wetcanopy_evap
@@ -1070,7 +1047,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,42) = soilevaporation ! soil evaporation
        FLUXES(n,43) = wetcanopy_evap  ! wet canopy evaporation
        FLUXES(n,44) = runoff          ! soil surface runoff
-	   !print*, "a6", runoff
        FLUXES(n,45) = underflow       ! drainage from bottom of soil column
        FLUXES(n,46) = water_grav_flow(1) ! drainage from the surface soil layer to 2nd
        FLUXES(n,47) = infiltrated     ! soil surface infiltration by rain
@@ -1878,18 +1854,15 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! The loop will determine the relative water fraction (0-1) at which field capacity occurs.
     ! Therefore, we must convert back to a volumetric soil water fraction (m3/m3) afterwards.
     x1 = 0.1d0 ; x2 = 1d0 ! low/high guess
-    do i = 1 , nos_soil_layers
+    do i = 1 , nos_soil_layers+1
        water_retention_pass = i
        ! field capacity is water content at which SWP = -10 kPa
        field_capacity(i) = zbrent('water_retention:water_retention_eqns', &
                                    water_retention_eqns , x1 , x2 , 0.001d0, 0d0 )
     end do
     ! Convert from relative water fraction (0-1) to actual field capacity (m3/m3)
-    field_capacity = ((porosity - residual_waterfrac) * field_capacity) + residual_waterfrac
-    field_capacity(nos_soil_layers+1) = field_capacity(nos_soil_layers)
-	!print*, "Field Capacity", 
-	
-	
+    field_capacity = ((porosity - residual_waterfrac) * relative_water) + residual_waterfrac
+
   end subroutine calculate_field_capacity
   !
   !------------------------------------------------------------------
@@ -2716,24 +2689,18 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
        ! adjust water already committed to evaporation
        ! convert kg.m-2 (or mm) -> Mg.m-2 (or m)
-	   !print*, "aa", soil_waterfrac
        soil_waterfrac(1:nos_root_layers) = soil_waterfrac(1:nos_root_layers) &
                                          + ((-evaporation_losses(1:nos_root_layers)*1d-3) / layer_thickness(1:nos_root_layers))
-	   !print*, "aa1", soil_waterfrac
 
        ! Correct for dew formation; any water above porosity in the top layer is assumed runoff
        ! NOTE: layer_thickness * 1d3 scales between m3/m3 to kg/m2
        ! Worth investigating whether this term is actually important, dew formation in unlikely
        ! to be large. Therefore, maybe a conditional statment and calculation unrequired
-	   !print*, "a1", soil_waterfrac(1), porosity(1)
-       
-	   
-	   if (soil_waterfrac(1) > porosity(1)) then
+       if (soil_waterfrac(1) > porosity(1)) then
            runoff = runoff + ((soil_waterfrac(1)-porosity(1)) * layer_thickness(1) * 1d3)
-		!   print*, "a2", runoff, soil_waterfrac(1), porosity(1)
            soil_waterfrac(1) = porosity(1)
        endif
-	   print*, "a3", soil_waterfrac(1), porosity(1), runoff
+
        !!!!!!!!!!
        ! Rainfall infiltration drainage
        !!!!!!!!!!
@@ -2742,22 +2709,16 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! if rainfall is probably liquid / soil surface is probably not frozen
        ! reset soil water change variable
        waterchange = 0d0
-	   !print *, 'soil_waterfrac before infiltration', soil_waterfrac
-	   
-      call infiltrate(rainfall_in)
-	   
-	   !print*, "a4", runoff
+       call infiltrate(rainfall_in)
        ! update soil profiles. Convert fraction into depth specific values
        ! (rather than m3/m3) then update fluxes
        soil_waterfrac(1:nos_soil_layers) = soil_waterfrac(1:nos_soil_layers) &
                                          + (waterchange(1:nos_soil_layers) / layer_thickness(1:nos_soil_layers))
        ! soil waterchange variable reset in gravitational_drainage()
-	   !print*, "aa3", soil_waterfrac
 
        !!!!!!!!!!
        ! Gravitational drainage
        !!!!!!!!!!
-		!print *, 'soil_waterfrac', soil_waterfrac
 
        ! Determine drainage flux between surface -> sub surface
        call gravitational_drainage(1)
@@ -2770,7 +2731,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     corrected_ET = corrected_ET * days_per_step_1
     underflow = underflow * days_per_step_1
     runoff = runoff * days_per_step_1
-	!print*, "a5", runoff
     Esoil = Esoil * days_per_step_1
     Esnow = Esnow * days_per_step_1
 
@@ -2877,22 +2837,18 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         previous_depth = previous_depth
 
     endif ! root reach beyond top layer
-	
-	
+
     ! Update soil water potential
     call soil_water_potential
-    !print*,"SWP",SWP
+    print*,"SWP",SWP
 
     ! check water balance
     soil_water_balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
-	
     soil_water_balance = soil_water_balance &
                        - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) - initial_soilwater)
-
 !
-    !if (abs(soil_water_balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
-       
-	 !  print*,"Water Balance (mm)",soil_water_balance
+!    if (abs(balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
+        print*,"Water Balance (mm)",soil_water_balance
 !        print*,"Initial_soilwater (mm) = ",initial_soilwater
 !        print*,"Final_soilwater (mm) = ",sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
 !        print*,"State balance = ",sum(soil_waterfrac(1:nos_soil_layers)*layer_thickness(1:nos_soil_layers)*1d3)-initial_soilwater
@@ -2901,7 +2857,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 !        print*,"Rainfall (mm/step)",rainfall_in,"ET",corrected_ET,"underflow",underflow,"runoff",runoff
 !        print*,"Rainfall (kgH2O/m2/s)",rainfall
 !        print*,"Soil Water Fraction = ",soil_waterfrac
-  !  end if ! abs(balance) > 1d-10
+!    end if ! abs(balance) > 1d-10
 
     ! explicit return needed to ensure that function runs all needed code
     return
@@ -2926,11 +2882,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     integer :: i
     double precision :: add, & ! surface water available for infiltration (m)
                       wdiff    ! available space in a given soil layer for water to fill (m)
-	!print*, "rainfall_in 1", rainfall_in
+
     ! convert rainfall water from mm -> m (or kgH2O.m-2.day-1 -> MgH2O.m-2.day-1)
     add = rainfall_in * 1d-3
 
-	
     do i = 1 , nos_soil_layers
 
        ! is the input of water greater than available space
@@ -2988,7 +2943,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! calculate soil ice proportion; at the moment
     ! assume everything liquid
-    iceprop = 0d0 ; pot_drainage = 0d0
+    iceprop = 0d0
 
     ! except the surface layer in the mean daily temperature is < 0oC
     if (meant < 1d0) iceprop(1) = 1d0
@@ -3000,107 +2955,76 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! therefore we must convert
     underflow = underflow * 1d-3
     water_grav_flow = water_grav_flow * 1d-3
-	
-!	print*,"start of grav drainage "
 
     ! estimate potential drainage rate for the current time period
     liquid = soil_waterfrac(1:nos_soil_layers) * ( 1d0 - iceprop(1:nos_soil_layers) )
     ! estimate how much liquid is available to flow
     avail_to_flow = liquid - field_capacity(1:nos_soil_layers)
-	
- !   print*,"avail_to_flow",avail_to_flow
-
-
-
-	! trapezium rule scaler and the half-way point between current and field capacity
+    ! trapezium rule scaler and the half-way point between current and field capacity
     dx = avail_to_flow*0.5d0 ; halfway = liquid - dx
-	
     do t = 1, nos_soil_layers
        if (avail_to_flow(t) > 0d0) then
            ! Trapezium rule for approximating integral of drainage rate
            ! At current soil water content
            call calculate_relative_water_frac(t,liquid(t),tmp4)
            call calculate_soil_conductivity(t,tmp4,tmp1)
-!          
-		   ! At field capacity
+           ! At field capacity
            call calculate_relative_water_frac(t,field_capacity(t),tmp4)
            call calculate_soil_conductivity(t,tmp4,tmp2)
-!		   
            ! Half way to field capacity
            call calculate_relative_water_frac(t,halfway(t),tmp4)
            call calculate_soil_conductivity(t,tmp4,tmp3)
-!		   
            pot_drainage(t) = 0.5d0 * dx(t) * ((tmp1 + tmp2) + 2d0 * tmp3)
-!		      
-	   else
-!	   	   
+       else
            ! We are at field capacity currently even after rainfall has been infiltrated.
            ! Assume that the potential drainage rate is that at field capacity
            call calculate_relative_water_frac(t,field_capacity(t),tmp4)
            call calculate_soil_conductivity(t,tmp4,pot_drainage(t))
-!		   
        endif ! water above field capacity to flow?
     end do ! soil layers
     ! Scale potential drainage from per second to per day
     pot_drainage = pot_drainage * seconds_per_day
-!	
-	
-	
+
     ! Integrate drainage over each day until time period has been reached or
     ! each soil layer has reached field capacity
     t = 1
-!	
     do while (t < (time_period_days+1) .and. maxval(soil_waterfrac - field_capacity) > vsmall)
 
        ! Estimate liquid content and how much is available to flow / drain
        avail_to_flow = ( soil_waterfrac(1:nos_soil_layers) * (1d0 - iceprop(1:nos_soil_layers)) ) &
                      - field_capacity(1:nos_soil_layers)
-!	
+
        ! ...then from the top down
        do soil_layer = 1, nos_soil_layers
- !     
+
           ! initial conditions; i.e. is there liquid water and more water than
           ! layer can hold
           if (avail_to_flow(soil_layer) > 0d0 .and. soil_waterfrac(soil_layer+1) < porosity(soil_layer+1)) then
-!	
 
               ! Unsaturated volume of layer below (m3 m-2)
               unsat = ( porosity(soil_layer+1) - soil_waterfrac(soil_layer+1) ) &
                     * layer_thickness(soil_layer+1) / layer_thickness(soil_layer)
-!			 
               ! Restrict potential rate calculate above for the available water
               ! and available space in the layer below.
               ! NOTE: * layer_thickness(soil_layer) converts units from m3/m2 -> (m3)
               change = min(unsat,min(pot_drainage(soil_layer),avail_to_flow(soil_layer))) * layer_thickness(soil_layer)
-!			  
               ! update soil layer below with drained liquid
-!			  
               waterchange( soil_layer + 1 ) = waterchange( soil_layer + 1 ) + change
-!			  
-!			  
               waterchange( soil_layer     ) = waterchange( soil_layer     ) - change
-!			  
               ! Also track only the positive flows from one layer to another (MgH2O/m2/day)
-!			  
               water_grav_flow(soil_layer) = water_grav_flow(soil_layer) + change
-!			 
 
           end if ! some liquid water and drainage possible
-	!
+
        end do ! soil layers
-	
-  !     
 
        ! update soil water profile
        soil_waterfrac(1:nos_soil_layers) = soil_waterfrac(1:nos_soil_layers) &
                                          + (waterchange(1:nos_soil_layers)/layer_thickness(1:nos_soil_layers))
- !      
-										 
        ! estimate drainage from bottom of soil column (MgH2O/m2/day)
        ! NOTES: that underflow is reset outside of the daily soil loop
-!	   
        underflow = underflow + waterchange(nos_soil_layers+1)
-!       
+
        ! Reset now we have moves that liquid
        waterchange = 0d0
        ! integerate through time period
@@ -3108,7 +3032,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     end do ! while condition
 
-	
     ! convert underflow and water_grav_flow from MgH2O/m2/day -> kgH2O/m2/day
     underflow = underflow * 1d3
     water_grav_flow = water_grav_flow * 1d3
@@ -3142,8 +3065,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     double precision, intent(out) :: relative_water
 
     ! calculate relative water content (0-1)
-    relative_water =  max(0.001d0,min(1d0,(waterfrac - residual_waterfrac(s)) / (porosity(s) - residual_waterfrac(s))))
-	
+    relative_water = max(0d0,min(1d0,(waterfrac - residual_waterfrac(s)) / (porosity(s) - residual_waterfrac(s)))
+
   end subroutine calculate_relative_water_frac
   !
   !---------------------------------------------------------------------
@@ -3160,12 +3083,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! local variables
     integer :: i
 
-    ! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
-    ! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductivity
-    ! Units: (-)
-	m_pore_size_dist = 1.0d0 - (1.0d0 / pore_size_dist)
-
-	 
     ! calculate field capacity (m3/m-3)
     call calculate_field_capacity
 
@@ -3187,35 +3104,34 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! local variables
     integer :: i
+
     ! Load initial soil water fraction to the dynamic layers
     soil_waterfrac(1:nos_soil_layers) = input_soilwater_frac
-	!print*, "check 1",soil_waterfrac, input_soilwater_frac
     ! Assume that the 'core' soil layer is field capacity
     soil_waterfrac(nos_soil_layers+1) = field_capacity(nos_soil_layers)
-	!print*, "check 2",soil_waterfrac
+    ! calculate initial soil water potential
 
+    ! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
+    ! parameter from the VGM Model. This parameter simplifies the calculation of hydraulic conductivity
+    ! Units: (-)
+    m_pore_size_dist = 1.0d0 - (1.0d0 / pore_size_dist)
 
     ! Separately calculate relative water content as this applies to each layer
     do i = 1, nos_soil_layers
        call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
     end do ! soil layers
-	!print*, "check 3",soil_waterfrac
-
     ! but apply the lowest soil layer to the core as well in initial conditions
     relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
 
     ! calculate soil water potential (MPa)
     call soil_water_potential
-	!print*, "check 4",soil_waterfrac
-
 
     ! Separately calculate the soil conductivity as this applies to each layer
     do i = 1, nos_soil_layers
-       call calculate_soil_conductivity(i,relative_water_frac(i),soil_conductivity(i))
+       call calculate_soil_conductivity(i,soil_waterfrac(i),soil_conductivity(i))
     end do ! soil layers
     ! but apply the lowest soil layer to the core as well in initial conditions
     soil_conductivity(nos_soil_layers+1) = soil_conductivity(nos_soil_layers)
-	!print*, "check 5",soil_waterfrac
 
   end subroutine update_soil_initial_conditions
   !
@@ -3242,19 +3158,19 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
 	! Units: (m s-1)
 
-	implicit none
+  implicit none
 
 	! Declare arguments
 	integer, intent(in) :: s ! soil layer
-	double precision, intent(in) :: relative_water_frac_local
-	double precision, intent(out) :: conductivity
+  double precision, intent(in) :: relative_water_frac_local
+  double precision, intent(out) :: conductivity
 
 	! Estimation of hydraulic conductivity using the VGM model and parameters
-	conductivity = sat_conductivity(s) * (relative_water_frac_local**0.5d0) * &
-                 (1.0d0 - (1.0d0 - relative_water_frac_local**(1.0d0/m_pore_size_dist(s)))**m_pore_size_dist(s))**2d0
+	conductivity = sat_conductivity(s) * (relative_water_frac_local(s)**0.5d0) * &
+                 (1.0d0 - (1.0d0 - relative_water_frac_local(s)**(1.0d0/m_pore_size_dist(s)))**m_pore_size_dist(s))**2d0
 
 	! protection against floating point error
-  !if (waterfrac < 0.05d0) conductivity = 1d-30
+  if (waterfrac < 0.05d0) conductivity = 1d-30
 
   end subroutine calculate_soil_conductivity
   !
@@ -3328,7 +3244,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     integer :: i
 
     ! Estimate soil water potential using the VGM model and parameters
-    SWP = (g_ms2*1.0E-3) * (-1.0d0 / air_entry) * &
+    SWP = (g_ms2*1.0d-3) * (-1.0d0 / air_entry) * &
           (relative_water_frac**(-1.0d0/m_pore_size_dist) - 1.0d0) ** (1.0d0/pore_size_dist)
 
     ! NOTE: profiling indicates that 'where' is slower for very short vectors

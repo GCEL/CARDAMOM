@@ -102,10 +102,16 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
   soil_frac_clay(1:nos_soil_layers) = soil_frac_clay_in(1:nos_soil_layers)
   soil_frac_sand(1:nos_soil_layers) = soil_frac_sand_in(1:nos_soil_layers)
   residual_waterfrac(1:nos_soil_layers) = residual_waterfrac_in(1:nos_soil_layers)
+  residual_waterfrac(nos_soil_layers+1) = residual_waterfrac_in(nos_soil_layers)
   porosity(1:nos_soil_layers) = porosity_in(1:nos_soil_layers)
+  porosity(nos_soil_layers+1) = porosity_in(nos_soil_layers)
   pore_size_dist(1:nos_soil_layers) = pore_size_dist_in(1:nos_soil_layers)
+  pore_size_dist(nos_soil_layers+1) = pore_size_dist_in(nos_soil_layers)
   air_entry(1:nos_soil_layers) = air_entry_in(1:nos_soil_layers)
+  air_entry(nos_soil_layers+1) = air_entry_in(nos_soil_layers)
   sat_conductivity(1:nos_soil_layers) = sat_conductivity_in(1:nos_soil_layers)
+  sat_conductivity(nos_soil_layers+1) = sat_conductivity_in(nos_soil_layers)
+
 
   ! generate deltat step from input data
   deltat(1) = met(1,1)
