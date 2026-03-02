@@ -289,7 +289,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         }
     } else if (Cwood_inc_source == "Gridded_nc" | Cwood_inc_source == "Gridded_tif") {
         # If there are any values in the analysis window
-        if (max(Cwood_inc_all$place_obs_in_step) > 0) {
+        if (Cwood_inc_all$data_available) {
             # Extract gross wood production / growth and uncertainty information
             # NOTE: assume default uncertainty (+/- scale)
             # Extract the current location from the gridded dataset
@@ -338,7 +338,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         }
     } else if (Cwood_growth_source == "Gridded_nc" | Cwood_growth_source == "Gridded_tif") {
         # If there are any values in the analysis window
-        if (max(Cwood_growth_all$place_obs_in_step) > 0) {
+        if (Cwood_growth_all$data_available) {
             # Extract gross wood production / growth and uncertainty information
             # NOTE: assume default uncertainty (+/- scale)
             # Extract the current location from the gridded dataset
@@ -388,7 +388,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         }
     } else if (Cwood_mortality_source == "Gridded_nc" | Cwood_mortality_source == "Gridded_tif") {
         # If there are any values in the analysis window
-        if (max(Cwood_mortality_all$place_obs_in_step) > 0) {
+        if (Cwood_mortality_all$data_available) {
             # Extract wood mortality and uncertainty information
             # NOTE: assume default uncertainty (+/- scale)
             # Extract the current location from the gridded dataset
