@@ -104,6 +104,7 @@ post_process_into_grid<-function(grid_output,site_output_all,PROJECT) {
            grid_output$rauto_gCm2day[n,,]   = site_output$rauto_gCm2day
            grid_output$rhet_gCm2day[n,,]    = site_output$rhet_gCm2day
            grid_output$reco_gCm2day[n,,]    = site_output$reco_gCm2day
+		   #grid_output$rhet_frac[n,,]       = site_output$rhet_frac
            grid_output$npp_gCm2day[n,,]     = site_output$npp_gCm2day
            grid_output$harvest_gCm2day[n,,] = site_output$harvest_gCm2day
            grid_output$fire_gCm2day[n,,]    = site_output$fire_gCm2day
@@ -123,6 +124,7 @@ post_process_into_grid<-function(grid_output,site_output_all,PROJECT) {
            grid_output$mean_annual_fire_gCm2day[n,,] = site_output$mean_annual_fire_gCm2day
            grid_output$mean_annual_nbe_gCm2day[n,,] = site_output$mean_annual_nbe_gCm2day
            grid_output$mean_annual_nbp_gCm2day[n,,] = site_output$mean_annual_nbp_gCm2day
+		   #grid_output$mean_annual_rhet_frac[n,,] = site_output$mean_annual_rhet_frac
 
            # Based on the presence of each pool define the grids for the mean and final values.
            # Also, create the time varying but quantile based values and time
@@ -693,6 +695,232 @@ post_process_into_grid<-function(grid_output,site_output_all,PROJECT) {
            # If the correlation between wood MTT and wood allocation have been determined
            if (any(check_list == "MTT_wood_years_to_NPP_wood_gCm2day_correlation")) {
                grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation[slot_i,slot_j] = site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation
+           }
+#####
+			if (any(check_list == "wSWP_parameter_correlation_lateGS")) {
+               grid_output$wSWP_parameter_correlation_lateGS[slot_i,slot_j,] = site_output$wSWP_parameter_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_demand_supply_ratio_parameter_correlation_lateGS")) {
+               grid_output$gs_demand_supply_ratio_parameter_correlation_lateGS[slot_i,slot_j,] = site_output$gs_demand_supply_ratio_parameter_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "wSWP_root_depth_correlation_lateGS")) {
+               grid_output$wSWP_root_depth_correlation_lateGS[slot_i,slot_j] = site_output$wSWP_root_depth_correlation_lateGS
+           }
+		   
+		    if (any(check_list == "wSWP_npp_frac_roots_correlation_lateGS")) {
+               grid_output$wSWP_npp_frac_roots_correlation_lateGS[slot_i,slot_j] = site_output$wSWP_npp_frac_roots_correlation_lateGS
+           }
+		   
+		     if (any(check_list == "wSWP_roots_correlation_lateGS")) {
+               grid_output$wSWP_roots_correlation_lateGS[slot_i,slot_j] = site_output$wSWP_roots_correlation_lateGS
+           }
+		   
+		     if (any(check_list == "gs_DS_ratio_root_depth_correlation_lateGS")) {
+               grid_output$gs_DS_ratio_root_depth_correlation_lateGS[slot_i,slot_j] = site_output$gs_DS_ratio_root_depth_correlation_lateGS
+           }
+		   
+		     if (any(check_list == "gs_DS_ratio_npp_frac_roots_correlation_lateGS")) {
+               grid_output$gs_DS_ratio_npp_frac_roots_correlation_lateGS[slot_i,slot_j] = site_output$gs_DS_ratio_npp_frac_roots_correlation_lateGS
+           }
+		   
+		     if (any(check_list == "gs_DS_ratio_roots_correlation_lateGS")) {
+               grid_output$gs_DS_ratio_roots_correlation_lateGS[slot_i,slot_j] = site_output$gs_DS_ratio_roots_correlation_lateGS
+           }
+		   
+	####	   
+		   
+		   if (any(check_list == "gpp_perc_change_root_depth_correlation")) {
+               grid_output$gpp_perc_change_root_depth_correlation[slot_i,slot_j] = site_output$gpp_perc_change_root_depth_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_npp_frac_roots_correlation")) {
+               grid_output$gpp_perc_change_npp_frac_roots_correlation[slot_i,slot_j] = site_output$gpp_perc_change_npp_frac_roots_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_roots_correlation")) {
+               grid_output$gpp_perc_change_roots_correlation[slot_i,slot_j] = site_output$gpp_perc_change_roots_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_wSWP_late_correlation")) {
+               grid_output$gpp_perc_change_wSWP_late_correlation[slot_i,slot_j] = site_output$gpp_perc_change_wSWP_late_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_gs_DS_ratio_late_correlation")) {
+               grid_output$gpp_perc_change_gs_DS_ratio_late_correlation[slot_i,slot_j] = site_output$gpp_perc_change_gs_DS_ratio_late_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_parameter_correlation")) {
+               grid_output$gpp_perc_change_parameter_correlation[slot_i,slot_j,] = site_output$gpp_perc_change_parameter_correlation
+           }
+		   
+		   if (any(check_list == "mean_Cfol_Croot_ratio")) {
+               grid_output$mean_Cfol_Croot_ratio[slot_i,slot_j,] = site_output$mean_Cfol_Croot_ratio
+           }
+		   
+		   if (any(check_list == "mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS")) {
+               grid_output$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS[slot_i,slot_j] = site_output$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS
+           }
+		   
+		   if (any(check_list == "mean_Cfol_Croot_ratio_wSWP_correlation_late_GS")) {
+               grid_output$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS[slot_i,slot_j] = site_output$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS
+           }
+		   
+		   if (any(check_list == "mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS")) {
+               grid_output$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS[slot_i,slot_j] = site_output$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS
+           }
+		   
+		   if (any(check_list == "wSWP_lai_correlation_lateGS")) {
+               grid_output$wSWP_lai_correlation_lateGS[slot_i,slot_j] = site_output$wSWP_lai_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "wSWP_lai_root_ratio_lateGS")) {
+               grid_output$wSWP_lai_root_ratio_lateGS[slot_i,slot_j] = site_output$wSWP_lai_root_ratio_lateGS
+           }
+		   
+		   if (any(check_list == "gs_DS_ratio_lai_correlation_lateGS")) {
+               grid_output$gs_DS_ratio_lai_correlation_lateGS[slot_i,slot_j] = site_output$gs_DS_ratio_lai_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_DS_ratio_lai_root_ratio_lateGS")) {
+               grid_output$gs_DS_ratio_lai_root_ratio_lateGS[slot_i,slot_j] = site_output$gs_DS_ratio_lai_root_ratio_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_lai_correlation")) {
+               grid_output$gpp_perc_change_lai_correlation[slot_i,slot_j] = site_output$gpp_perc_change_lai_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change_lai_root_ratio_correlation")) {
+               grid_output$gpp_perc_change_lai_root_ratio_correlation[slot_i,slot_j] = site_output$gpp_perc_change_lai_root_ratio_correlation
+           }
+		   
+		   if (any(check_list == "gpp_perc_change")) {
+               grid_output$gpp_perc_change[slot_i,slot_j,] = site_output$gpp_perc_change
+           }
+		   
+		   if (any(check_list == "gpp_early_wSWP_early_correlation")) {
+               grid_output$gpp_early_wSWP_early_correlation[slot_i,slot_j] = site_output$gpp_early_wSWP_early_correlation
+           }
+		   
+		   if (any(check_list == "gpp_mid_wSWP_mid_correlation")) {
+               grid_output$gpp_mid_wSWP_mid_correlation[slot_i,slot_j] = site_output$gpp_mid_wSWP_mid_correlation
+           }
+		   
+		   if (any(check_list == "gpp_late_wSWP_late_correlation")) {
+               grid_output$gpp_late_wSWP_late_correlation[slot_i,slot_j] = site_output$gpp_late_wSWP_late_correlation
+           }
+		   
+		   if (any(check_list == "gpp_early_gs_DS_early_correlation")) {
+               grid_output$gpp_early_gs_DS_early_correlation[slot_i,slot_j] = site_output$gpp_early_gs_DS_early_correlation
+           }
+		   
+		   if (any(check_list == "gpp_mid_gs_DS_mid_correlation")) {
+               grid_output$gpp_mid_gs_DS_mid_correlation[slot_i,slot_j] = site_output$gpp_mid_gs_DS_mid_correlation
+           }
+		   
+		   if (any(check_list == "gpp_late_gs_DS_late_correlation")) {
+               grid_output$gpp_late_gs_DS_late_correlation[slot_i,slot_j] = site_output$gpp_late_gs_DS_late_correlation
+           }
+		   
+		   if (any(check_list == "gpp_root_depth_correlation_lateGS")) {
+               grid_output$gpp_root_depth_correlation_lateGS[slot_i,slot_j] = site_output$gpp_root_depth_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_npp_frac_roots_correlation_lateGS")) {
+               grid_output$gpp_npp_frac_roots_correlation_lateGS[slot_i,slot_j] = site_output$gpp_npp_frac_roots_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_roots_correlation_lateGS")) {
+               grid_output$gpp_roots_correlation_lateGS[slot_i,slot_j] = site_output$gpp_roots_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_lai_correlation_lateGS")) {
+               grid_output$gpp_lai_correlation_lateGS[slot_i,slot_j] = site_output$gpp_lai_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_lai_root_ratio_lateGS")) {
+               grid_output$gpp_lai_root_ratio_lateGS[slot_i,slot_j] = site_output$gpp_lai_root_ratio_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_fol_root_ratio_lateGS")) {
+               grid_output$gpp_fol_root_ratio_lateGS[slot_i,slot_j] = site_output$gpp_fol_root_ratio_lateGS
+           }
+		   
+		   if (any(check_list == "gpp_lai_correlation_earlyGS")) {
+               grid_output$gpp_lai_correlation_earlyGS[slot_i,slot_j] = site_output$gpp_lai_correlation_earlyGS
+           }
+		   
+		   if (any(check_list == "gpp_lai_correlation_midGS")) {
+               grid_output$gpp_lai_correlation_midGS[slot_i,slot_j] = site_output$gpp_lai_correlation_midGS
+           }
+		   
+		   if (any(check_list == "parameter_correlation_across")) {
+               grid_output$parameter_correlation_across[slot_i,slot_j,,] = site_output$parameter_correlation_across
+           }
+		   
+		   if (any(check_list == "mean_Cfol_Croot_ratio_parameter_correlation")) {
+               grid_output$mean_Cfol_Croot_ratio_parameter_correlation[slot_i,slot_j,] = site_output$mean_Cfol_Croot_ratio_parameter_correlation
+           }
+		   
+		   if (any(check_list == "mean_GS_rooting_depth_parameter_correlation")) {
+               grid_output$mean_GS_rooting_depth_parameter_correlation[slot_i,slot_j,] = site_output$mean_GS_rooting_depth_parameter_correlation
+           }
+		   
+		   if (any(check_list == "gs_rooting_depth_correlation_earlyGS")) {
+               grid_output$gs_rooting_depth_correlation_earlyGS[slot_i,slot_j] = site_output$gs_rooting_depth_correlation_earlyGS
+           }
+		   
+		   if (any(check_list == "gs_rooting_depth_correlation_midGS")) {
+               grid_output$gs_rooting_depth_correlation_midGS[slot_i,slot_j] = site_output$gs_rooting_depth_correlation_midGS
+           }
+		   
+		   if (any(check_list == "gs_rooting_depth_correlation_lateGS")) {
+               grid_output$gs_rooting_depth_correlation_lateGS[slot_i,slot_j] = site_output$gs_rooting_depth_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_fol_root_ratio_correlation_earlyGS")) {
+               grid_output$gs_fol_root_ratio_correlation_earlyGS[slot_i,slot_j] = site_output$gs_fol_root_ratio_correlation_earlyGS
+           }
+		   
+		   if (any(check_list == "gs_fol_root_ratio_correlation_midGS")) {
+               grid_output$gs_fol_root_ratio_correlation_midGS[slot_i,slot_j] = site_output$gs_fol_root_ratio_correlation_midGS
+           }
+		   
+		   if (any(check_list == "gs_fol_root_ratio_correlation_lateGS")) {
+               grid_output$gs_fol_root_ratio_correlation_lateGS[slot_i,slot_j] = site_output$gs_fol_root_ratio_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_npp_frac_roots_correlation_earlyGS")) {
+               grid_output$gs_npp_frac_roots_correlation_earlyGS[slot_i,slot_j] = site_output$gs_npp_frac_roots_correlation_earlyGS
+           }
+		   
+		   if (any(check_list == "gs_npp_frac_roots_correlation_midGS")) {
+               grid_output$gs_npp_frac_roots_correlation_midGS[slot_i,slot_j] = site_output$gs_npp_frac_roots_correlation_midGS
+           }
+		   
+		   if (any(check_list == "gs_npp_frac_roots_correlation_lateGS")) {
+               grid_output$gs_npp_frac_roots_correlation_lateGS[slot_i,slot_j] = site_output$gs_npp_frac_roots_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "fol_root_ratio_rooting_depth_correlation_earlyGS")) {
+               grid_output$fol_root_ratio_rooting_depth_correlation_earlyGS[slot_i,slot_j] = site_output$fol_root_ratio_rooting_depth_correlation_earlyGS
+           }
+		   
+		   if (any(check_list == "fol_root_ratio_rooting_depth_correlation_midGS")) {
+               grid_output$fol_root_ratio_rooting_depth_correlation_midGS[slot_i,slot_j] = site_output$fol_root_ratio_rooting_depth_correlation_midGS
+           }
+		   
+		   if (any(check_list == "fol_root_ratio_rooting_depth_correlation_lateGS")) {
+               grid_output$fol_root_ratio_rooting_depth_correlation_lateGS[slot_i,slot_j] = site_output$fol_root_ratio_rooting_depth_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_parameter_correlation_lateGS")) {
+               grid_output$gs_parameter_correlation_lateGS[slot_i,slot_j,] = site_output$gs_parameter_correlation_lateGS
+           }
+		   
+		   if (any(check_list == "gs_parameter_correlation_earlyGS")) {
+               grid_output$gs_parameter_correlation_earlyGS[slot_i,slot_j,] = site_output$gs_parameter_correlation_earlyGS
            }
 
            # Tidy up

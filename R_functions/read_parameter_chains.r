@@ -1,9 +1,34 @@
+																						 
+																					
+																				   
+																			   
+																				   
+																	 
+											  
+															   
+															  
+							   
 
 ###
 ## Function to read parameter chains and determine which will be ran, based on their convergence criterion
 ###
+									 
 
 # This function was created by T. L Smallman (t.l.smallman@ed.ac.uk, UoE).
+																
+															   
+											  
+
+																   
+																		
+
+												 
+																	 
+									  
+  
+									   
+ 
+																						 
 
 determine_parameter_chains_to_run<-function(PROJECT,n) {
 
@@ -16,7 +41,7 @@ determine_parameter_chains_to_run<-function(PROJECT,n) {
   error_check = FALSE
   if (length(parameters) == 1 & parameters[1] == -9999) {
       error_check = TRUE
-      #print("Site not available / parameters file empty")
+      print("Site not available / parameters file empty")
       dummy = -1 ; return(dummy)
   } else {
       if (length(which(as.vector(is.na(parameters)))) > 0 ) {
@@ -36,6 +61,9 @@ determine_parameter_chains_to_run<-function(PROJECT,n) {
   while (dim(parameters)[3] > 2 & notconv) {
      if (use_parallel == FALSE) {print("begin convergence checking")}
      converged = have_chains_converged(parameters)
+																		
+											  
+
      # if log-likelihood has passed then we are not interested
      if (converged[length(converged)] == "FAIL") {
          #if (use_parallel == FALSE) {print("...not converged begin removing potential parameter vectors")}
@@ -56,12 +84,14 @@ determine_parameter_chains_to_run<-function(PROJECT,n) {
                     # rejected chain (while others converge) is actually better and the others have gotten stuck in a local minima.
                     # we will now assume that we use the single good chain instead...
                     parameters = array(parameters[,,(i-1)],dim=c(dim(parameters)[1:2],2))
+																							  
                     notconv = FALSE ; i = (i-1) * -1
                     if (use_parallel == FALSE) {print(paste("............chain ",i*-1," only has been accepted",sep=""))}
                 } else {
                     # if the non-converged chain is worse or just the same in likelihood terms as the others then we will ditch it
                     notconv = FALSE ; i = i-1 # converged now?
                     parameters = parameters[,,-i]
+																						   
                     if (use_parallel == FALSE) {print(paste("............chain rejected = ",i,sep=""))}
                 }
             }
@@ -74,6 +104,8 @@ determine_parameter_chains_to_run<-function(PROJECT,n) {
                 parameters = parameters[,,-i]
                 # Update the maximum likelihood vector also
                 max_likelihood = max_likelihood[-i]
+															 
+											 
                 # Update the user
                 if (use_parallel == FALSE) {print(paste(".........single chain removal couldn't find convergence; removing lowest likelihood chain = ",i,sep=""))}
                 # reset counter
@@ -142,16 +174,17 @@ read_parameter_chains<- function(PROJECT_in,n) {
 
   # Determine the intended name for the parmeter files
   pfile=paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c(1:PROJECT_in$nochains),"_PARS",sep="")
+
   # Find and remove any files which have no data in them
   is_it = file.size(pfile) ; is_it = which(is_it > 0) ; pfile = pfile[is_it]
 
   # just in case
-  if (length(pfile) < 1) {return(-9999)}
+  if (length(pfile) < 1) {return(-9999)} # TG
 
   # Determine the intended name for the STEP files
-  sfile=paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c(1:PROJECT_in$nochains),"_STEP",sep="")
+#  sfile=paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c(1:PROJECT_in$nochains),"_STEP",sep="")
   # select the STEP files only
-  sfiles = paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_*_STEP",sep="")
+#  sfiles = paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_*_STEP",sep="")
 
   # calculate the number of chains
   chains = seq(1,length(pfile))
@@ -216,10 +249,13 @@ read_parameter_chains<- function(PROJECT_in,n) {
            }
        } # mismatch between expected and actual parameter outputs > 1
 
+								   
+							
        # keep a sample form the end of the chain
-       param_sets = param_sets[,(((dim(param_sets)[2]-par_vector_length)+1):dim(param_sets)[2])]
+       param_sets = param_sets[,(((dim(param_sets)[2]-par_vector_length)+1):dim(param_sets)[2])] 
        # add these output to the final output variable
        param_sets_out[1:(PROJECT_in$model$nopars[n]+1),,c]=param_sets
+		
        # clean up
        param_sets = 0 ; rm(param_sets)
 
@@ -241,6 +277,8 @@ read_parameter_chains<- function(PROJECT_in,n) {
       param_sets_out = array(param_sets_out, dim=c(dim(param_sets_out)[1:2],length(chains)))
   }
 
+																					  
+																  
   if (PROJECT_in$model$name == "DALEC_1005" || PROJECT_in$model$name == "DALEC_1005a" ||
       PROJECT_in$model$name == "DALEC.C1.D1.F2.P1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R3.#" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H1.P1.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.#" ||
@@ -248,6 +286,7 @@ read_parameter_chains<- function(PROJECT_in,n) {
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P1.R1.#" || PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P1.R1.#" ||
       PROJECT_in$model$name == "DALEC.A1.C2.D2.F2.H2.P2.R1.#" || PROJECT_in$model$name == "DALEC.A2.C1.D2.F2.H2.P1.#" ||
       PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P2.#" || PROJECT_in$model$name == "DALEC.A1.C1.D2.F2.H2.P5.#") {
+																
       param_sets_out[c(12,15),,] = ((param_sets_out[c(12,15),,]-1)%%365.25)+1
   }
   if (PROJECT_in$model$name == "DALEC.C5.D1.F2.P1.#") {
@@ -256,7 +295,7 @@ read_parameter_chains<- function(PROJECT_in,n) {
 
   # return the parameter solutions
   return(param_sets_out)
-
+	
 } # end of function
 ## Use byte compile
 read_parameter_chains<-cmpfun(read_parameter_chains)

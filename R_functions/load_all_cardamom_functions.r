@@ -39,6 +39,8 @@ load_r_libraries<-function(){
     library(colorspace)
     if(!require(maps)) {install.packages("maps")}
     library(maps)
+	if(!require(withr)) {install.packages("withr")}
+    library(withr)
     # Set error options to output line number for broken calls
     #options(error = utils::recover)
 } # function to load all libraries needed by the system

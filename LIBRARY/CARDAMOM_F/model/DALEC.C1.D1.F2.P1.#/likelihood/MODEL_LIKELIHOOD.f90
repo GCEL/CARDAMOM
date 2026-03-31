@@ -533,28 +533,28 @@ module model_likelihood_module
 
     ! Turnover of litter faster than turnover of som
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(9) > pars(8))) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0 
     endif
 
     ! litter2som greater than som to atm rate
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(1) < pars(9))) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0 
     endif
 
     ! turnover of foliage faster than turnover of wood
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(6) > torfol) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0 
     end if
 
     ! root turnover greater than som turnover at mean temperature
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(7) < (pars(9)*exp(pars(10)*meantemp)))) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0 
     endif
 
     ! GPP allocation to foliage and labile cannot be 5 orders of magnitude
     ! difference from GPP allocation to roots
     if ((EDC1 == 1 .or. DIAG == 1) .and. ((ffol+flab) > (5d0*froot) .or. ((ffol+flab)*5d0) < froot)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0 
     endif
 
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
@@ -562,15 +562,15 @@ module model_likelihood_module
 
     ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(25) < pars(26)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0 
     endif
     ! Combustion completeness for non-photosynthetic tissue should be greater than soil
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(26) < pars(27)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0 
     endif
     ! Combustion completeness for foliar + fine root litter should be greater than non-photosynthetic tissue
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(28) < pars(26)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0 
     endif
 
     ! could always add more / remove some
@@ -622,6 +622,8 @@ module model_likelihood_module
                        ,flab  & ! Fraction of GPP to labile pool
                        ,froot & ! Fraction of GPP to root
                        ,fwood   ! Fraction of GPP to wood
+					   
+    double precision, dimension(nodays) :: tmp1, tmp2 ! used in maxLAI EDC TG
 
     ! Steady State Attractor:
     ! Log ratio difference between inputs and outputs of the system.
@@ -674,9 +676,9 @@ module model_likelihood_module
     !
 
     ! EDC 6
-    ! ensure ratio between Cfoliar and Croot is less than 5
+    ! ensure ratio between Cfoliar and Croot is less than 5 TG
     if ((EDC2 == 1 .or. DIAG == 1) .and. &
-        (mean_pools(2) > (mean_pools(3)*5d0) .or. (mean_pools(2)*5d0) < mean_pools(3)) ) then
+        (mean_pools(2)) > (mean_pools(3)*6.4d0) .or. (mean_pools(2)) < (mean_pools(3)*0.8)) then
         EDC2 = 0d0 ; EDCD%PASSFAIL(9) = 0
     end if
 
@@ -839,6 +841,26 @@ module model_likelihood_module
           n = n + 1
        end do ! for nopools .and. EDC .or. DIAG condition
     end if ! min pool assessment
+	
+	! Specific for dealing with needleleaf forests in the northern hemisphere.
+    ! Assesses whether the mean LAI in the summer months (June, July, August)
+    ! is greater than the mean outwith. This ensures the peak LAI in the season
+    ! is summer time.TG
+    if ((EDC2 == 1 .or. DIAG == 1)) then
+        ! Set values for vectors used to select summer vs non-summer time points.
+       tmp1 = 0d0 ; tmp2 = 1d0
+        ! Where condition sets tmp1 == 1 for days of year for JJA
+        where (met(6,:) > 150d0 .and. met(6,:) < 245d0) tmp1 = 1d0
+        ! As tmp2 initially == 1, by subtracting tmp1 that means tmp2 will have value 0
+        ! during summer but 1 elsewhere
+        tmp2 = tmp2 - tmp1
+        ! Which means we can filter the LAI timeseries by multiplying by tmp1 and tmp2.
+        ! The sum of each of these variables is also conveniently the number of values to 
+        ! be averaged over.
+        if ((sum(M_LAI * tmp1) / sum(tmp1)) < (sum(M_LAI * tmp2) / sum(tmp2)) .OR. (maxval(M_LAI * tmp1)) < (maxval(M_LAI * tmp2)))   then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0 
+       end if 
+    end if
 
   end subroutine assess_EDC2
   !
@@ -1130,9 +1152,10 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, obs, model, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	integer, dimension(DATAin%nodays) :: fol_hak													
 
 !    ! Debugging print statement
 !    print*,"likelihood: "
@@ -1445,7 +1468,27 @@ module model_likelihood_module
         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
         likelihood = likelihood - ((tot_exp - DATAin%otherpriors(5)) / DATAin%otherpriorunc(5))**2
     endif
-
+	! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2   ! likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2
+	end if			  
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
     ! multiple datastreams we apply this multiplication to the bulk liklihood
@@ -1478,9 +1521,10 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	integer, dimension(DATAin%nodays) :: fol_hak										 
 
     ! initial value
     scale_likelihood = 0d0 ; infini = 0d0 ; mid_state = 0d0 ; sub_time = 0d0
@@ -1801,6 +1845,27 @@ module model_likelihood_module
         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
         scale_likelihood = scale_likelihood - ((tot_exp - DATAin%otherpriors(5)) / DATAin%otherpriorunc(5))**2
     endif
+! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		scale_likelihood = scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2  !DATAin%otherpriorunc(7))**2 
+	end if	
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -1835,9 +1900,10 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	integer, dimension(DATAin%nodays) :: fol_hak										  
 
     ! initial value
     sqrt_scale_likelihood = 0d0 ; infini = 0d0 ; mid_state = 0d0 ; sub_time = 0d0
@@ -2145,7 +2211,27 @@ module model_likelihood_module
         tot_exp = sum(DATAin%M_FLUXES(:,3)) / sum(DATAin%M_FLUXES(:,1))
         sqrt_scale_likelihood = sqrt_scale_likelihood-((tot_exp-DATAin%otherpriors(1))/DATAin%otherpriorunc(1))**2
     end if
-
+			! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		sqrt_scale_likelihood = sqrt_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2  !DATAin%otherpriorunc(7))**2
+	end if	
     ! Estimate the biological steady state attractor on the wood pool.
     ! NOTE: this arrangement explicitly neglects the impact of disturbance on
     ! residence time (i.e. no fire and biomass removal)
@@ -2158,6 +2244,7 @@ module model_likelihood_module
         tot_exp = (input/dble(DATAin%nodays)) * (output/dble(DATAin%nodays))
         sqrt_scale_likelihood = sqrt_scale_likelihood - ((tot_exp - DATAin%otherpriors(5)) / DATAin%otherpriorunc(5))**2
     endif
+	
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -2192,10 +2279,10 @@ module model_likelihood_module
     ! declare local variables
     integer :: n, dn, y, s, f
     double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
-    double precision, dimension(DATAin%nodays) :: mid_state
+    double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
-
+	integer, dimension(DATAin%nodays) :: fol_hak
     ! initial value
     log_scale_likelihood = 0d0 ; infini = 0d0 ; mid_state = 0d0 ; sub_time = 0d0
 
@@ -2516,6 +2603,27 @@ module model_likelihood_module
         log_scale_likelihood = log_scale_likelihood - ((tot_exp - DATAin%otherpriors(5)) / DATAin%otherpriorunc(5))**2
     endif
 
+		! Check leaf lifespan
+	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
+	! residencetime (i.e. no fire and biomass removal)
+	
+	if(DATAin%otherpriors(7) > -9998) then
+		
+		! Foliage MRT (years-1)
+		
+		fol_hak = 0 ; fol_filter(1:DATAin%nodays) = 1d0
+		where (DATAin%M_POOLS(1:DATAin%nodays,2) == 0d0) ! protection against NaN from division by zero
+           fol_hak = 1 ; fol_filter(1:DATAin%nodays) = 0d0
+		end where
+		
+		
+		tot_exp = sum((DATAin%M_FLUXES(1:DATAin%nodays,10) / DATAin%M_POOLS(1:DATAin%nodays,2)) * fol_filter) &
+		/ dble(DATAin%nodays-sum(fol_hak))
+		
+		tot_exp = (tot_exp * 365.25d0)**(-1d0)
+		
+		log_scale_likelihood = log_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2   !DATAin%otherpriorunc(7))**2
+	end if	
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
     ! multiple datastreams we apply this multiplication to the bulk liklihood

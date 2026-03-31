@@ -175,12 +175,12 @@ cardamom <-function (projname,model,method,stage) {
           all_years = as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)
           nos_days = nos_days_in_year(all_years[1])
           if (nos_days == 366) {timestep_days = c(rep(7,times=51),9)} else {timestep_days = c(rep(7,times=51),8)}
-          for (y in seq(2, length(all_years))) {
+         for (y in seq(2, length(all_years))) {
                # calculate increment
                nos_days=nos_days_in_year(all_years[y])
                if (nos_days == 366) {
                    timestep_days = append(timestep_days,c(rep(7,times=51),9))
-               } else {
+              } else {
                    timestep_days = append(timestep_days,c(rep(7,times=51),8))
                }
           } # loop through days
@@ -255,7 +255,7 @@ cardamom <-function (projname,model,method,stage) {
       print("Beginning creation of binary input files")
 
       # flag for met drivers load
-      met_all = 0 ; lai_all = 0 ; Csom_all = 0 ; forest_all = 0 ; Cwood_all = 0
+      met_all = 0 ; lai_all = 0 ; Csom_all = 0 ; forest_all = 0 ; Cwood_all = 0 
       # load from PROJECT time step information
       timestep_days = PROJECT$model$timestep_days
       noyears = length(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year))
@@ -290,17 +290,18 @@ cardamom <-function (projname,model,method,stage) {
           # if this is the first time of all creating new met files this time round load the whole dataset for rapid access
           met_all = load_met_fields_for_extraction(latlon,met_source,PROJECT$model$name,PROJECT$start_year,PROJECT$end_year,PROJECT$spatial_type,cardamom_ext)
           lai_all = load_lai_fields_for_extraction(latlon,lai_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
-          fapar_all = load_fapar_fields_for_extraction(latlon,fapar_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
+		  fapar_all = load_fapar_fields_for_extraction(latlon,fapar_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
           nbe_all = load_nbe_fields_for_extraction(latlon,nbe_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
           gpp_all = load_gpp_fields_for_extraction(latlon,GPP_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),cardamom_ext,PROJECT$spatial_type)
           fire_all = load_fire_emission_fields_for_extraction(latlon,fire_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),cardamom_ext,PROJECT$spatial_type)
           Csom_all = load_Csom_fields_for_extraction(latlon,Csom_source,cardamom_ext,PROJECT$spatial_type)
           crop_man_all = load_sacks_calendar_fields_for_extraction(latlon,crop_management_source)
           sand_clay_all = load_sand_clay_fields_for_extraction(latlon,sand_clay_source,cardamom_ext,PROJECT$spatial_type)
-          forest_all = load_forestry_fields_for_extraction(latlon,deforestation_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
+          forest_all = load_forestry_fields_for_extraction(latlon,forestry_source,as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),cardamom_ext,PROJECT$spatial_type)
           Cwood_initial_all = load_initial_biomass_maps_for_extraction(latlon,Cwood_initial_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days,cardamom_ext,PROJECT$spatial_type)
           Cwood_stock_all = load_biomass_stocks_maps_for_extraction(latlon,Cwood_stock_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days,cardamom_ext,PROJECT$spatial_type)
-          Cwood_potential_all = load_potential_biomass_maps_for_extraction(latlon,Cwood_potential_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days,cardamom_ext,PROJECT$spatial_type)
+          Cfol_stock_all = load_foliage_stocks_maps_for_extraction(latlon,Cfol_stock_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days,cardamom_ext,PROJECT$spatial_type)
+		  Cwood_potential_all = load_potential_biomass_maps_for_extraction(latlon,Cwood_potential_source,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days,cardamom_ext,PROJECT$spatial_type)
           burnt_all = load_burnt_area_fields_for_extraction(latlon,burnt_area_source,path_to_burnt_area,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),cardamom_ext,PROJECT$spatial_type)
           soilwater_all = load_soilwater_fields_for_extraction(latlon,soilwater_initial_source)
           lca_all = load_lca_maps_for_extraction(latlon,lca_source,cardamom_ext,PROJECT$spatial_type)
@@ -308,6 +309,8 @@ cardamom <-function (projname,model,method,stage) {
           Cwood_mortality_all = load_wood_mortality_maps_for_extraction(Cwood_mortality_source,cardamom_ext,PROJECT$spatial_type,latlon,as.numeric(PROJECT$start_year),as.numeric(PROJECT$end_year),timestep_days)
 		  lifespan_all = load_lifespan_maps_for_extraction(latlon,lifespan_source,cardamom_ext,PROJECT$spatial_type)
 		  leaf_fall_period_all = load_leaf_fall_period_maps_for_extraction(latlon,leaf_fall_period_source,cardamom_ext,PROJECT$spatial_type)
+		  max_root_all = load_max_root_maps_for_extraction(latlon,max_root_source,cardamom_ext,PROJECT$spatial_type)
+		  Cfol_Croot_ratio_all = load_Cfol_Croot_ratio_maps_for_extraction(latlon,Cfol_Croot_ratio_source,cardamom_ext,PROJECT$spatial_type)
       } # # if (PROJECT$model$name != "ACM")
 
       # Update user
@@ -342,9 +345,9 @@ cardamom <-function (projname,model,method,stage) {
                   }
                   # Load observations
                   obs = extract_obs(grid_long_loc,grid_lat_loc,latlon[n,],lai_all,Csom_all,forest_all
-                                   ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
+                                   ,Cwood_initial_all,Cwood_stock_all,Cfol_stock_all,Cwood_potential_all
                                    ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                                   ,nbe_all, lca_all, lifespan_all, leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
+                                   ,nbe_all, lca_all, lifespan_all, max_root_all,Cfol_Croot_ratio_all,leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
 								   ,fapar_all
                                    ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                                    ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
@@ -393,9 +396,9 @@ cardamom <-function (projname,model,method,stage) {
                    }
                    # Load observations
                    obs = extract_obs(grid_long_loc,grid_lat_loc,latlon[n,],lai_all,Csom_all,forest_all
-                                    ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
+                                    ,Cwood_initial_all,Cwood_stock_all,Cfol_stock_all,Cwood_potential_all
                                     ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                                    ,nbe_all, lca_all, lifespan_all,leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
+                                    ,nbe_all, lca_all, lifespan_all,max_root_all,Cfol_Croot_ratio_all,leaf_fall_period_all,gpp_all,Cwood_inc_all,Cwood_mortality_all, fire_all
 									,fapar_all
                                     ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                                     ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
@@ -431,17 +434,18 @@ cardamom <-function (projname,model,method,stage) {
               # Compress all input files into zip directory
               system(paste("zip -j -r -q ",PROJECT$datapath,"cardamom_inputs.zip ",PROJECT$datapath," -i '*.bin'",sep=""))
               # Copy the zip directory to the remote server
-              command = paste("scp -r -q ",username,"@",home_computer,":",PROJECT$datapath,"cardamom_inputs.zip ",PROJECT$edatapath,sep="")
+              #command = paste("scp -r -q ",username,"@",home_computer,":",PROJECT$datapath,"cardamom_inputs.zip ",PROJECT$edatapath,sep="")
               # Unzip on remote server
-              command = c(command,paste("unzip -o -qq ",PROJECT$edatapath,"cardamom_inputs.zip -d ",PROJECT$edatapath, sep=""))
+              #command = c(command,paste("unzip -o -qq ",PROJECT$edatapath,"cardamom_inputs.zip -d ",PROJECT$edatapath, sep=""))
               # Remove the zip directory on remote server
-              command = c(command,paste("rm ",PROJECT$edatapath,"cardamom_inputs.zip" ,sep=""))
+              #command = c(command,paste("rm ",PROJECT$edatapath,"cardamom_inputs.zip" ,sep=""))
               #command = paste("scp -r ",username,"@",home_computer,":",PROJECT$datapath,"* ",PROJECT$edatapath,sep="")
-              print(command)
+              #print(command)
               # Execute command on remote server
-              ecdf_execute(command,PROJECT$paths$cardamom_cluster)
+              #ecdf_execute(command,PROJECT$paths$cardamom_cluster)
               # Delete local copy of the zip directory
-              system(paste("rm ",PROJECT$datapath,"cardamom_inputs.zip", sep=""))
+              #system(paste("rm ",PROJECT$datapath,"cardamom_inputs.zip", sep=""))
+			  print("Must now scp, unzip and rm zip in local DATA/ to eddie DATA/")
           }
       } # copy to Eddie
 
@@ -551,10 +555,18 @@ cardamom <-function (projname,model,method,stage) {
 
       # Generating site level plots or gridded
       if (PROJECT$spatial_type == "site" | grid_override) {
+	  
+		  #library(withr) - loaded in load_all_cardamom_functions
 
           # Generate figures of parameters and model values including
           # uncertainty information
           generate_uncertainty_figures(PROJECT)
+		  create_C_schematic_tex(PROJECT)
+		  with_dir(PROJECT$localpath,system2("pdflatex", args = "C_schematic.tex"))
+		  with_dir(PROJECT$localpath,system2("pdftoppm", args = c("-jpeg","-singlefile","C_schematic.pdf","C_schematic")))
+		  with_dir(PROJECT$localpath,system2("rm", args = c("*log","*out","*aux")))
+		  
+		  
 
       } else if (PROJECT$spatial_type == "grid") {
 
@@ -566,6 +578,10 @@ cardamom <-function (projname,model,method,stage) {
               generate_stocks_and_fluxes_maps(PROJECT)
           } else {
               generate_simplified_stock_and_flux_maps(PROJECT)
+			  create_C_schematic_tex_mean_fin(PROJECT)
+			  with_dir(PROJECT$localpath,system2("pdflatex", args = "C_schematic.tex"))
+		      with_dir(PROJECT$localpath,system2("pdftoppm", args = c("-jpeg","-singlefile","C_schematic.pdf","C_schematic")))
+		      with_dir(PROJECT$localpath,system2("rm", args = c("*log","*out","*aux")))
           }
 
       } else {

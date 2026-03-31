@@ -28,6 +28,7 @@ read_binary_file_format<- function(infile) {
       # extract static data (50 places)
       static=bd[(k+1):(k+50)]
       k=k+50
+	  
       # extract priors
       pr=bd[(k+1):(k+100)]
       k=k+100
@@ -80,7 +81,6 @@ read_binary_file_format<- function(infile) {
       md$top_clay=static[14]
       # Bot clay %
       md$bot_clay=static[15]
-
 
       # extract temporal data (met and obs)
       tempdata=bd[(k+1):(k+((md$nomet+md$noobs)*md$nodays))]

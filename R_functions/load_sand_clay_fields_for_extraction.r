@@ -7,27 +7,27 @@
 
 load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardamom_ext,spatial_type) {
 
-    if (sand_clay_source == "SoilGrids" | sand_clay_source == "SoilGrids_v2") {
+    if (sand_clay_source == "SoilGrids" | sand_clay_source == "SoilGrids_v2_Finland") {
 
         print("Loading sand / clay fractions from SoilGrids")
 
         # Read in the data for both the sand and clay
         # Sand
-        top_sand = rast(paste(path_to_sand_clay,"sand_percent_mean_0to30cm.tif", sep=""))
-        bot_sand = rast(paste(path_to_sand_clay,"sand_percent_mean_30to100cm.tif", sep=""))
+        top_sand = rast(paste(path_to_sand_clay,"sand_000-030cm_mean_0.10deg.tif", sep=""))
+        bot_sand = rast(paste(path_to_sand_clay,"sand_030-100cm_mean_0.10deg.tif", sep=""))
         # Clay
-        top_clay = rast(paste(path_to_sand_clay,"clay_percent_mean_0to30cm.tif", sep=""))
-        bot_clay = rast(paste(path_to_sand_clay,"clay_percent_mean_30to100cm.tif", sep=""))
+        top_clay = rast(paste(path_to_sand_clay,"clay_000-030cm_mean_0.10deg.tif", sep=""))
+        bot_clay = rast(paste(path_to_sand_clay,"clay_030-100cm_mean_0.10deg.tif", sep=""))
 
         # Create raster with the target crs
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(top_sand), resolution = res(top_sand))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(top_sand), resolution = res(top_sand))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(top_sand,target) == FALSE) {
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="ngb") ; gc() 
-            bot_sand = resample(bot_sand, target, method="ngb") ; gc()
-            top_clay = resample(top_clay, target, method="ngb") ; gc()
-            bot_clay = resample(bot_clay, target, method="ngb") ; gc()
+            top_sand = resample(top_sand, target, method="near") ; gc() 
+            bot_sand = resample(bot_sand, target, method="near") ; gc()
+            top_clay = resample(top_clay, target, method="near") ; gc()
+            bot_clay = resample(bot_clay, target, method="near") ; gc()
         }
         # Extend the extent of the overall grid to the analysis domain
         top_sand = extend(top_sand,cardamom_ext) ; bot_sand = extend(bot_sand,cardamom_ext)
@@ -39,7 +39,7 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
             top_sand = resample(top_sand, target, method="bilinear") ; gc() 
@@ -97,14 +97,14 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         bot_clay = rast(bot_clay, crs = ("+init=epsg:4326"), type="xyz")
 
         # Create raster with the target crs
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(top_sand), resolution = res(top_sand))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(top_sand), resolution = res(top_sand))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(top_sand,target) == FALSE) {
             # Resample to correct grid
-            top_sand = resample(top_sand, target, method="ngb") ; gc() 
-            bot_sand = resample(bot_sand, target, method="ngb") ; gc() 
-            top_clay = resample(top_clay, target, method="ngb") ; gc() 
-            bot_clay = resample(bot_clay, target, method="ngb") ; gc() 
+            top_sand = resample(top_sand, target, method="near") ; gc() 
+            bot_sand = resample(bot_sand, target, method="near") ; gc() 
+            top_clay = resample(top_clay, target, method="near") ; gc() 
+            bot_clay = resample(bot_clay, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         top_sand = extend(top_sand,cardamom_ext) ; bot_sand = extend(bot_sand,cardamom_ext)
@@ -117,7 +117,7 @@ load_sand_clay_fields_for_extraction<-function(latlon_in,sand_clay_source,cardam
         if (res(top_sand)[1] != res(cardamom_ext)[1] | res(top_sand)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
             top_sand = resample(top_sand, target, method="bilinear") ; gc() 

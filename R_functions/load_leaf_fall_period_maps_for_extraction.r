@@ -28,15 +28,15 @@ load_leaf_fall_period_maps_for_extraction<-function(latlon_in,leaf_fall_period_s
         #if (length(input_file) > 1 | length(unc_input_file) > 1) {stop("More than one file has been found for the estimate and its uncertainty, there should only be one")}
 		
 		 # Read in the estimate and uncertainty rasters
-        leaf_fall_period = raster(paste(path_to_leaf_fall_period,input_file,sep=""))
-        #leaf_fall_period_uncertainty = raster(paste(path_to_leaf_fall_period,unc_input_file,sep=""))
+        leaf_fall_period = rast(paste(path_to_leaf_fall_period,input_file,sep=""))
+        #leaf_fall_period_uncertainty = rast(paste(path_to_leaf_fall_period,unc_input_file,sep=""))
 
         # Create raster with the target crs
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(leaf_fall_period), resolution = res(leaf_fall_period))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(leaf_fall_period), resolution = res(leaf_fall_period))
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(leaf_fall_period,target) == FALSE) {
+        if (compareGeom(leaf_fall_period,target) == FALSE) {
             # Resample to correct grid
-            leaf_fall_period = resample(leaf_fall_period, target, method="ngb") ; gc() ; removeTmpFiles()
+            leaf_fall_period = resample(leaf_fall_period, target, method="near") ; gc() ; removeTmpFiles()
             #leaf_fall_period_uncertainty_days = resample(leaf_fall_period_uncertainty_days, target, method="ngb") ; gc() ; removeTmpFiles()
         }
 		# Extend the extent of the overall grid to the analysis domain
@@ -52,7 +52,7 @@ load_leaf_fall_period_maps_for_extraction<-function(latlon_in,leaf_fall_period_s
             if (res(leaf_fall_period)[1] < res(cardamom_ext)[1] | res(leaf_fall_period)[2] < res(cardamom_ext)[2]) {
 
                 # Create raster with the target resolution
-                target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
                 # Resample to correct grid
                 leaf_fall_period = resample(leaf_fall_period, target, method="bilinear") ; gc() ; removeTmpFiles()

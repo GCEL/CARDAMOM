@@ -17,12 +17,12 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         Csom_unc = rast(paste(path_to_Csom,"Csom_gCm2_sd_0to1m.tif", sep=""))
 
         # Create raster with the target crs
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(Csom), resolution = res(Csom))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(Csom,target) == FALSE) {
             # Resample to correct grid
-            Csom = resample(Csom, target, method="ngb") ; gc() 
-            Csom_unc = resample(Csom_unc, target, method="ngb") ; gc() 
+            Csom = resample(Csom, target, method="near") ; gc() 
+            Csom_unc = resample(Csom_unc, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         Csom = extend(Csom,cardamom_ext) ; Csom_unc = extend(Csom_unc,cardamom_ext)
@@ -32,7 +32,7 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
             Csom = resample(Csom, target, method="bilinear") ; gc() 
@@ -67,12 +67,12 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         Csom_unc = rast(paste(path_to_Csom,"Csom_gCm2_uncertainty_0to100cm.tif", sep=""))
 
         # Create raster with the target crs
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(Csom), resolution = res(Csom))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(Csom,target) == FALSE) {
             # Resample to correct grid
-            Csom = resample(Csom, target, method="ngb") ; gc() 
-            Csom_unc = resample(Csom_unc, target, method="ngb") ; gc() 
+            Csom = resample(Csom, target, method="near") ; gc() 
+            Csom_unc = resample(Csom_unc, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         Csom = extend(Csom,cardamom_ext) ; Csom_unc = extend(Csom_unc,cardamom_ext)
@@ -82,7 +82,57 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
+
+            # Resample to correct grid
+            Csom = resample(Csom, target, method="bilinear") ; gc() 
+            Csom_unc = resample(Csom_unc, target, method="bilinear") ; gc() 
+
+        } # Aggrgeate to resolution
+
+        # extract dimension information for the grid, note the axis switching between raster and actual array
+        xdim = dim(Csom)[2] ; ydim = dim(Csom)[1]
+        # extract the lat / long information needed
+        long = crds(Csom,df=TRUE, na.rm=FALSE)
+        lat  = long$y ; long = long$x
+        # restructure into correct orientation
+        long = array(long, dim=c(xdim,ydim))
+        lat = array(lat, dim=c(xdim,ydim))
+        # break out from the rasters into arrays which we can manipulate
+        Csom = array(as.vector(unlist(Csom)), dim=c(xdim,ydim))
+        Csom_unc = array(as.vector(unlist(Csom_unc)), dim=c(xdim,ydim))
+
+        # Assume in all cases than a zero prior value should be classed as missing data
+        Csom[Csom < 1] = NA ; Csom_unc[is.na(Csom)] = NA
+
+        return(list(Csom = Csom, Csom_unc = Csom_unc, lat = lat, long = long))
+		
+		} else if (Csom_source == "SoilGrids_v2_Finland") {
+
+        # let the user know this might take some time
+        print("Loading processed SoilGrids_v2 Finland Csom fields for subsequent sub-setting ...")
+
+        # This is a very bespoke modification so leave it here to avoid getting lost
+        Csom = rast(paste(path_to_Csom,"SOC_000-030cm_mean_0.10deg.tif", sep=""))
+        Csom_unc = rast(paste(path_to_Csom,"SOC_000-030cm_uncertainty_0.10deg.tif", sep=""))
+
+        # Create raster with the target crs
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
+        # Check whether the target and actual analyses have the same CRS
+        if (compareGeom(Csom,target) == FALSE) {
+            # Resample to correct grid
+            Csom = resample(Csom, target, method="near") ; gc() 
+            Csom_unc = resample(Csom_unc, target, method="near") ; gc() 
+        }
+        # Extend the extent of the overall grid to the analysis domain
+        Csom = extend(Csom,cardamom_ext) ; Csom_unc = extend(Csom_unc,cardamom_ext)
+        # Trim the extent of the overall grid to the analysis domain
+        Csom = crop(Csom,cardamom_ext) ; Csom_unc = crop(Csom_unc,cardamom_ext)
+        # Adjust spatial resolution of the datasets, this occurs in all cases
+        if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
+
+            # Create raster with the target resolution
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
             # Resample to correct grid
             Csom = resample(Csom, target, method="bilinear") ; gc() 
@@ -126,11 +176,11 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         Csom = rast(Csom, crs = ("+init=epsg:4326"), type="xyz")
 
         # Create raster with the target crs (technically this bit is not required)
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(Csom), resolution = res(Csom))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(Csom,target) == FALSE) {
             # Resample to correct grid
-            Csom = resample(Csom, target, method="ngb") ; gc() 
+            Csom = resample(Csom, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         Csom = extend(Csom,cardamom_ext)
@@ -140,7 +190,7 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
             # Resample to correct grid
             Csom = resample(Csom, target, method="bilinear") ; gc() 
 
@@ -193,11 +243,11 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         Csom = rast(Csom, crs = ("+init=epsg:4326"), type="xyz")
 
         # Create raster with the target crs (technically this bit is not required)
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(Csom), resolution = res(Csom))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(Csom,target) == FALSE) {
             # Resample to correct grid
-            Csom = resample(Csom, target, method="ngb") ; gc() 
+            Csom = resample(Csom, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         Csom = extend(Csom,cardamom_ext)
@@ -207,7 +257,7 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
             # Resample to correct grid
             Csom = resample(Csom, target, method="bilinear") ; gc() 
 
@@ -260,11 +310,11 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         Csom = rast(Csom, crs = ("+init=epsg:4326"), type="xyz")
 
         # Create raster with the target crs (technically this bit is not required)
-        target = rast(crs = ("+init=epsg:4326"), ext = ext(Csom), resolution = res(Csom))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(Csom), resolution = res(Csom))
         # Check whether the target and actual analyses have the same CRS
         if (compareGeom(Csom,target) == FALSE) {
             # Resample to correct grid
-            Csom = resample(Csom, target, method="ngb") ; gc() 
+            Csom = resample(Csom, target, method="near") ; gc() 
         }
         # Extend the extent of the overall grid to the analysis domain
         Csom = extend(Csom,cardamom_ext)
@@ -274,7 +324,7 @@ load_Csom_fields_for_extraction<-function(latlon_in,Csom_source,cardamom_ext,spa
         if (res(Csom)[1] != res(cardamom_ext)[1] | res(Csom)[2] != res(cardamom_ext)[2]) {
 
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
             # Resample to correct grid
             Csom = resample(Csom, target, method="bilinear") ; gc() 
 

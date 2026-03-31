@@ -1,25 +1,48 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! CARbon DAta MOdel fraMework (CARDAMOM) and DALEC terrestrial ecosystem model suite
+! CARDAMOM is a Bayesian model-data fusion software framework. CARDAMOM is used to 
+! assimilate observations and ecological theory to retrieve parameters for the 
+! DALEC suite of intermediate complexity terrestrial ecosystem models. DALEC can be
+! used as a fully integrated component of CARDAMOM or independently. 
+! Copyright (C) 2024  University of Edinburgh,
+!                     Mathew Williams (mat.williams@ed.ac.uk), 
+!                     T. Luke Smallman (t.l.smallman@ed.ac.uk)
+! UoE = University of Edinburgh
+
+! This program is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+!!!!!!!!!!!! File specific description !!!!!!!!!!
+! Module contains all subroutine and functions relevant specifically to the
+! AP-MCMC method. The choice of EDC, likelihood and model are made else where and
+! are thus contains within a seperate module
+! 
+! Relevant source references:
+! Haario et al., (2001) An adaptive Metropolis algorithm. Bernoulli 7.2: 223-242.
+! Haario et al., (2006) Stat. Comput., 16:339–354, DOI 10.1007/s11222-006-9438-0,
+! Roberts and Rosenthal (2009), Examples of Adaptive MCMC, J. Comp. Graph. Stat. 18:349-367
+!
+! This code is based on the original C verion of the University of Edinburgh
+! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
+! All code translation into Fortran, integration into the University of
+! Edinburgh CARDAMOM code and subsequent modifications by:
+! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
+! J. F. Exbrayat (University of Edinburgh)
+! See function / subroutine specific comments for exceptions and contributors
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 module MHMCMC_MODULE
-
-  !!!!!!!!!!!
-  ! Authorship contributions
-  !
-  ! This code is based on the original C verion of the University of Edinburgh
-  ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
-  ! All code translation into Fortran, integration into the University of
-  ! Edinburgh CARDAMOM code and subsequent modifications by:
-  ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
-  ! J. F. Exbrayat (University of Edinburgh)
-  ! See function / subroutine specific comments for exceptions and contributors
-  !!!!!!!!!!!
-
-  ! Module contains all subroutine and functions relevant specifically to the
-  ! AP-MCMC method. The choice of EDC, likelihood and model are made else where and
-  ! are thus contains within a seperate module
-
-  ! Relevant source references:
-  ! Haario et al., (2001) An adaptive Metropolis algorithm. Bernoulli 7.2: 223-242.
-  ! Haario et al., (2006) Stat. Comput., 16:339–354, DOI 10.1007/s11222-006-9438-0,
-  ! Roberts and Rosenthal (2009), Examples of Adaptive MCMC, J. Comp. Graph. Stat. 18:349-367
 
 implicit none
 
@@ -163,8 +186,7 @@ contains
     ! scd = 2.381204 the optimal scaling parameter for MCMC search, when applied
     ! to multivariate proposal.
     ! NOTE 1: 2.38 / sqrt(npars) sometimes used when applied to the Cholesky factor
-    ! NOTE 2: 2.381204 ** 2 = 5.670132
-    opt_scaling = 5.670132d0 / dble(PI%npars)
+    opt_scaling = 2.381204d0 / sqrt(dble(PI%npars))
 
     ! calculate initial vector of uniform random values
     unif_length = MCO%nADAPT * 5
@@ -275,22 +297,23 @@ contains
 
        ! count iteration whether the current proposal is accepted or rejected
        N%ITER = N%ITER + 1
+       if (MCO%nWRITE > 0) then
+           if (mod(nint(N%ITER),MCO%nWRITE) == 0) then
 
-       if (MCO%nWRITE > 0 .and. mod(nint(N%ITER),MCO%nWRITE) == 0) then
+!              ! Debugging print statements
+!              print*,"mcmc: write_mcmc_output done"
 
-!           ! Debugging print statements
-!           print*,"mcmc: write_mcmc_output done"
-
-           ! calculate the likelhood for the actual uncertainties - this avoid
-           ! issues with different phases of the MCMC which may use sub-samples
-           ! of observations or inflated uncertainties to aid parameter
-           ! searching
-           call model_likelihood_default(PARS0, outputP0, outputP0prior)
-           ! Now write out to files
-           call write_mcmc_output(PI%parvar,N%ACCRATE, &
-                                  PI%covariance, &
-                                  PI%mean_par,PI%Nparvar, &
-                                  PARS0,(outputP0+outputP0prior),PI%npars,N%ITER == MCO%nOUT)
+               ! calculate the likelhood for the actual uncertainties - this avoid
+               ! issues with different phases of the MCMC which may use sub-samples
+               ! of observations or inflated uncertainties to aid parameter
+               ! searching
+               call model_likelihood_default(PARS0, outputP0, outputP0prior)
+               ! Now write out to files
+               call write_mcmc_output(PI%parvar,N%ACCRATE, &
+                                      PI%covariance, &
+                                      PI%mean_par,PI%Nparvar, &
+                                      PARS0,(outputP0+outputP0prior),PI%npars,N%ITER == MCO%nOUT)
+           end if 
        end if ! write or not to write
 
        ! time to adapt?
@@ -308,20 +331,27 @@ contains
            N%ACCRATE = N%ACCLOC / dble(MCO%nADAPT)
 
            ! Second, are we still in the adaption phase?
-           if (burn_in_period > N%ITER .or. (N%ACC_first / N%ITER) < 0.05d0 .or. .not.PI%use_multivariate) then
-
-               ! Once covariance matrix has been created just update based on a
-               ! single parameter set from each period.
-               if (PI%cov) then
-                   N%ACCLOC = 1d0 ; PARSALL(1:PI%npars,nint(N%ACCLOC)) = norPARS0(1:PI%npars)
-               else if (.not.PI%cov .and. N%ACCLOC > 3d0) then
-                   PARSALL(1:PI%npars,2) = PARSALL(1:PI%npars,ceiling(N%ACCLOC*0.5d0))
-                   PARSALL(1:PI%npars,3) = PARSALL(1:PI%npars,nint(N%ACCLOC))
-                   N%ACCLOC = 3d0
-               endif
-
-               ! adapt the covariance matrix for multivariate proposal
-               call adapt_step_size(PARSALL,N)
+           !TLS:2025if (burn_in_period > N%ITER .or. (N%ACC_first / N%ITER) < 0.05d0 .or. .not.PI%use_multivariate) then
+           if (burn_in_period > N%ITER .or. .not.PI%use_multivariate) then           
+                !TLS:2025               ! Once covariance matrix has been created just update based on a
+                !               ! single parameter set from each period.
+                !               if (PI%cov) then
+                !                   N%ACCLOC = 1d0 ; PARSALL(1:PI%npars,nint(N%ACCLOC)) = norPARS0(1:PI%npars)
+                !               else if (.not.PI%cov .and. N%ACCLOC > 3d0) then
+                !                   PARSALL(1:PI%npars,2) = PARSALL(1:PI%npars,ceiling(N%ACCLOC*0.5d0))
+                !                   PARSALL(1:PI%npars,3) = PARSALL(1:PI%npars,nint(N%ACCLOC))
+                !                   N%ACCLOC = 3d0
+                !               endif
+                
+                ! Until the covariance has been first created be selective about the variables being fed 
+                ! into the matrix. Then let everything feed into the matrix for learning.
+                if (.not.PI%cov .and. N%ACCLOC > 3d0) then
+                    PARSALL(1:PI%npars,2) = PARSALL(1:PI%npars,ceiling(N%ACCLOC*0.5d0))
+                    PARSALL(1:PI%npars,3) = PARSALL(1:PI%npars,nint(N%ACCLOC))
+                    N%ACCLOC = 3d0
+                endif
+                ! adapt the covariance matrix for multivariate proposal
+                call adapt_step_size(PARSALL,N)
 
            end if !  have enough parameter been accepted
 
@@ -331,18 +361,20 @@ contains
        end if ! time to adapt?
 
        ! Should I be write(*,*)ing to screen or not?
-       if (MCO%nPRINT > 0 .and. (mod(nint(N%ITER),MCO%nPRINT) == 0)) then
-           write(*,*)"Using multivariate sampling = ",PI%use_multivariate
-           write(*,*)"Total proposal = ",N%ITER," out of ",MCO%nOUT
-           write(*,*)"Total accepted = ",N%ACC
-           write(*,*)"Overall acceptance rate    = ",N%ACC / N%ITER
-           write(*,*)"Local   acceptance rate    = ",N%ACCRATE
-           write(*,*)"Current obs   = ",P0,"proposed = ",P," log-likelihood"
-           write(*,*)"Current prior = ",P0prior,"proposed = ",Pprior," log-likelihood"
-           write(*,*)"Maximum likelihood = ",Pmax
-           ! NOTE: that -infinity in current obs only indicates failure of EDCs
-           ! but -infinity in both obs and parameter likelihood scores indicates
-           ! that proposed parameters are out of bounds
+       if (MCO%nPRINT > 0) then
+           if (mod(nint(N%ITER),MCO%nPRINT) == 0) then
+               write(*,*)"Using multivariate sampling = ",PI%use_multivariate
+               write(*,*)"Total proposal = ",N%ITER," out of ",MCO%nOUT
+               write(*,*)"Total accepted = ",N%ACC
+               write(*,*)"Overall acceptance rate    = ",N%ACC / N%ITER
+               write(*,*)"Local   acceptance rate    = ",N%ACCRATE
+               write(*,*)"Current obs   = ",P0,"proposed = ",P," log-likelihood"
+               write(*,*)"Current prior = ",P0prior,"proposed = ",Pprior," log-likelihood"
+               write(*,*)"Maximum likelihood = ",Pmax
+               ! NOTE: that -infinity in current obs only indicates failure of EDCs
+               ! but -infinity in both obs and parameter likelihood scores indicates
+               ! that proposed parameters are out of bounds
+           end if 
        end if ! write(*,*) to screen or not
 
     end do ! while conditions
@@ -421,6 +453,7 @@ contains
         if (info == 0) then
             ! Set multivariate sampling to true
             PI%use_multivariate = .true.
+            PI%Nparvar = Nparvar_local
         else
             ! The current addition of a parameter leads to a matrix which is not
             ! positive definite. If we previously had a matrix which is positive

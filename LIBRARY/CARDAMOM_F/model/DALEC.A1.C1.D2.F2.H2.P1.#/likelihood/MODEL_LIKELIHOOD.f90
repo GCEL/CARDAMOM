@@ -576,16 +576,16 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
-    ! GPP allocation to foliage and labile cannot be 5 orders of magnitude
+    ! GPP allocation to foliage and labile cannot be 5 orders of magnitude TGundo
     ! difference from GPP allocation to roots
-    if ((EDC1 == 1 .or. DIAG == 1) .and. ((ffol+flab) > (5d0*froot) .or. ((ffol+flab)*5d0) < froot)) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
-    endif
+!    if ((EDC1 == 1 .or. DIAG == 1) .and. ((ffol+flab) > (5d0*froot) .or. ((ffol+flab)*5d0) < froot)) then  !TG removed this one!!! Finland gridded
+!        EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
+!    endif
 
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
     ! IMPLICIT Combustion completeness for fol+root litter should be greater than soil
 
-    ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
+    ! Combustion completeness for foliage should be greater than non-photosynthetic tissues TG remove fire EDCs
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(29) < pars(30)) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     endif
@@ -622,6 +622,7 @@ module model_likelihood_module
                           ,nopools        & ! number of pools in model
                           ,nodays         & ! number of days in simulation
                           ,steps_per_year
+						 
 
     double precision, intent(in) :: deltat(nodays)              & ! decimal day model interval
                                    ,pars(npars)                 & ! vector of current parameters
@@ -637,8 +638,9 @@ module model_likelihood_module
     double precision, intent(out) :: EDC2 ! the response flag for the dynamical set of EDCs
 
     ! declare local variables
+	!integer, dimension(DATAin%nos_years) :: loc ! TG loc = index location (timestep within a year) of max LAI
     integer :: n, nn, nnn, DIAG, y, PEDC, steps_per_month, nd, fl, &
-               io_start, io_finish
+               io_start, io_finish !,z, zz, zzz
     double precision :: infi !, EQF, etol
     double precision, dimension(nopools) :: jan_mean_pools, jan_first_pools, &
                                             mean_pools, Fin, Fout, Rm, Rs, &
@@ -648,7 +650,14 @@ module model_likelihood_module
                        ,ffol  & ! Fraction of GPP to foliage
                        ,flab  & ! Fraction of GPP to labile pool
                        ,froot & ! Fraction of GPP to root
-                       ,fwood   ! Fraction of GPP to wood
+                       ,fwood & ! Fraction of GPP to wood
+					   , mean_lai_jan & ! TG--25,2!
+					   , sd_lai_jan & ! TG--25,2
+					   , sum_lai_jan !TG--25,2
+					   
+					   
+    double precision, dimension(nodays) :: tmp1, tmp2 ! used in maxLAI EDC TG TGundo
+	double precision, allocatable :: lai_jan(:) !TG 
 
     ! Steady State Attractor:
     ! Log ratio difference between inputs and outputs of the system.
@@ -658,10 +667,10 @@ module model_likelihood_module
                                    EQF10 = log(10d0), &
                                    EQF15 = log(15d0), &
                                    EQF20 = log(20d0), &
-                                    etol = 0.05d0 ! 0.20d0 lots of AGB !0.10d0 global / site more data !0.05d0 global 1 or 2 AGB estimates
-
+                                   C_etol = 0.20d0 ! 0.20d0 lots of AGB !0.10d0 global / site more data !0.05d0 global 1 or 2 AGB estimates
+								  !H20_etol = 0.10d0 		
 !    ! Debugging print statements
-!    print*,"assess_EDC2: "
+    !print*,"assess_EDC2: "
 
     ! update initial values
     DIAG = EDCD%DIAG
@@ -694,23 +703,29 @@ module model_likelihood_module
       end do
       jan_mean_pools(n) = jan_mean_pools(n) / dble(steps_per_month*DATAin%nos_years)
     end do
+	
+	
+	
+
+	
 
     !
     ! Begin EDCs here
     !
 
     ! EDC 6
-    ! ensure ratio between Cfoliar and Croot is less than 5
-    if ((EDC2 == 1 .or. DIAG == 1) .and. &
-        (mean_pools(2) > (mean_pools(3)*5d0) .or. (mean_pools(2)*5d0) < mean_pools(3)) ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(9) = 0
-    end if
+    ! ensure ratio between Cfoliar and Croot is less than 5 
+  if ((EDC2 == 1 .or. DIAG == 1) .and. & !!! TG25JUNE 
+	        (mean_pools(2) > (mean_pools(3)*5d0) .or. (mean_pools(2)*5d0) < mean_pools(3)) ) then
+!        (mean_pools(2)) > (mean_pools(3)*6.4d0) .or. (mean_pools(2)) < (mean_pools(3)*0.8))  then !TG based off of Helmisaari, 2007
+	EDC2 = 0d0 ; EDCD%PASSFAIL(9) = 0
+	end if
 
     ! EDC just for DALEC_CDEA_ACM2_BUCKET due to complications linked to
     ! the empirical phenology but mechanistic hydrology / photosynthesis
-    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_LAI) > 10d0 ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(10) = 0
-    end if
+!!! TG25    if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_LAI) > 10d0 ) then
+!!! TG25        EDC2 = 0d0 ; EDCD%PASSFAIL(10) = 0
+!!! TG25    end if
 
     ! Equilibrium factor (in comparison with initial conditions)
 !    EQF = 10d0 ! TLS 06/11/2019 !10d0 ! JFE replaced 10 by 2 - 27/06/2018
@@ -797,73 +812,91 @@ module model_likelihood_module
 !       end if
 !    end do
 
-    if (EDC2 == 1 .or. DIAG == 1) then
+
+    ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
+    if ((EDC2 == 1 .or. DIAG == 1) .and. (FT(4)+FT(8)) > (5d0*FT(6))) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(17) = 0
+    endif
+    ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
+    if ((EDC2 == 1 .or. DIAG == 1) .and. ((FT(4)+FT(8))*5d0) < FT(6)) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(18) = 0
+    endif
+
+! TG removing steady-state attractor edcs here, to undo - delete ! that are located at beginning and end of line
+
+    if (EDC2 == 1 .or. DIAG == 1) then  ! TG delete
 
         ! Living pools
-        do n = 1, 3
-!        do n = 1, 3, 2 ! labile + fine root
-        !do n = 3, 3 ! fine root only
+!        do n = 1, 3    ! TG delete
+        ! do n = 1, 3, 2 ! labile + fine root
+        ! do n = 3, 3 ! fine root only
            ! Restrict mean rates of increase
-           if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
-           end if
+!          if (abs(log(Fin(n)/Fout(n))) > EQF2) then   ! TG delete
+!               EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0    ! TG delete
+!           end if                                         ! TG delete
            ! Restrict rates from deviating unrealistically from the mean
-!           if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
-!                    abs(log(Fin(n)/Fout(n))) ) > EQF2 ) then
-!               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-!           end if
-           if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
-                     abs(log(Fin(n)/Fout(n))) ) > etol ) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-           end if
+           !if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
+                    !abs(log(Fin(n)/Fout(n))) ) > EQF2 ) then
+               !EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+           !end if
+!		n = 3   
+!           if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &   ! TG delete
+!                     abs(log(Fin(n)/Fout(n))) ) > C_etol ) then     ! TG delete
+!               EDC2 = 0d0 ; EDCD%PASSFAIL(19) = 0    ! TG delete
+!           end if        ! TG delete
            ! Restrict exponential behaviour at initialisation
            !if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > etol) then
            !    EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
            !end if
-        end do
+!       end do      ! TG delete
         ! Specific wood pool hack, note that in CDEA EDCs Fin has already been multiplied by time step
-        n = 4
-        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
-        end if
-!        if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
-!                 abs(log(Fin(n)/Fout(n))) ) > EQF1_5 ) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-!        end if
-         if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
-                   abs(log(Fin(n)/Fout(n))) ) > etol ) then
-             EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-         end if
-!        if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > etol) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-!        end if
+         n = 4   ! TG delete  !!! TG25--2
+        if (abs(log(Fin(n)/Fout(n))) > EQF2) then   ! TG delete !!! TG25--2
+             EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0     ! TG delete !!! TG25--2
+        end if     ! TG delete !!! TG25--2
+        !if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
+                 !abs(log(Fin(n)/Fout(n))) ) > EQF1_5 ) then
+            !EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+        !end if
+       if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &   ! TG delete !!! TG25--2  
+                   abs(log(Fin(n)/Fout(n))) ) > C_etol ) then   ! TG delete !!! TG25--2
+              EDC2 = 0d0 ; EDCD%PASSFAIL(51) = 0     ! TG delete !!! TG25--2
+         end if       ! TG delete !!! TG25--2
+        !if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > etol) then
+            !EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+        !end if
         ! Dead pools
-        do n = 5, 6  ! Litter + som
-!        do n = 6, 6   ! som only
+        do n = 5, 6  ! Litter + som   ! TG delete
+        !do n = 6, 6   ! som only
            ! Restrict rates of increase
-           if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(13+n-1) = 0
-           end if
+           if (abs(log(Fin(n)/Fout(n))) > EQF2) then    ! TG delete
+               EDC2 = 0d0 ; EDCD%PASSFAIL(16+n-1) = 0    ! TG delete
+           end if   ! TG delete
            ! Restrict rates from deviating unrealistically from the mean
-!           if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
-!                    abs(log(Fin(n)/Fout(n))) ) > EQF1_5 ) then
-!               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-!           end if
-           if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
-                     abs(log(Fin(n)/Fout(n))) ) > etol ) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-           end if
-!           ! Restrict exponential behaviour at initialisation
-!           if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > etol) then
-!               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
-!           end if
-        end do
+           !if ( abs(abs(log((Fin_yr1(n)+Fin_yr2(n))/(Fout_yr1(n)+Fout_yr2(n)))) - &
+                    !abs(log(Fin(n)/Fout(n))) ) > EQF1_5 ) then
+               !EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+           !end if
+           if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &     ! TG delete
+                     abs(log(Fin(n)/Fout(n))) ) > C_etol ) then   ! TG delete
+               EDC2 = 0d0 ; EDCD%PASSFAIL(18+n-1) = 0         ! TG delete
+           end if   ! TG delete
 
-    end if ! EDC2 == 1 .or. DIAG == 1
+
+           ! Restrict exponential behaviour at initialisation
+           !if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > etol) then
+               !EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+           !end if
+        end do ! TG delete
+
+    end if ! EDC2 == 1 .or. DIAG == 1   ! TG delete
+
+
+!!!! End of TG delete to remove steady-state attractor EDCs
 
     ! The maximum value for GPP must be greater than 0, 0.001 to guard against precision values
     if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_GPP) < 0.001d0) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(35) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(24) = 0
     end if
 
 !    ! Prevent NPP -> foliage (FLX4,8) > NPP (GPP-Ra, FLX1-FLX3)
@@ -884,21 +917,97 @@ module model_likelihood_module
           if (minval(M_POOLS(1:nodays,n)) < 0d0 .or. &
               maxval(abs(M_POOLS(1:nodays,n))) == abs(log(infi)) .or. &
               minval(M_POOLS(1:nodays,n)) /= minval(M_POOLS(1:nodays,n))) then
-              EDC2 = 0d0 ; EDCD%PASSFAIL(55+n) = 0
+              EDC2 = 0d0 ; EDCD%PASSFAIL(25+n) = 0
           endif
        end do
 
        do n = 1, nofluxes
           if (maxval(abs(M_FLUXES(:,n))) == abs(log(infi)) .or. &
               minval(M_FLUXES(:,n)) /= minval(M_FLUXES(:,n))) then
-              EDC2 = 0d0 ; EDCD%PASSFAIL(55+nopools+n) = 0
+              EDC2 = 0d0 ; EDCD%PASSFAIL(25+nopools+n) = 0
           endif
        end do
 
     end if ! min pool assessment
+	
+	! TG max LAI window EDC
+	
+!	print*, "here goes the lai EDC!!!"
+	
+!	if (EDC2 == 1 .or. DIAG == 1 .and. &
+!		steps_per_year == 52 .and. &
+!		ANY(loc) < 21. .or. ANY(loc) > 33.) then
+!		EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0
+!	else if (EDC2 == 1 .or. DIAG == 1 .and. &
+!		steps_per_year == 12 .and. &
+!		ANY(loc) < 6. .or. ANY(loc) > 8.) then
+!		EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0
+!	end if
 
 !    ! Debugging print statements
-!    print*,"assess_EDC2: done"
+    !print*,"assess_EDC2: done"
+	
+	! Add after the first EDC has been declared
+
+    ! Specific for dealing with needleleaf forests in the northern hemisphere. TGundo
+    ! Assesses whether the mean LAI in the summer months (June, July, August)
+    ! is greater than the mean outwith. This ensures the peak LAI in the season
+    ! is summer time.TG
+    if ((EDC2 == 1 .or. DIAG == 1)) then
+        ! Set values for vectors used to select summer vs non-summer time points.
+       tmp1 = 0d0 ; tmp2 = 1d0
+        ! Where condition sets tmp1 == 1 for days of year for JJA
+        where (met(6,:) > 150d0 .and. met(6,:) < 245d0) tmp1 = 1d0
+        ! As tmp2 initially == 1, by subtracting tmp1 that means tmp2 will have value 0
+        ! during summer but 1 elsewhere
+        tmp2 = tmp2 - tmp1
+        ! Which means we can filter the LAI timeseries by multiplying by tmp1 and tmp2.
+        ! The sum of each of these variables is also conveniently the number of values to 
+        ! be averaged over.
+        if ((sum(M_LAI * tmp1) / sum(tmp1)) < (sum(M_LAI * tmp2) / sum(tmp2)) .OR. (maxval(M_LAI * tmp1)) < (maxval(M_LAI * tmp2)))   then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0
+       end if 
+	   
+	   
+	   !!!!!!!!! TG - trial EDC to prevent low LAI starting point
+	   if (allocated(lai_jan)) deallocate(lai_jan)
+	   allocate(lai_jan(DATAin%nos_years-1))
+	   sum_lai_jan = 0d0 
+	   do y = 2, DATAin%nos_years
+         n = 1 + (steps_per_year * (y - 1)) 
+         sum_lai_jan = M_LAI(n) + sum_lai_jan
+		 lai_jan(y-1) = M_LAI(n)
+	   end do
+	   mean_lai_jan = sum_lai_jan / dble((DATAin%nos_years - 1d0))
+	   sd_lai_jan = sqrt( (sum(( lai_jan - mean_lai_jan )**2) / dble(DATAin%nos_years-2d0)))
+	   
+	   if (M_LAI(1) > mean_lai_jan + 2d0 * sd_lai_jan .OR. M_LAI(1) < mean_lai_jan - 2d0 * sd_lai_jan) then
+			EDC2 = 0d0 ; EDCD%PASSFAIL(57) = 0
+	   end if
+    end if
+	
+	! minimum Cfol:Croot must occur in summer months
+	
+	if ((EDC2 == 1 .or. DIAG == 1)) then
+        ! Set values for vectors used to select summer vs non-summer time points.
+       tmp1 = 0d0 ; tmp2 = 1d0
+        ! Where condition sets tmp1 == 1 for days of year for JJA
+        where (met(6,:) > 150d0 .and. met(6,:) < 245d0) tmp1 = 1d0
+        ! As tmp2 initially == 1, by subtracting tmp1 that means tmp2 will have value 0
+        ! during summer but 1 elsewhere
+        tmp2 = tmp2 - tmp1
+        ! Which means we can filter the LAI timeseries by multiplying by tmp1 and tmp2.
+        ! The sum of each of these variables is also conveniently the number of values to 
+        ! be averaged over.
+	if ( (sum((DATAin%M_POOLS(:,2) / DATAin%M_POOLS(:,3)) * tmp1) / sum(tmp1)) > &
+		(sum((DATAin%M_POOLS(:,2) / DATAin%M_POOLS(:,3)) * tmp2) / sum(tmp2)) .OR. &
+		maxval((DATAin%M_POOLS(:,2) / DATAin%M_POOLS(:,3)) * tmp1) > &
+		maxval((DATAin%M_POOLS(:,2) / DATAin%M_POOLS(:,3)) * tmp2) ) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(58) = 0
+       end if 
+	end if
+	
+	
 
   end subroutine assess_EDC2
   !
@@ -1187,10 +1296,13 @@ module model_likelihood_module
 
     ! declare local variables
     integer :: n, dn, y, s, f
-    double precision :: tot_exp, tmp_var, infini, input, output, obs, model, unc
+    double precision :: tot_exp, tmp_var, infini, input, output, obs, model, unc, mean_Cfol_Croot_ratio_mid !, sum_lai_jan, mean_lai_jan, sd_lai_jan
     double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	double precision, allocatable :: Cfol_Croot_ratio_mid(:)
+	
+	!double precision, allocatable :: lai_jan(:) !TG 
 	integer, dimension(DATAin%nodays) :: fol_hak										 
 
 !    ! Debugging print statement
@@ -1553,8 +1665,45 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
-	end if			  
+		likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2   ! likelihood = likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2
+	end if	
+	
+	
+	if(DATAin%otherpriors(9) > -9998) then
+		   !!!!!!!!! TG - trial likelihood for Cfol:Croot
+	   if (allocated(Cfol_Croot_ratio_mid)) deallocate(Cfol_Croot_ratio_mid)
+	   allocate(Cfol_Croot_ratio_mid(DATAin%nos_years))
+	   !sum_lai_jan = 0d0 
+	   do y = 1, DATAin%nos_years
+         n = (DATAin%steps_per_year*0.5+1) + ((DATAin%steps_per_year)* (y-1)) 
+         Cfol_Croot_ratio_mid(y) = DATAin%M_POOLS(n,2) / DATAin%M_POOLS(n,3)
+	   end do
+	   mean_Cfol_Croot_ratio_mid = sum(Cfol_Croot_ratio_mid) / dble((DATAin%nos_years))
+	   
+	   tot_exp = ((mean_Cfol_Croot_ratio_mid-DATAin%otherpriors(9))/DATAin%otherpriorunc(9))**2
+       likelihood = likelihood-tot_exp
+	end if 
+	   
+	   
+	!!!!!!!!! TG - trial likelihood to prevent low LAI starting point
+!	   if (allocated(lai_jan)) deallocate(lai_jan)
+!	   allocate(lai_jan(DATAin%nos_years-1))
+!	   sum_lai_jan = 0d0 
+!	   do y = 2, DATAin%nos_years
+!         n = 1 + (DATAin%steps_per_year * (y - 1)) 
+!         sum_lai_jan = DATAin%M_LAI(n) + sum_lai_jan
+!		 lai_jan(y-1) = DATAin%M_LAI(n)
+!	   end do
+	   
+!	   mean_lai_jan = sum_lai_jan / dble((DATAin%nos_years - 1d0))
+!	   sd_lai_jan = sqrt( (sum(( lai_jan - mean_lai_jan )**2) / dble(DATAin%nos_years-2d0)))
+	   
+!	   tot_exp = 0d0
+!	   tot_exp = ((DATAin%M_LAI(1) - mean_lai_jan) / sd_lai_jan)**2
+	   
+!	   likelihood = likelihood-tot_exp
+	
+	
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
     ! multiple datastreams we apply this multiplication to the bulk likelihood
@@ -1591,10 +1740,12 @@ module model_likelihood_module
 
     ! declare local variables
     integer :: n, dn, y, s, f
-    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
+    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc, mean_Cfol_Croot_ratio_mid !,sum_lai_jan, mean_lai_jan, sd_lai_jan
     double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	double precision, allocatable :: Cfol_Croot_ratio_mid(:)
+	!double precision, allocatable :: lai_jan(:) !TG 
 	integer, dimension(DATAin%nodays) :: fol_hak
 !    ! Debugging print statement
 !    print*,"scale_likelihood: "
@@ -1967,8 +2118,42 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		scale_likelihood = scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+		scale_likelihood = scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2  !DATAin%otherpriorunc(7))**2 
 	end if
+
+
+	if(DATAin%otherpriors(9) > -9998) then
+		   !!!!!!!!! TG - trial likelihood for Cfol:Croot
+	   if (allocated(Cfol_Croot_ratio_mid)) deallocate(Cfol_Croot_ratio_mid)
+	   allocate(Cfol_Croot_ratio_mid(DATAin%nos_years))
+	   !sum_lai_jan = 0d0 
+	   do y = 1, DATAin%nos_years
+         n = (DATAin%steps_per_year*0.5+1) + ((DATAin%steps_per_year)* (y-1)) 
+         Cfol_Croot_ratio_mid(y) = DATAin%M_POOLS(n,2) / DATAin%M_POOLS(n,3)
+	   end do
+	   mean_Cfol_Croot_ratio_mid = sum(Cfol_Croot_ratio_mid) / dble((DATAin%nos_years))
+	   
+	   tot_exp = ((mean_Cfol_Croot_ratio_mid-DATAin%otherpriors(9))/DATAin%otherpriorunc(9))**2
+       scale_likelihood = scale_likelihood-tot_exp
+	end if 
+	
+!	if (allocated(lai_jan)) deallocate(lai_jan)
+!	   allocate(lai_jan(DATAin%nos_years-1))
+!	   sum_lai_jan = 0d0 
+!	   do y = 2, DATAin%nos_years
+!        n = 1 + (DATAin%steps_per_year * (y - 1)) 
+!         sum_lai_jan = DATAin%M_LAI(n) + sum_lai_jan
+!		 lai_jan(y-1) = DATAin%M_LAI(n)
+!	   end do
+	   
+!	   mean_lai_jan = sum_lai_jan / dble((DATAin%nos_years - 1d0))
+!	   sd_lai_jan = sqrt( (sum(( lai_jan - mean_lai_jan )**2) / dble(DATAin%nos_years-2d0)))
+	   
+!	   tot_exp = 0d0
+!	   tot_exp = ((DATAin%M_LAI(1) - mean_lai_jan) / sd_lai_jan)**2
+	   
+!	   scale_likelihood = scale_likelihood-tot_exp
+
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -2006,10 +2191,12 @@ module model_likelihood_module
 
     ! declare local variables
     integer :: n, dn, y, s, f
-    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
+    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc, mean_Cfol_Croot_ratio_mid !, sum_lai_jan, mean_lai_jan, sd_lai_jan
     double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	double precision, allocatable :: Cfol_Croot_ratio_mid(:)
+	!double precision, allocatable :: lai_jan(:) !TG 
 	integer, dimension(DATAin%nodays) :: fol_hak	
 
 !    ! Debugging print statement
@@ -2384,8 +2571,41 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		sqrt_scale_likelihood = sqrt_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+		sqrt_scale_likelihood = sqrt_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2  !DATAin%otherpriorunc(7))**2
 	end if	
+
+	if(DATAin%otherpriors(9) > -9998) then
+		   !!!!!!!!! TG - trial likelihood for Cfol:Croot
+	   if (allocated(Cfol_Croot_ratio_mid)) deallocate(Cfol_Croot_ratio_mid)
+	   allocate(Cfol_Croot_ratio_mid(DATAin%nos_years))
+	   !sum_lai_jan = 0d0 
+	   do y = 1, DATAin%nos_years
+         n = (DATAin%steps_per_year*0.5+1) + ((DATAin%steps_per_year)* (y-1)) 
+         Cfol_Croot_ratio_mid(y) = DATAin%M_POOLS(n,2) / DATAin%M_POOLS(n,3)
+	   end do
+	   mean_Cfol_Croot_ratio_mid = sum(Cfol_Croot_ratio_mid) / dble((DATAin%nos_years))
+	   
+	   tot_exp = ((mean_Cfol_Croot_ratio_mid-DATAin%otherpriors(9))/DATAin%otherpriorunc(9))**2
+       sqrt_scale_likelihood = sqrt_scale_likelihood-tot_exp
+	end if 
+	
+!	if (allocated(lai_jan)) deallocate(lai_jan)
+!	   allocate(lai_jan(DATAin%nos_years-1))
+!	   sum_lai_jan = 0d0 
+!	   do y = 2, DATAin%nos_years
+!        n = 1 + (DATAin%steps_per_year * (y - 1)) 
+!        sum_lai_jan = DATAin%M_LAI(n) + sum_lai_jan
+!		 lai_jan(y-1) = DATAin%M_LAI(n)
+!	   end do
+	   
+!	   mean_lai_jan = sum_lai_jan / dble((DATAin%nos_years - 1d0))
+!	   sd_lai_jan = sqrt( (sum(( lai_jan - mean_lai_jan )**2) / dble(DATAin%nos_years-2d0)))
+	   
+!	   tot_exp = 0d0
+!	   tot_exp = ((DATAin%M_LAI(1) - mean_lai_jan) / sd_lai_jan)**2
+	   
+!	   sqrt_scale_likelihood = sqrt_scale_likelihood-tot_exp
+	
 
     ! the likelihood scores for each observation are subject to multiplication
     ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
@@ -2423,10 +2643,12 @@ module model_likelihood_module
 
     ! declare local variables
     integer :: n, dn, y, s, f
-    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc
+    double precision :: tot_exp, tmp_var, infini, input, output, model, obs, unc, mean_Cfol_Croot_ratio_mid !, sum_lai_jan, mean_lai_jan, sd_lai_jan
     double precision, dimension(DATAin%nodays) :: mid_state, fol_filter
     double precision, dimension(DATAin%steps_per_year) :: sub_time
     double precision, allocatable :: mean_annual_pools(:)
+	double precision, allocatable :: Cfol_Croot_ratio_mid(:)
+	!double precision, allocatable :: lai_jan(:) !TG 
 	integer, dimension(DATAin%nodays) :: fol_hak	
 
 !    ! Debugging print statement
@@ -2782,16 +3004,7 @@ module model_likelihood_module
         log_scale_likelihood = log_scale_likelihood-tot_exp
     endif
 
-    ! the likelihood scores for each observation are subject to multiplication
-    ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
-    ! multiple datastreams we apply this multiplication to the bulk likelihood
-    ! hear
-    log_scale_likelihood = log_scale_likelihood * 0.5d0
-
-    ! check that log-likelihood is an actual number
-    if (log_scale_likelihood /= log_scale_likelihood) then
-       log_scale_likelihood = log(infini)
-    end if
+   
 	
 		! Check leaf lifespan
 	! NOTE: this arrangement explicitly neglectsthe impactof disturbance on
@@ -2812,8 +3025,53 @@ module model_likelihood_module
 		
 		tot_exp = (tot_exp * 365.25d0)**(-1d0)
 		
-		log_scale_likelihood = log_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / 1)**2   !DATAin%otherpriorunc(7))**2
+		log_scale_likelihood = log_scale_likelihood - ((tot_exp - DATAin%otherpriors(7)) / DATAin%otherpriorunc(7))**2   !DATAin%otherpriorunc(7))**2
 	end if	
+	
+	
+	if(DATAin%otherpriors(9) > -9998) then
+		   !!!!!!!!! TG - trial likelihood for Cfol:Croot
+	   if (allocated(Cfol_Croot_ratio_mid)) deallocate(Cfol_Croot_ratio_mid)
+	   allocate(Cfol_Croot_ratio_mid(DATAin%nos_years))
+	   !sum_lai_jan = 0d0 
+	   do y = 1, DATAin%nos_years
+         n = (DATAin%steps_per_year*0.5+1) + ((DATAin%steps_per_year)* (y-1)) 
+         Cfol_Croot_ratio_mid(y) = DATAin%M_POOLS(n,2) / DATAin%M_POOLS(n,3)
+	   end do
+	   mean_Cfol_Croot_ratio_mid = sum(Cfol_Croot_ratio_mid) / dble((DATAin%nos_years))
+	   
+	   tot_exp = ((mean_Cfol_Croot_ratio_mid-DATAin%otherpriors(9))/DATAin%otherpriorunc(9))**2
+       log_scale_likelihood = log_scale_likelihood-tot_exp
+	end if 
+	
+!	if (allocated(lai_jan)) deallocate(lai_jan)
+!	   allocate(lai_jan(DATAin%nos_years-1))
+!	   sum_lai_jan = 0d0 
+!	   do y = 2, DATAin%nos_years
+!         n = 1 + (DATAin%steps_per_year * (y - 1)) 
+!         sum_lai_jan = DATAin%M_LAI(n) + sum_lai_jan
+!		 lai_jan(y-1) = DATAin%M_LAI(n)
+!	   end do
+	   
+!	   mean_lai_jan = sum_lai_jan / dble((DATAin%nos_years - 1d0))
+!	   sd_lai_jan = sqrt( (sum(( lai_jan - mean_lai_jan )**2) / dble(DATAin%nos_years-2d0)))
+	   
+!	   tot_exp = 0d0
+!	   tot_exp = ((DATAin%M_LAI(1) - mean_lai_jan) / sd_lai_jan)**2
+	   
+!	   log_scale_likelihood = log_scale_likelihood-tot_exp
+	
+	
+	 ! the likelihood scores for each observation are subject to multiplication
+    ! by 0.5 in the algebraic formulation. To avoid repeated calculation across
+    ! multiple datastreams we apply this multiplication to the bulk likelihood
+    ! hear
+    log_scale_likelihood = log_scale_likelihood * 0.5d0
+
+    ! check that log-likelihood is an actual number
+    if (log_scale_likelihood /= log_scale_likelihood) then
+       log_scale_likelihood = log(infini)
+    end if
 
 !    ! Debugging print statement
 !    print*,"log_scale_likelihood: done"

@@ -12,9 +12,10 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
    if (use_parallel == FALSE) {print(paste("LAI data extracted for current location ",Sys.time(),sep=""))}
 
    # Extract current location to local variable
+   
    lai = lai_all$lai_all[i1,j1,]
    lai_unc = lai_all$lai_unc_all[i1,j1,]
-
+   
    # Just incase there is no missing data we best make sure there is a value which can be assessed
    if (length(lai_all$missing_years) == 0) { lai_all$missing_years=1066 }
 
@@ -44,7 +45,7 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
       } # end if doy_obs[i] == 1
 
    } # end while condition
-
+	
    if (length(timestep_days) == 1 & timestep_days[1] == 1) {
 
        # well actually we do nothing
@@ -73,7 +74,7 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
        # clean up
        rm(lai_agg,lai_unc_agg,y) ; gc()
 
-   } # monthly aggregation etc
+   } # monthly aggregation etc 
 
    # convert missing data to -9999
    lai_out[which(is.na(lai_out))] = -9999 ; lai_unc_out[which(is.na(lai_unc_out))] = -9999
@@ -82,15 +83,15 @@ extract_lai_timeseries<- function(i1,j1,timestep_days,spatial_type,resolution,
    rm(i1,j1,lai,i,a) ; gc(reset=TRUE,verbose=FALSE)
 
    # HACK: to remove winter time LAI estimates - assumes NH location and monthly time step (1 = January below)
-   #lai_out[seq(1,length(lai_out),12)] = -9999 ;lai_unc_out[seq(1,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(2,length(lai_out),12)] = -9999 ;lai_unc_out[seq(2,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(3,length(lai_out),12)] = -9999 ;lai_unc_out[seq(3,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(4,length(lai_out),12)] = -9999 ;lai_unc_out[seq(4,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(5,length(lai_out),12)] = -9999 ;lai_unc_out[seq(5,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(9,length(lai_out),12)] = -9999 ;lai_unc_out[seq(9,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(10,length(lai_out),12)] = -9999 ;lai_unc_out[seq(10,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(11,length(lai_out),12)] = -9999 ;lai_unc_out[seq(11,length(lai_unc_out),12)] = -9999
-   #lai_out[seq(12,length(lai_out),12)] = -9999 ;lai_unc_out[seq(12,length(lai_unc_out),12)] = -9999
+   lai_out[seq(1,length(lai_out),12)] = -9999 ;lai_unc_out[seq(1,length(lai_unc_out),12)] = -9999
+   lai_out[seq(2,length(lai_out),12)] = -9999 ;lai_unc_out[seq(2,length(lai_unc_out),12)] = -9999
+   lai_out[seq(3,length(lai_out),12)] = -9999 ;lai_unc_out[seq(3,length(lai_unc_out),12)] = -9999
+   lai_out[seq(4,length(lai_out),12)] = -9999 ;lai_unc_out[seq(4,length(lai_unc_out),12)] = -9999
+   lai_out[seq(5,length(lai_out),12)] = -9999 ;lai_unc_out[seq(5,length(lai_unc_out),12)] = -9999
+   lai_out[seq(9,length(lai_out),12)] = -9999 ;lai_unc_out[seq(9,length(lai_unc_out),12)] = -9999
+   lai_out[seq(10,length(lai_out),12)] = -9999 ;lai_unc_out[seq(10,length(lai_unc_out),12)] = -9999
+   lai_out[seq(11,length(lai_out),12)] = -9999 ;lai_unc_out[seq(11,length(lai_unc_out),12)] = -9999
+   lai_out[seq(12,length(lai_out),12)] = -9999 ;lai_unc_out[seq(12,length(lai_unc_out),12)] = -9999
 
 
 

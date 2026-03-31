@@ -8,36 +8,36 @@
 load_lifespan_maps_for_extraction<-function(latlon_in,lifespan_source,cardamom_ext,spatial_type) {
 
     ###
-    ## Select the correct LCA source for specific time points
+    ## Select the correct LL source for specific time points
 
     if (lifespan_source == "Tupek") {
 	
 		# let the user know this might take some time
-        print("Loading Tupek lifespan map...")
+        #print("Loading Tupek lifespan map...")
 
         # Create the full file paths estimates and their uncertainty (gC/m2)
-        input_file = list.files(path_to_lifespan)
+        #input_file = list.files(path_to_lifespan)
         # extract only .tif files, $ symbol asks for strings that end in the given pattern
         # The \\ also specifies that the . is not to be considered a wildcard
-        input_file = input_file[grepl("\\.tif$",input_file) == TRUE]
+        #input_file = input_file[grepl("\\.tif$",input_file) == TRUE]
         # Extract the uncertainty files from the original list
         #unc_input_file = input_file[grepl("lifespan_SD",input_file) == TRUE]
-        input_file = input_file[grepl("lifespan_SD",input_file) == FALSE]
+        #input_file = input_file[grepl("lifespan_SD",input_file) == FALSE]
         # Check that we have the same number of files for both lifespan and uncertainty
         #if (length(input_file) != length(unc_input_file)) {stop("Different number of observation and uncertainty files found...")}
         #if (length(input_file) > 1 | length(unc_input_file) > 1) {stop("More than one file has been found for the estimate and its uncertainty, there should only be one")}
 		
 		 # Read in the estimate and uncertainty rasters
-        lifespan = raster(paste(path_to_lifespan,input_file,sep=""))
-        #lifespan_uncertainty = raster(paste(path_to_lifespan,unc_input_file,sep=""))
+        lifespan = rast(paste(path_to_lifespan,"leaf_lifespan.tif",sep=""))
+        #lifespan_uncertainty = rast(paste(path_to_lifespan,unc_input_file,sep=""))
 
         # Create raster with the target crs
-        target = raster(crs = ("+init=epsg:4326"), ext = extent(lifespan), resolution = res(lifespan))
+        target = rast(crs = ("+init=epsg:4326"), extent = ext(lifespan), resolution = res(lifespan))
         # Check whether the target and actual analyses have the same CRS
-        if (compareCRS(lifespan,target) == FALSE) {
+        if (compareGeom(lifespan,target) == FALSE) {
             # Resample to correct grid
-            lifespan = resample(lifespan, target, method="ngb") ; gc() ; removeTmpFiles()
-            #lifespan_uncertainty_yrs = resample(lifespan_uncertainty_yrs, target, method="ngb") ; gc() ; removeTmpFiles()
+            lifespan = resample(lifespan, target, method="bilinear") ; gc() 
+            #lifespan_uncertainty_yrs = resample(lifespan_uncertainty_yrs, target, method="near") ; gc() 
         }
 		# Extend the extent of the overall grid to the analysis domain
         lifespan = extend(lifespan,cardamom_ext) #; lifespan_uncertainty_yrs = extend(lifespan_uncertainty_yrs,cardamom_ext)
@@ -52,11 +52,11 @@ load_lifespan_maps_for_extraction<-function(latlon_in,lifespan_source,cardamom_e
             if (res(lifespan)[1] < res(cardamom_ext)[1] | res(lifespan)[2] < res(cardamom_ext)[2]) {
 
                 # Create raster with the target resolution
-                target = raster(crs = crs(cardamom_ext), ext = extent(cardamom_ext), resolution = res(cardamom_ext))
+                target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
                 # Resample to correct grid
-                lifespan = resample(lifespan, target, method="bilinear") ; gc() ; removeTmpFiles()
-                #lifespan_uncertainty_yrs = resample(lifespan_uncertainty_yrs, target, method="bilinear") ; gc() ; removeTmpFiles()
+                lifespan = resample(lifespan, target, method="bilinear") ; gc() 
+                #lifespan_uncertainty_yrs = resample(lifespan_uncertainty_yrs, target, method="bilinear") ; gc() 
 
             } # Aggrgeate to resolution
         } # spatial_type == "grid"
@@ -64,7 +64,8 @@ load_lifespan_maps_for_extraction<-function(latlon_in,lifespan_source,cardamom_e
 		# extract dimension information for the grid, note the axis switching between raster and actual array
         xdim = dim(lifespan)[2] ; ydim = dim(lifespan)[1]
         # extract the lat / long information needed
-        long = coordinates(lifespan)[,1] ; lat = coordinates(lifespan)[,2]
+        long = crds(lifespan,df=T,na.rm=F) 
+		lat = long$y ; long = long$x
         # restructure into correct orientation
         long = array(long, dim=c(xdim,ydim))
         lat = array(lat, dim=c(xdim,ydim))

@@ -8,7 +8,7 @@
 extract_lifespan_prior<- function(i1,j1,spatial_type,resolution,grid_type,latlon_in,lifespan_all) {
 
    # Update the user
-   print(paste("Lifespan prior extracted for current location ",Sys.time(),sep=""))
+   #print(paste("Lifespan prior extracted for current location ",Sys.time(),sep=""))
 
 #   # find the nearest location
 #   output = closest2d_2(1,lifespan_all$lat,lifespan_all$long,latlon_in[1],latlon_in[2])

@@ -123,7 +123,7 @@ load_met_fields_for_extraction<-function(latlon_in,met_source,modelname,startyea
         # Match resolutions
         if (res(tmp1)[1] != res(cardamom_ext)[1] | res(tmp1)[2] != res(cardamom_ext)[2]) {
             # Create raster with the target resolution
-            target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+            target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
             # Resample to correct grid
             tmp1 = resample(tmp1, target, method="bilinear") ; gc() 
         } # Aggrgeate to resolution

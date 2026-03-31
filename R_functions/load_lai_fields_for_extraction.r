@@ -18,7 +18,7 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
       #prefix = "MCD15A2H_LAI_(.)*" # (.)* wildcard characters for unix standard MCD15A2H_LAI_*
       #sd_prefix = "MCD15A2H_LAI_SD_(.)*" # (.)* wildcard characters for unix standard MCD15A2H_LAI_SD_*
       prefix = "MCD15A2H_LAI_"
-      sd_prefix = "MCD15A2H_LAI_SD_"
+      sd_prefix = "MCD15A2H_LAI_"  # TG default = MCD15A2H_LAI_SD_" - removing SD because SD is already in LAI netcdf from David#s stratification
 
       # timing information on the number of day in a month
       month_days = rep(31,length.out=12)
@@ -65,7 +65,7 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
 
            # Then check whether this pattern is found in the available files
            this_year = avail_files[grepl(input_file_1, avail_files)]
-           this_year_sd = avail_files[grepl(input_file_2, avail_files)]
+           this_year_sd = avail_files[grepl(input_file_1, avail_files)]
            if (length(this_year) > 0) {
 
                # The files should be in order due to the YYYYDOY format used
@@ -81,7 +81,7 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                     # Inform user
                     #print(paste("...reading the following uncertainty file = ",this_year_sd[t],sep=""))
                     # open the file
-                    data2 = nc_open(this_year_sd[t])
+                    ## data2 = nc_open(this_year_sd[t])
 
                     # Get timing variable
                     doy_in = ncvar_get(data1, "doy")
@@ -90,15 +90,18 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                     # read the LAI observations
                     var1 = ncvar_get(data1, "LAI") # leaf area index (m2/m2)
                     # read error variable
-                    var2 = ncvar_get(data2, "LAI_SD") # standard deviation (m2/m2)
+                    var2 = ncvar_get(data1, "LAI_SD") # standard deviation (m2/m2)
 ### Hack            # Extract spatial information
-                    lat_in_sd = ncvar_get(data2, "lat") ; long_in_sd = ncvar_get(data2, "lon")
+                    lat_in_sd = ncvar_get(data1, "lat") ; long_in_sd = ncvar_get(data1, "lon") # TG changin all sd vars to data1 bc all in same netcdf (David's stratific)
 ###
                     # Close the current file
-                    nc_close(data1) ; nc_close(data2)
+                    nc_close(data1) #; nc_close(data2)
+					
+					long_temp <- rep(long_in,length(lat_in))  #TG
+					lat_temp <- rep(lat_in,each=length(long_in))  #TG
 
                     # Convert to a raster, assuming standad WGS84 grid
-                    var1 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var1))
+                    var1 = data.frame(x = as.vector(long_temp), y = as.vector(lat_temp), z = as.vector(var1))
                     var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
 ### Original
 #                    var2 = data.frame(x = as.vector(long_in), y = as.vector(lat_in), z = as.vector(var2))
@@ -106,10 +109,11 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
 #                    # Remove the input lat / long information
 #                    rm(lat_in,long_in)
 ### Hack
-                    var2 = data.frame(x = as.vector(long_in_sd), y = as.vector(lat_in_sd), z = as.vector(var2))
+					
+					var2 = data.frame(x = as.vector(long_temp), y = as.vector(lat_temp), z = as.vector(var2)) #TG
                     var2 = rast(var2, crs = ("+init=epsg:4326"), type="xyz")
                     # Remove the input lat / long information
-                    rm(lat_in,long_in,lat_in_sd,long_in_sd)
+                    rm(lat_in,long_in,lat_in_sd,long_in_sd, lat_temp, long_temp) #TG
 ###
                     # Extend the extent of the overall grid to the analysis domain
                     var1 = extend(var1,cardamom_ext) ; var2 = extend(var2,cardamom_ext)
@@ -119,7 +123,7 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                     # Adjust spatial resolution of the datasets, this occurs in all cases
                     if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                         # Create raster with the target resolution
-                        target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                        target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                         # Resample to correct grid.
                         # Probably should be done via aggregate function to allow for correct error propogation
                         var1 = resample(var1, target, method="bilinear") ; gc() 
@@ -274,6 +278,8 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                         var2 = ncvar_get(data1, "LAI_ERR") # standard error (m2/m2)
                     } else if (length(which(grepl("RMSE",names(data1$var)) == TRUE)) > 0) {
                         var2 = ncvar_get(data1, "RMSE") # standard error (m2/m2)
+						
+						
                     } else {
                         stop("LAI error variable cannot be found for copernicus...")
                     }
@@ -302,7 +308,7 @@ load_lai_fields_for_extraction<-function(latlon_in,lai_source,years_to_load,card
                     # Despite creation of a cardamom_ext for a site run do not allow aggragation here as tis will damage the fine resolution datasets
                     if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                         # Create raster with the target resolution
-                        target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                        target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                         # Resample to correct grid.
                         # Probably should be done via aggregate function to allow for correct error propogation
                         var1 = resample(var1, target, method="bilinear") ; gc()

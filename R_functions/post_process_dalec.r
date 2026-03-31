@@ -35,8 +35,13 @@ post_process_dalec<-function(states_all,parameters,drivers,PROJECT,n) {
           }
       } # does rhet_dom_gCm2day exist?
   } # does rhet_gCm2day exist?
+  
   # Combine autotrophic and heterotrophic respiration into ecosystem respiration
   states_all$reco_gCm2day = states_all$rauto_gCm2day + states_all$rhet_gCm2day
+  
+  #calculate frac of Reco that is Rhet
+  #states_all$rhet_frac = states_all$rhet_gCm2day / (states_all$rhet_gCm2day + states_all$rauto_gCm2day)
+  
   # Calculate the net ecosystem exchange of CO2
   states_all$nee_gCm2day = states_all$reco_gCm2day - states_all$gpp_gCm2day
   # Calculate net primary productivity
@@ -54,6 +59,7 @@ post_process_dalec<-function(states_all,parameters,drivers,PROJECT,n) {
   # but remains in system as residues.
   if (any(check_list == "harvest_gCm2day")) {
       states_all$nbp_gCm2day = states_all$nbp_gCm2day - states_all$harvest_gCm2day
+	  #states_all$nbe_gCm2day = states_all$nbe_gCm2day + states_all$harvest_gCm2day
   }
   # Now calculate the mean annual carbon use efficiency (NPP:GPP) as some models do now have a parameter for this
   # NOTE: rollapply inverts the dimensions from that wanted, hence t()
@@ -67,6 +73,9 @@ post_process_dalec<-function(states_all,parameters,drivers,PROJECT,n) {
   tmp = t(array(as.vector(parameters[1:PROJECT$model$nopars[n],,]),dim=c(PROJECT$model$nopars[n],prod(dim(parameters)[2:3]))))
   # Determine the correlation matrix between all parameters
   states_all$absolute_mean_parameter_correlation = cor(tmp)
+  #states_all$parameter_correlation_across = cor(tmp)
+  #print(paste0("parameter correlation across str: ",str(states_all$parameter_correlation_across)))
+  #stop()
   # Determine the mean of the absolute correlations from the matrix
   states_all$absolute_mean_parameter_correlation = mean(abs(states_all$absolute_mean_parameter_correlation[lower.tri(states_all$absolute_mean_parameter_correlation,diag=FALSE)]))
 
@@ -101,8 +110,161 @@ post_process_dalec<-function(states_all,parameters,drivers,PROJECT,n) {
       if (any(check_list == "alloc_wood_gCm2day")) {
           states_all$NPP_wood_gCm2day_parameter_correlation = cor(tmp,rowMeans(states_all$alloc_wood_gCm2day))
           }
-  } # Both MTT wood and alloc_wood present?
+  }  # Both MTT wood and alloc_wood present?
 
+# if(Cfol_Croot_ratio_source=="Helmisaari" & steps_per_year == 12){
+	# Cfol_Croot_ratio <- array(NA,dim=c(300,nos_years))
+	# july_idx <- seq(from=7,by=12,length.out=nos_years)
+	
+	# for(i in 1:nos_years){
+		# Cfol_Croot_ratio[,i] <- states_all$foliage_gCm2[,july_idx[i]] / states_all$roots_gCm2[,july_idx[i]]
+	# }
+	# mean_Cfol_Croot_ratio <- rowMeans(Cfol_Croot_ratio)
+	# states_all$mean_Cfol_Croot_ratio = mean_Cfol_Croot_ratio
+	
+# }
+
+if (Cfol_Croot_ratio_source == "Helmisaari" & steps_per_year == 12) {
+
+  months_per_year_idx_helper <- 12
+  years_idx_helper_early <- c(81:91)
+  jja_indices_early <- sort(c(
+  years_idx_helper_early * months_per_year_idx_helper + 6,
+  years_idx_helper_early * months_per_year_idx_helper + 7,
+  years_idx_helper_early * months_per_year_idx_helper + 8
+))
+  
+  # get july idx
+  july_idx <- seq(from = 7, by = 12, length.out = 92) # TG change back to nos_years
+  
+  # Extract July foliage and root values
+  foliage_july <- states_all$foliage_gCm2[, july_idx, drop = FALSE]
+  roots_july   <- states_all$roots_gCm2[, july_idx, drop = FALSE]
+  
+  # (300 x nos_years)
+  Cfol_Croot_ratio <- foliage_july / roots_july
+
+  # Compute row means (mean ratio per pixel)
+  states_all$mean_Cfol_Croot_ratio <- rowMeans(Cfol_Croot_ratio, na.rm = TRUE)
+  states_all$mean_Cfol_Croot_ratio_parameter_correlation = cor(tmp,states_all$mean_Cfol_Croot_ratio)
+  states_all$mean_GS_rooting_depth_parameter_correlation = cor(tmp,apply(states_all$RootDepth_m[,jja_indices_early],1,mean))
+}
+
+check_list = names(states_all) # update names list 
+
+  if(late_GS_correlation == "y"){
+# TG - only use for future climate runs!!!
+# get growing season indices for 2090-2100
+months_per_year_idx_helper <- 12
+years_idx_helper <- 81:91 
+
+jja_indices <- sort(c(
+  years_idx_helper * months_per_year_idx_helper + 6,
+  years_idx_helper * months_per_year_idx_helper + 7,
+  years_idx_helper * months_per_year_idx_helper + 8
+))
+
+years_idx_helper_early <- 1:11 # changing to mid to late % change because before it was just showing where it was advantageous for the whole century....
+jja_indices_early <- sort(c(
+  years_idx_helper_early * months_per_year_idx_helper + 6,
+  years_idx_helper_early * months_per_year_idx_helper + 7,
+  years_idx_helper_early * months_per_year_idx_helper + 8
+))
+
+years_idx_helper_mid <- 41:51 # changing to mid to late % change because before it was just showing where it was advantageous for the whole century....
+jja_indices_mid <- sort(c(
+  years_idx_helper_mid * months_per_year_idx_helper + 6,
+  years_idx_helper_mid * months_per_year_idx_helper + 7,
+  years_idx_helper_mid * months_per_year_idx_helper + 8
+))
+
+gpp_perc_change = (apply(states_all$gpp_gCm2day[,jja_indices],1,mean) - apply(states_all$gpp_gCm2day[,jja_indices_mid],1,mean)) / apply(states_all$gpp_gCm2day[,jja_indices_mid],1,mean)
+gpp_early <- apply(states_all$gpp_gCm2day[,jja_indices_early],1,mean)
+gpp_mid <- apply(states_all$gpp_gCm2day[,jja_indices_mid],1,mean)
+gpp_late <- apply(states_all$gpp_gCm2day[,jja_indices],1,mean)
+
+  
+lai_root_ratio_all = states_all$lai_m2m2 / states_all$roots_gCm2
+lai_root_ratio_lateGS = apply(lai_root_ratio_all[,jja_indices],1,mean)
+  
+  if (any(check_list == "wSWP_MPa") & any(check_list == "RootDepth_m") & any(check_list == "NPP_roots_fraction") &
+	  any(check_list == "gs_demand_supply_ratio") & any(check_list == "roots_gCm2") ) { 
+
+	  # states_all$wSWP_parameter_correlation_lateGS = cor(tmp,apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gs_demand_supply_ratio_parameter_correlation_lateGS = cor(tmp,apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gpp_perc_change_parameter_correlation = cor(tmp,gpp_perc_change, method = "spearman")
+	  
+	  # states_all$wSWP_root_depth_correlation_lateGS = cor(apply(states_all$RootDepth_m[,jja_indices],1,mean),apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  # states_all$wSWP_npp_frac_roots_correlation_lateGS = cor(states_all$NPP_roots_fraction,apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  # states_all$wSWP_roots_correlation_lateGS = cor(apply(states_all$roots_gCm2[,jja_indices],1,mean),apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  # states_all$wSWP_lai_correlation_lateGS = cor(apply(states_all$lai_m2m2[,jja_indices],1,mean),apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  # states_all$wSWP_lai_root_ratio_lateGS = cor(lai_root_ratio_lateGS,apply(states_all$wSWP_MPa[,jja_indices],1,mean), method = "spearman")
+	  
+	  # states_all$gs_DS_ratio_root_depth_correlation_lateGS = cor(apply(states_all$RootDepth_m[,jja_indices],1,mean),apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gs_DS_ratio_npp_frac_roots_correlation_lateGS = cor(states_all$NPP_roots_fraction,apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gs_DS_ratio_roots_correlation_lateGS = cor(apply(states_all$roots_gCm2[,jja_indices],1,mean),apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gs_DS_ratio_lai_correlation_lateGS = cor(apply(states_all$lai_m2m2[,jja_indices],1,mean),apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  # states_all$gs_DS_ratio_lai_root_ratio_lateGS = cor(lai_root_ratio_lateGS,apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean), method = "spearman")
+	  
+	  
+	  # states_all$gpp_perc_change_root_depth_correlation = cor(apply(states_all$RootDepth_m[,jja_indices],1,mean),gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_npp_frac_roots_correlation = cor(states_all$NPP_roots_fraction,gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_roots_correlation = cor(apply(states_all$roots_gCm2[,jja_indices],1,mean),gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_wSWP_late_correlation = cor(apply(states_all$wSWP_MPa[,jja_indices],1,mean),gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_gs_DS_ratio_late_correlation = cor(apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean),gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_lai_correlation = cor(apply(states_all$lai_m2m2[,jja_indices],1,mean),gpp_perc_change, method = "spearman")
+	  # states_all$gpp_perc_change_lai_root_ratio_correlation = cor(lai_root_ratio_lateGS,gpp_perc_change, method = "spearman")
+	  
+	  # states_all$gpp_perc_change = gpp_perc_change
+	  
+	  # states_all$gpp_early_wSWP_early_correlation = cor(apply(states_all$wSWP_MPa[,jja_indices_early],1,mean),gpp_early, method = "spearman")
+	  # states_all$gpp_mid_wSWP_mid_correlation = cor(apply(states_all$wSWP_MPa[,jja_indices_mid],1,mean),gpp_mid, method = "spearman")
+	  # states_all$gpp_late_wSWP_late_correlation = cor(apply(states_all$wSWP_MPa[,jja_indices],1,mean),gpp_late, method = "spearman")
+	  
+	  # states_all$gpp_early_gs_DS_early_correlation = cor(apply(states_all$gs_demand_supply_ratio[,jja_indices_early],1,mean),gpp_early, method = "spearman")
+	  # states_all$gpp_mid_gs_DS_mid_correlation = cor(apply(states_all$gs_demand_supply_ratio[,jja_indices_mid],1,mean),gpp_mid, method = "spearman")
+	  # states_all$gpp_late_gs_DS_late_correlation = cor(apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean),gpp_late, method = "spearman")
+	  
+	  # states_all$gpp_root_depth_correlation_lateGS = cor(apply(states_all$RootDepth_m[,jja_indices],1,mean),gpp_late, method = "spearman")
+	  # states_all$gpp_npp_frac_roots_correlation_lateGS = cor(states_all$NPP_roots_fraction,gpp_late, method = "spearman")
+	  # states_all$gpp_roots_correlation_lateGS = cor(apply(states_all$roots_gCm2[,jja_indices],1,mean),gpp_late, method = "spearman")
+	  # states_all$gpp_lai_correlation_lateGS = cor(apply(states_all$lai_m2m2[,jja_indices],1,mean),gpp_late, method = "spearman")
+	  # states_all$gpp_lai_root_ratio_lateGS = cor(lai_root_ratio_lateGS,gpp_late, method = "spearman")
+	  # states_all$gpp_fol_root_ratio_lateGS = cor(apply(Cfol_Croot_ratio[,82:92],1,mean),gpp_late, method = "spearman")
+	  
+	  # states_all$gpp_lai_correlation_earlyGS = cor(apply(states_all$lai_m2m2[,jja_indices_early],1,mean),gpp_early, method = "spearman")
+	  # states_all$gpp_lai_correlation_midGS = cor(apply(states_all$lai_m2m2[,jja_indices_mid],1,mean),gpp_mid, method = "spearman")
+
+	  states_all$gs_rooting_depth_correlation_earlyGS <- cor(apply(states_all$RootDepth_m[,jja_indices_early],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices_early],1,mean))
+	  states_all$gs_rooting_depth_correlation_midGS <- cor(apply(states_all$RootDepth_m[,jja_indices_mid],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices_mid],1,mean))
+	  states_all$gs_rooting_depth_correlation_lateGS <- cor(apply(states_all$RootDepth_m[,jja_indices],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices],1,mean))
+	  
+	  states_all$gs_fol_root_ratio_correlation_earlyGS <- cor(apply(Cfol_Croot_ratio[,2:12],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices_early],1,mean))
+	  states_all$gs_fol_root_ratio_correlation_midGS <- cor(apply(Cfol_Croot_ratio[,42:52],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices_mid],1,mean))
+	  states_all$gs_fol_root_ratio_correlation_lateGS <- cor(apply(Cfol_Croot_ratio[,82:92],1,mean),apply(states_all$gs_mmolH2Om2s[,jja_indices],1,mean))
+
+      states_all$gs_npp_frac_roots_correlation_earlyGS <- cor(states_all$NPP_roots_fraction,apply(states_all$gs_mmolH2Om2s[,jja_indices_early],1,mean))
+	  states_all$gs_npp_frac_roots_correlation_midGS <- cor(states_all$NPP_roots_fraction,apply(states_all$gs_mmolH2Om2s[,jja_indices_mid],1,mean))
+	  states_all$gs_npp_frac_roots_correlation_lateGS <- cor(states_all$NPP_roots_fraction,apply(states_all$gs_mmolH2Om2s[,jja_indices],1,mean))
+
+	  states_all$fol_root_ratio_rooting_depth_correlation_earlyGS <- cor(apply(Cfol_Croot_ratio[,2:12],1,mean),apply(states_all$RootDepth_m[,jja_indices_early],1,mean))
+	  states_all$fol_root_ratio_rooting_depth_correlation_midGS <- cor(apply(Cfol_Croot_ratio[,42:52],1,mean),apply(states_all$RootDepth_m[,jja_indices_mid],1,mean))
+	  states_all$fol_root_ratio_rooting_depth_correlation_lateGS <- cor(apply(Cfol_Croot_ratio[,82:92],1,mean),apply(states_all$RootDepth_m[,jja_indices],1,mean))
+	  
+	  states_all$gs_parameter_correlation_lateGS <- cor(tmp,apply(states_all$gs_mmolH2Om2s[,jja_indices],1,mean))
+      states_all$gs_parameter_correlation_earlyGS <- cor(tmp,apply(states_all$gs_mmolH2Om2s[,jja_indices_early],1,mean))
+	  
+
+	  #states_all$gpp_perc_change_wSWP_correlation = cor(gpp_perc_change,
+ }
+ 
+ if (any(check_list == "mean_Cfol_Croot_ratio")) {
+	  states_all$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS = cor(apply(states_all$gs_demand_supply_ratio[,jja_indices],1,mean),apply(Cfol_Croot_ratio[,82:92],1,mean))
+	  states_all$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS = cor(apply(states_all$wSWP_MPa[,jja_indices],1,mean),apply(Cfol_Croot_ratio[,82:92],1,mean))
+	  states_all$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS = cor(gpp_perc_change,apply(Cfol_Croot_ratio[,82:92],1,mean))
+ }
+ 
+}
   # Return back to user
   return(states_all)
           

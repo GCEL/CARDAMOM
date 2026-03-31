@@ -22,13 +22,13 @@ extract_forestry_information<-function(i1,j1,timestep_days,spatial_type,resoluti
    # declare output variable
    deforestation = rep(0, times=length(doy_obs))
    ## normal assumption
-   start_of_years = which(doy_obs == 1)
+   start_of_years = which(doy_obs == 340)
    # which year is the one in which deforestation occurs?
    # then find the appropriate beginning of a year and make deforestation
    for (aa in seq(1,length(forest_all$year_of_loss))) {
-        start_point = start_of_years[which(as.numeric(years_to_load) == forest_all$year_of_loss[aa])]
-        end_point = start_point + 364
-        deforestation[start_point:end_point] = (forest_all$loss_fraction[i1,j1,aa]) / 365
+        start_point = start_of_years[which(as.numeric(years_to_load) == forest_all$year_of_loss[aa])]  
+       # end_point = start_point 
+        deforestation[start_point] = (forest_all$loss_fraction[i1,j1,aa])  
    }
 
    # generally this now deals with time steps which are not daily.

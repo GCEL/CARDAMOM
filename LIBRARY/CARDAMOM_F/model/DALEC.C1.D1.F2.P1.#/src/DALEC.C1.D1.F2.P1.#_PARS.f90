@@ -57,15 +57,15 @@ module MODEL_PARAMETERS
     ! Leaf Lifespan (yr)
     ! Wright et al. 2004
     PI%parmin(5) = 1.001d0
-    PI%parmax(5) = 6d0 !8d0
+    PI%parmax(5) = 13d0 !8d0
 
     ! TOR wood* - 1% loss per year value
     PI%parmin(6) = 0.000009d0 ! 304  years
     PI%parmax(6) = 0.001d0    ! 2.74 years
 
-    ! TOR roots
-    PI%parmin(7) = 0.001368925d0 ! 2    years
-    PI%parmax(7) = 0.02d0        ! 0.13 years
+   ! TOR roots
+    PI%parmin(7) = 0.00089181d0             !0.002191781   =1.25 years   |   0.001368925d0  = 2    years  | 0.0006844627d0 = 4 years |  0.00130374  =2.1 years #Solly and Yuan papers | 0.00089181 = 3.07 years # Hansson 2013
+    PI%parmax(7) = 0.02d0             !0.003652968   =0.75 years   |   0.02d0        = 0.13 years    |                         |  0.00391122  =0.7 years # Solly, 2018 & Yuan, 2010
 
     ! Turnover of litter (fraction; temperature adjusted)
     PI%parmin(8) = 0.0001141d0 ! 24   years at 0oC
@@ -105,7 +105,7 @@ module MODEL_PARAMETERS
 
     ! Leaf fall period
     PI%parmin(16) = 20d0
-    PI%parmax(16) = 150d0
+    PI%parmax(16) = 150d0 !spruce sheds needles uniformally across year
 
     ! LMA (gC.m-2)
     ! Kattge et al. 2011

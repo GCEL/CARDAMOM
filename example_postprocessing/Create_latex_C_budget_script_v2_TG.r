@@ -17,7 +17,7 @@
 ## Prepare the work space
 
 # Set working directory
-setwd("~/RDM/CARDAMOM/")
+#setwd("~/RDM/CARDAMOM/")
 
 # Load R libraries
 
@@ -25,14 +25,15 @@ setwd("~/RDM/CARDAMOM/")
 #source("./R_functions/load_all_cardamom_functions.r")
 
 # Define the output file name for the created script
-outfilename = "./example_postprocessing/latex_C_budget_TGtest.tex"
+outfilename = "~/RDM/projects/fennoscandia_site_runs/c_budget_tex/boreal.tex"
 
 ###
 ## Load files from which C-budget is extracted, prepare C-budget values
 
 # Load information file
 #load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC_CDEA_ACM2_BUCKET_MHMCMC/Forests2020_Mexico_Kiuic_chronosequence/infofile.RData")
-load("/infofile.RData")
+#load("~/RDM/CARD_output/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/FI-Hyy_15_19_wkly_TaGPPV4_NEERecoFLUX_THIN_clumpEGN_MRTfolFIX_SOCsite_TOroot_folLITpasiUNCdef_rootSUMM/infofile.RData")
+
 
 
 # If this is a site analysis 
@@ -44,11 +45,11 @@ site_nos = 1
 
 # The caption must be written in correct latex syntex
 # NOTE: if the latex language requires use of "\" ensure it is a "\\".
-figure_caption = "Insert caption"
+figure_caption = "FI-Hyy, S-EO" #Numbers show median estimate of fluxes (alongside arrows) and of stocks (in boxes). Units are gC m$^{-2}$ for stocks and gC m$^{-2}$ y$^{-1}$ for fluxes. 95\\% confidence intervals are shown in a fractional form with 2.5 and 97.5 percentiles as numerator and denominator. Black fluxes are biogenic, including net primary production ($NPP$), mortality ($Mort$), autotrophic respiration ($Ra$) and heterotrophic respiration ($Rh$). $NEE = Ra + Rh - GPP$. $NBE = NEE + E_{total}$."
 # The label will be used for referencing the figure in the latex document
-figure_label = "SIFig:global_budget"
+figure_label = ". "
 # Desired precision, i.e. decimal places
-dp = 1
+dp = 0
 
 if (PROJECT$spatial_type == "grid") {
     # A gridded analysis
@@ -153,7 +154,7 @@ if (PROJECT$spatial_type == "grid") {
     nee_gCm2yr = format(round(quantile(apply((states_all$rhet_litter_gCm2day+states_all$rhet_som_gCm2day+states_all$rauto_gCm2day)[,s:f]-states_all$gpp_gCm2day[,s:f],1,mean), prob=quantiles_wanted) * 365.25, digits = dp), nsmall = dp)
     # STOCKS
     labile_gCm2 = format(round(quantile(apply(states_all$labile_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
-    foliage_gCm2 = format(round(quantile(apply(states_all$labile_gCm2[,s:f] + states_all$foliage_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
+    foliage_gCm2 = format(round(quantile(apply(states_all$foliage_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
     roots_gCm2 = format(round(quantile(apply(states_all$roots_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
     wood_gCm2 = format(round(quantile(apply(states_all$wood_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
     litter_gCm2 = format(round(quantile(apply(states_all$litter_gCm2[,s:f],1,mean), prob=quantiles_wanted), digits = dp), nsmall = dp)
@@ -287,20 +288,20 @@ write(    c("         \\put(13.1,2.45){$C_{wood}$}"), file = outfilename, ncolum
 write(paste("         \\put(13.10,1.85){\\small ",wood_gCm2[2],"}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(13.20,1.25){\\scriptsize $\\frac{",wood_gCm2[1],"}{",wood_gCm2[3],"}$} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c(" "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         % litter/mortality, natural and fire driven (red)"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         % litter/mortality, natural and fire driven (red)"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Labile - fire only, labile to foliage carried out above in allocation"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(15.7,7.2){\\small $Mort_{lab}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.0,6.4){\\color{red}{\\small ",FIRElitter_labile_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.95,6.45){\\color{red}{\\scriptsize $\\frac{",FIRElitter_labile_gCm2yr[1],"}{",FIRElitter_labile_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(15.7,7.2){\\small $Mort_{lab}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.0,6.4){\\color{red}{\\small ",FIRElitter_labile_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.95,6.45){\\color{red}{\\scriptsize $\\frac{",FIRElitter_labile_gCm2yr[1],"}{",FIRElitter_labile_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Assign arrow to Clitter"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(15.25,7.0){\\line(1,0){4.45}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(19.70,7.0){\\vector(1,-1){0.6}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(15.25,7.0){\\line(1,0){4.45}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(19.70,7.0){\\vector(1,-1){0.6}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Foliage"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(15.7,9.95){\\small $Mort_{fol}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(15.65,9.15){\\small ",foliage_to_litter_gCm2yr[2],"}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(16.85,9.20){\\scriptsize $\\frac{",foliage_to_litter_gCm2yr[1],"}{",foliage_to_litter_gCm2yr[3],"}$} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.0,9.15){\\color{red}{\\small ",FIRElitter_foliage_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.95,9.20){\\color{red}{\\scriptsize $\\frac{",FIRElitter_foliage_gCm2yr[1],"}{",FIRElitter_foliage_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.0,9.15){\\color{red}{\\small ",FIRElitter_foliage_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.95,9.20){\\color{red}{\\scriptsize $\\frac{",FIRElitter_foliage_gCm2yr[1],"}{",FIRElitter_foliage_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Assign arrow to Clitter"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(15.25,9.75){\\line(1,0){4.45}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(19.70,9.75){\\vector(1,-2){1.25}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
@@ -308,8 +309,8 @@ write(    c("         % Fine root"), file = outfilename, ncolumns = nos_cols, se
 write(    c("         \\put(15.7,4.65){\\small $Mort_{root}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(15.65,3.9){\\small ",roots_to_litter_gCm2yr[2],"}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(16.85,3.95){\\scriptsize $\\frac{",roots_to_litter_gCm2yr[1],"}{",roots_to_litter_gCm2yr[3],"}$} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.0,3.9){\\color{red}{\\small ",FIRElitter_roots_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.95,3.95){\\color{red}{\\scriptsize $\\frac{",FIRElitter_roots_gCm2yr[1],"}{",FIRElitter_roots_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.0,3.9){\\color{red}{\\small ",FIRElitter_roots_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.95,3.95){\\color{red}{\\scriptsize $\\frac{",FIRElitter_roots_gCm2yr[1],"}{",FIRElitter_roots_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Assign arrow to Clitter"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(15.25,4.5){\\line(1,0){4.45}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(19.70,4.5){\\vector(1,2){0.6}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
@@ -317,52 +318,52 @@ write(    c("         % Wood"), file = outfilename, ncolumns = nos_cols, sep=col
 write(    c("         \\put(15.70,2.2){\\small $Mort_{wood}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(15.65,1.45){\\small ",wood_to_litter_gCm2yr[2],"}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(16.85,1.50){\\scriptsize $\\frac{",wood_to_litter_gCm2yr[1],"}{",wood_to_litter_gCm2yr[3],"}$} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.0,1.45){\\color{red}{\\small ",FIRElitter_wood_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(18.95,1.50){\\color{red}{\\scriptsize $\\frac{",FIRElitter_wood_gCm2yr[1],"}{",FIRElitter_wood_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.0,1.45){\\color{red}{\\small ",FIRElitter_wood_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(18.95,1.50){\\color{red}{\\scriptsize $\\frac{",FIRElitter_wood_gCm2yr[1],"}{",FIRElitter_wood_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Assign arrow to Csom"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(15.25,2.0){\\line(1,0){4.45}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(19.70,2.0){\\vector(1,1){0.6}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c(" "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Fire emission fluxes"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Labile"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(12.0,12.4){\\small \\rotatebox[origin=c]{90}{$E_{lab}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(12.5,7.5){\\color{red}{\\line(0,1){6.0}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(12.5,7.5){\\color{red}{\\line(1,0){0.2}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(12.7,12.7){\\color{red}{\\small ",FIREemiss_labile_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(12.7,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_labile_gCm2yr[1],"}{",FIREemiss_labile_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(12.0,12.4){\\small \\rotatebox[origin=c]{90}{$E_{lab}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(12.5,7.5){\\color{red}{\\line(0,1){6.0}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(12.5,7.5){\\color{red}{\\line(1,0){0.2}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(12.7,12.7){\\color{red}{\\small ",FIREemiss_labile_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(12.7,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_labile_gCm2yr[1],"}{",FIREemiss_labile_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Foliage"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(13.57,12.4){\\small \\rotatebox[origin=c]{90}{$E_{fol}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(14.2,10.8){\\color{red}{\\line(0,1){2.7}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(14.3,12.7){\\color{red}{\\small ",FIREemiss_foliage_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(14.3,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_foliage_gCm2yr[1],"}{",FIREemiss_foliage_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(13.57,12.4){\\small \\rotatebox[origin=c]{90}{$E_{fol}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(14.2,10.8){\\color{red}{\\line(0,1){2.7}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(14.3,12.7){\\color{red}{\\small ",FIREemiss_foliage_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(14.3,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_foliage_gCm2yr[1],"}{",FIREemiss_foliage_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Fine roots"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(10.45,12.4){\\small \\rotatebox[origin=c]{90}{$E_{root}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(11.85,5.0){\\color{red}{\\line(1,0){0.85}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(11.85,5.0){\\color{red}{\\line(0,1){8.5}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(11.00,12.7){\\color{red}{\\small ",FIREemiss_roots_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(10.95,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_roots_gCm2yr[1],"}{",FIREemiss_roots_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(10.45,12.4){\\small \\rotatebox[origin=c]{90}{$E_{root}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(11.85,5.0){\\color{red}{\\line(1,0){0.85}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(11.85,5.0){\\color{red}{\\line(0,1){8.5}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(11.00,12.7){\\color{red}{\\small ",FIREemiss_roots_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(10.95,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_roots_gCm2yr[1],"}{",FIREemiss_roots_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Wood"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(15.05,12.4){\\small \\rotatebox[origin=c]{90}{$E_{wood}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(15.2,2.7){\\color{red}{\\line(1,0){0.35}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(15.55,2.7){\\color{red}{\\line(0,1){10.8}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(15.65,12.7){\\color{red}{\\small ",FIREemiss_wood_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(15.70,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_wood_gCm2yr[1],"}{",FIREemiss_wood_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(15.05,12.4){\\small \\rotatebox[origin=c]{90}{$E_{wood}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(15.2,2.7){\\color{red}{\\line(1,0){0.35}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(15.55,2.7){\\color{red}{\\line(0,1){10.8}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(15.65,12.7){\\color{red}{\\small ",FIREemiss_wood_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(15.70,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_wood_gCm2yr[1],"}{",FIREemiss_wood_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Litter"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(20.45,12.4){\\small \\rotatebox[origin=c]{90}{$E_{litter}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(20.95,7.2){\\color{red}{\\line(0,1){6.3}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(21.05,12.7){\\color{red}{\\small ",FIREemiss_litter_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(21.1,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_litter_gCm2yr[1],"}{",FIREemiss_litter_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(20.45,12.4){\\small \\rotatebox[origin=c]{90}{$E_{litter}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(20.95,7.2){\\color{red}{\\line(0,1){6.3}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(21.05,12.7){\\color{red}{\\small ",FIREemiss_litter_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(21.1,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_litter_gCm2yr[1],"}{",FIREemiss_litter_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % SOM"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(22.5,12.4){\\small \\rotatebox[origin=c]{90}{$E_{som}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(22.75,3.4){\\color{red}{\\line(1,0){0.3}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(23.05,3.4){\\color{red}{\\line(0,1){10.1}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(23.1,12.7){\\color{red}{\\small ",FIREemiss_som_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(23.1,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_som_gCm2yr[1],"}{",FIREemiss_som_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(22.5,12.4){\\small \\rotatebox[origin=c]{90}{$E_{som}$}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(22.75,3.4){\\color{red}{\\line(1,0){0.3}}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(23.05,3.4){\\color{red}{\\line(0,1){10.1}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(23.1,12.7){\\color{red}{\\small ",FIREemiss_som_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(23.1,12.1){\\color{red}{\\scriptsize $\\frac{",FIREemiss_som_gCm2yr[1],"}{",FIREemiss_som_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Fire emissions total"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(24.1,13.5){$E_{total}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(    c("         \\put(11.85,13.5){\\color{red}{\\vector(1,0){12.1}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(24.0,12.95){\\color{red}{\\small ",fire_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(25.0,13.00){\\color{red}{\\scriptsize $\\frac{",fire_gCm2yr[1],"}{",fire_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(24.1,13.5){$E_{total}$}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(    c("         \\put(11.85,13.5){\\color{red}{\\vector(1,0){12.1}}} "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(24.0,12.95){\\color{red}{\\small ",fire_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(25.0,13.00){\\color{red}{\\scriptsize $\\frac{",fire_gCm2yr[1],"}{",fire_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c(" "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Litter C pool"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(20.25,5.2){\\framebox(2.5,2)}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
@@ -382,8 +383,8 @@ write(    c("         % Decomposition - natural"), file = outfilename, ncolumns 
 write(paste("         \\put(21.7,4.65){\\small ",litter_to_som_gCm2yr[2],"}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(paste("         \\put(21.65,4.1){\\scriptsize $\\frac{",litter_to_som_gCm2yr[1],"}{",litter_to_som_gCm2yr[3],"}$} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Decomposition - combusted litter to som"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(20.4,4.65){\\color{red}{\\small ",FIRElitter_litter_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-write(paste("         \\put(20.5,4.1){\\color{red}{\\scriptsize $\\frac{",FIRElitter_litter_gCm2yr[1],"}{",FIRElitter_litter_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(20.4,4.65){\\color{red}{\\small ",FIRElitter_litter_gCm2yr[2],"}}                % Median",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+#write(paste("         \\put(20.5,4.1){\\color{red}{\\scriptsize $\\frac{",FIRElitter_litter_gCm2yr[1],"}{",FIRElitter_litter_gCm2yr[3],"}$}} % CI",sep=""), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c(" "), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         % Heterotrophic respiration of litter"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 write(    c("         \\put(22.75,6.0){\\line(1,0){2.25}}"), file = outfilename, ncolumns = nos_cols, sep=col_sep, append = TRUE)

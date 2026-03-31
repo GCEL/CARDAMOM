@@ -19,7 +19,7 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
       for (yrr in seq(1,length(years_to_load))){
 
           # Create file name
-          input_file_2 = paste(path_to_forestry,"GFW_forest_loss_",years_to_load[yrr],".nc",sep="")
+          input_file_2 = paste(path_to_forestry,"tree_cover_loss_fraction_",years_to_load[yrr],"_0.10deg.nc",sep="")
           # Check it exists
           if (file.exists(input_file_2)) {
 
@@ -28,7 +28,7 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
               # begin reading the forest loss information instead
               lat_in = ncvar_get(data2, "latitude") ; long_in = ncvar_get(data2, "longitude")
               # read year of forest loss informatin
-              var1 = ncvar_get(data2, "forest_loss")
+              var1 = ncvar_get(data2, "tree_cover_loss")
               # tidy up
               nc_close(data2)
 
@@ -54,11 +54,11 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
               var1 = rast(var1, crs = ("+init=epsg:4326"), type="xyz")
 
               # Create raster with the target crs (technically this bit is not required)
-              target = rast(crs = ("+init=epsg:4326"), ext = ext(var1), resolution = res(var1))
+              target = rast(crs = ("+init=epsg:4326"), extent = ext(var1), resolution = res(var1))
               # Check whether the target and actual analyses have the same CRS
               if (compareGeom(var1,target) == FALSE) {
                   # Resample to correct grid
-                  var1 = resample(var1, target, method="ngb") ; gc() 
+                  var1 = resample(var1, target, method="near") ; gc() 
               }
               # Extend the extent of the overall grid to the analysis domain
               var1 = extend(var1,cardamom_ext)
@@ -69,7 +69,7 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
               if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
 
                   # Create raster with the target resolution
-                  target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                  target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                   # Resample to correct grid
                   var1 = resample(var1, target, method="bilinear") ; gc() 
 
@@ -80,6 +80,7 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
                   xdim = dim(var1)[2] ; ydim = dim(var1)[1]
                   # extract the lat / long information needed
                   long = crds(var1,df=TRUE, na.rm=FALSE)
+				  #print("Structure of long:",str(long))
                   lat  = long$y ; long = long$x
                   # restructure into correct orientation
                   long = array(long, dim=c(xdim,ydim))
@@ -97,8 +98,66 @@ load_forestry_fields_for_extraction<-function(latlon_in,forestry_source,years_to
       } # looping years
 
       # output variables
-      return(list(lat=lat,long=long,year_of_loss=years_to_load,loss_fraction=loss_fraction))
+      return(list(lat=lat,long=long,year_of_loss=years_to_load,loss_fraction=loss_fraction)) # TG returning loss_fraction but extract expects deforestation!
 
+  } else if(forestry_source == "EFDA") {
+  
+		print("Loading processed EFDA clearance information for subsequent sub-setting ...")
+		
+		# Set flag
+		lat_done = FALSE
+	  
+		for (yrr in seq(1,length(years_to_load))){
+			
+		input_file_2 = paste0(path_to_forestry,"Copernicus_tree_removal_frac_mineral_2x.tif") # in this case, the input raster has 14 layers corresponding to the needed 14 years of the run (2009-2022)
+		
+		
+		
+		var1 <- rast(input_file_2)
+		
+		# Extend the extent of the overall grid to the analysis domain
+              var1 = extend(var1,cardamom_ext)
+			  
+              # Trim the extent of the overall grid to the analysis domain
+              var1 = crop(var1,cardamom_ext)
+			  
+              var1[which(as.vector(var1) < 0)] = NA
+              # Adjust spatial resolution of the datasets, this occurs in all cases
+              if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
+
+                  # Create raster with the target resolution
+                  target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
+                  # Resample to correct grid
+                  var1 = resample(var1, target, method="bilinear") ; gc() 
+
+              } # Aggrgeate to resolution
+
+				
+
+              if (lat_done == FALSE) {
+                  # extract dimension information for the grid, note the axis switching between raster and actual array
+                  xdim = dim(var1)[2] ; ydim = dim(var1)[1]
+                  # extract the lat / long information needed
+                  long = crds(var1,df=TRUE, na.rm=FALSE)
+				  #print("Structure of long:",str(long))
+                  lat  = long$y ; long = long$x
+                  # restructure into correct orientation
+                  long = array(long, dim=c(xdim,ydim))
+                  lat = array(lat, dim=c(xdim,ydim))
+                  loss_fraction = array(NA, dim=c(xdim,ydim,length(years_to_load)))
+                  lat_done = TRUE
+              }
+              # break out from the rasters into arrays which we can manipulate
+              var1 = array(as.vector(unlist(var1[[yrr]])), dim=c(xdim,ydim))
+				
+              # place new clearance information into the output array
+              loss_fraction[,,yrr] = var1
+		
+			}
+			
+		return(list(lat=lat,long=long,year_of_loss=years_to_load,loss_fraction=loss_fraction))
+  
+		
   } else {
 
       # output variables

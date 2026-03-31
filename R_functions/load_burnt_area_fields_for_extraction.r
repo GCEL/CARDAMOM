@@ -77,7 +77,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                    # Adjust spatial resolution of the datasets, this occurs in all cases
                    if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                        # Create raster with the target resolution
-                       target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                       target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                        # Resample to correct grid.
                        # Probably should be done via aggregate function to allow for correct error propogation
                        var1 = resample(var1, target, method="bilinear") ; gc()
@@ -210,7 +210,7 @@ load_burnt_area_fields_for_extraction<-function(latlon_in,burnt_area_source,path
                       # Adjust spatial resolution of the datasets, this occurs in all cases
                       if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                           # Create raster with the target resolution
-                          target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                          target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                           # Resample to correct grid.
                           # Probably should be done via aggregate function to allow for correct error propogation
                           var1 = resample(var1, target, method="bilinear") ; gc() 

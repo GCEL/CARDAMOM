@@ -302,6 +302,8 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
   site_output$mean_nbp_gCm2day            = quantile(rowMeans(states_all$nbp_gCm2day,na.rm = na_flag) ,prob=num_quantiles, na.rm = TRUE)
   site_output$mean_annual_nbp_gCm2day     = apply(t(apply(states_all$nbp_gCm2day,1, rollapply_mean_annual, step = steps_per_year)), 2,quantile, prob=num_quantiles, na.rm = TRUE)
   site_output$reco_gCm2day                = apply(states_all$reco_gCm2day,2,quantile,prob=num_quantiles,na.rm = na_flag)
+  #site_output$rhet_frac                   = apply(states_all$rhet_frac,2,quantile,prob=num_quantiles,na.rm = na_flag)
+  #site_output$mean_annual_rhet_frac       = apply(t((apply(states_all$rhet_gCm2day,1, rollapply_mean_annual, step = steps_per_year) / apply(states_all$reco_gCm2day,1, rollapply_mean_annual, step = steps_per_year))),2,quantile,prob=num_quantiles, na.rm = TRUE)
   site_output$mean_reco_gCm2day           = quantile(rowMeans(states_all$reco_gCm2day,na.rm = na_flag) ,prob=num_quantiles, na.rm = TRUE)
   site_output$mean_annual_reco_gCm2day    = apply(t(apply(states_all$reco_gCm2day,1, rollapply_mean_annual, step = steps_per_year)), 2,quantile, prob=num_quantiles, na.rm = TRUE)
   site_output$harvest_gCm2day             = apply(states_all$harvest_gCm2day,2,quantile,prob=num_quantiles,na.rm = na_flag)
@@ -1190,6 +1192,232 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
   if (any(check_list == "MTT_wood_years_to_NPP_wood_gCm2day_correlation")) {
       site_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = states_all$MTT_wood_years_to_NPP_wood_gCm2day_correlation
   }
+  #####
+   if (any(check_list == "wSWP_parameter_correlation_lateGS")) {
+      site_output$wSWP_parameter_correlation_lateGS = states_all$wSWP_parameter_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_demand_supply_ratio_parameter_correlation_lateGS")) {
+      site_output$gs_demand_supply_ratio_parameter_correlation_lateGS = states_all$gs_demand_supply_ratio_parameter_correlation_lateGS
+  }
+  
+   if (any(check_list == "wSWP_root_depth_correlation_lateGS")) {
+      site_output$wSWP_root_depth_correlation_lateGS = states_all$wSWP_root_depth_correlation_lateGS
+  }
+  
+   if (any(check_list == "wSWP_npp_frac_roots_correlation_lateGS")) {
+      site_output$wSWP_npp_frac_roots_correlation_lateGS = states_all$wSWP_npp_frac_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "wSWP_roots_correlation_lateGS")) {
+      site_output$wSWP_roots_correlation_lateGS = states_all$wSWP_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_DS_ratio_root_depth_correlation_lateGS")) {
+      site_output$gs_DS_ratio_root_depth_correlation_lateGS = states_all$gs_DS_ratio_root_depth_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_DS_ratio_npp_frac_roots_correlation_lateGS")) {
+      site_output$gs_DS_ratio_npp_frac_roots_correlation_lateGS = states_all$gs_DS_ratio_npp_frac_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_DS_ratio_roots_correlation_lateGS")) {
+      site_output$gs_DS_ratio_roots_correlation_lateGS = states_all$gs_DS_ratio_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "gpp_perc_change_root_depth_correlation")) {
+      site_output$gpp_perc_change_root_depth_correlation = states_all$gpp_perc_change_root_depth_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_npp_frac_roots_correlation")) {
+      site_output$gpp_perc_change_npp_frac_roots_correlation = states_all$gpp_perc_change_npp_frac_roots_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_roots_correlation")) {
+      site_output$gpp_perc_change_roots_correlation = states_all$gpp_perc_change_roots_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_wSWP_late_correlation")) {
+      site_output$gpp_perc_change_wSWP_late_correlation = states_all$gpp_perc_change_wSWP_late_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_gs_DS_ratio_late_correlation")) {
+      site_output$gpp_perc_change_gs_DS_ratio_late_correlation = states_all$gpp_perc_change_gs_DS_ratio_late_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_parameter_correlation")) {
+      site_output$gpp_perc_change_parameter_correlation = states_all$gpp_perc_change_parameter_correlation
+  }
+  
+  
+  if (any(check_list == "mean_Cfol_Croot_ratio")) {
+      site_output$mean_Cfol_Croot_ratio = quantile(states_all$mean_Cfol_Croot_ratio,prob=num_quantiles,na.rm = na_flag)
+  }
+  
+  if (any(check_list == "mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS")) {
+      site_output$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS = states_all$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS
+  }
+  
+  if (any(check_list == "mean_Cfol_Croot_ratio_wSWP_correlation_late_GS")) {
+      site_output$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS = states_all$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS
+  }
+  
+  if (any(check_list == "mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS")) {
+      site_output$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS = states_all$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS
+  }
+  
+  if (any(check_list == "wSWP_lai_correlation_lateGS")) {
+      site_output$wSWP_lai_correlation_lateGS = states_all$wSWP_lai_correlation_lateGS
+  }
+  
+  if (any(check_list == "wSWP_lai_root_ratio_lateGS")) {
+      site_output$wSWP_lai_root_ratio_lateGS = states_all$wSWP_lai_root_ratio_lateGS
+  }
+  
+  if (any(check_list == "gs_DS_ratio_lai_correlation_lateGS")) {
+      site_output$gs_DS_ratio_lai_correlation_lateGS = states_all$gs_DS_ratio_lai_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_DS_ratio_lai_root_ratio_lateGS")) {
+      site_output$gs_DS_ratio_lai_root_ratio_lateGS = states_all$gs_DS_ratio_lai_root_ratio_lateGS
+  }
+  
+  if (any(check_list == "gpp_perc_change_lai_correlation")) {
+      site_output$gpp_perc_change_lai_correlation = states_all$gpp_perc_change_lai_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change_lai_root_ratio_correlation")) {
+      site_output$gpp_perc_change_lai_root_ratio_correlation = states_all$gpp_perc_change_lai_root_ratio_correlation
+  }
+  
+  if (any(check_list == "gpp_perc_change")) {
+      site_output$gpp_perc_change = quantile(states_all$gpp_perc_change,prob=num_quantiles, na.rm = TRUE)
+  }
+  
+  if (any(check_list == "gpp_early_wSWP_early_correlation")) {
+      site_output$gpp_early_wSWP_early_correlation = states_all$gpp_early_wSWP_early_correlation
+  }
+  
+  if (any(check_list == "gpp_mid_wSWP_mid_correlation")) {
+      site_output$gpp_mid_wSWP_mid_correlation = states_all$gpp_mid_wSWP_mid_correlation
+  }
+  
+  if (any(check_list == "gpp_late_wSWP_late_correlation")) {
+      site_output$gpp_late_wSWP_late_correlation = states_all$gpp_late_wSWP_late_correlation
+  }
+  
+  if (any(check_list == "gpp_early_gs_DS_early_correlation")) {
+      site_output$gpp_early_gs_DS_early_correlation = states_all$gpp_early_gs_DS_early_correlation
+  }
+  
+  if (any(check_list == "gpp_mid_gs_DS_mid_correlation")) {
+      site_output$gpp_mid_gs_DS_mid_correlation = states_all$gpp_mid_gs_DS_mid_correlation
+  }
+  
+  if (any(check_list == "gpp_late_gs_DS_late_correlation")) {
+      site_output$gpp_late_gs_DS_late_correlation = states_all$gpp_late_gs_DS_late_correlation
+  }
+  
+  if (any(check_list == "gpp_root_depth_correlation_lateGS")) {
+      site_output$gpp_root_depth_correlation_lateGS = states_all$gpp_root_depth_correlation_lateGS
+  }
+  
+  if (any(check_list == "gpp_npp_frac_roots_correlation_lateGS")) {
+      site_output$gpp_npp_frac_roots_correlation_lateGS = states_all$gpp_npp_frac_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "gpp_roots_correlation_lateGS")) {
+      site_output$gpp_roots_correlation_lateGS = states_all$gpp_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "gpp_lai_correlation_lateGS")) {
+      site_output$gpp_lai_correlation_lateGS = states_all$gpp_lai_correlation_lateGS
+  }
+  
+  if (any(check_list == "gpp_lai_root_ratio_lateGS")) {
+      site_output$gpp_lai_root_ratio_lateGS = states_all$gpp_lai_root_ratio_lateGS
+  }
+  
+  if (any(check_list == "gpp_fol_root_ratio_lateGS")) {
+      site_output$gpp_fol_root_ratio_lateGS = states_all$gpp_fol_root_ratio_lateGS
+  }
+  
+  if (any(check_list == "gpp_lai_correlation_earlyGS")) {
+      site_output$gpp_lai_correlation_earlyGS = states_all$gpp_lai_correlation_earlyGS
+  }
+  
+  if (any(check_list == "gpp_lai_correlation_midGS")) {
+      site_output$gpp_lai_correlation_midGS = states_all$gpp_lai_correlation_midGS
+  }
+  
+  if (any(check_list == "parameter_correlation_across")) {
+      site_output$parameter_correlation_across = states_all$parameter_correlation_across
+  }
+  
+  if (any(check_list == "mean_Cfol_Croot_ratio_parameter_correlation")) {
+      site_output$mean_Cfol_Croot_ratio_parameter_correlation = states_all$mean_Cfol_Croot_ratio_parameter_correlation
+  }
+  
+  if (any(check_list == "mean_GS_rooting_depth_parameter_correlation")) {
+      site_output$mean_GS_rooting_depth_parameter_correlation = states_all$mean_GS_rooting_depth_parameter_correlation
+  }
+  
+  if (any(check_list == "gs_rooting_depth_correlation_earlyGS")) {
+      site_output$gs_rooting_depth_correlation_earlyGS = states_all$gs_rooting_depth_correlation_earlyGS
+  }
+  
+  if (any(check_list == "gs_rooting_depth_correlation_midGS")) {
+      site_output$gs_rooting_depth_correlation_midGS = states_all$gs_rooting_depth_correlation_midGS
+  }
+  
+  if (any(check_list == "gs_rooting_depth_correlation_lateGS")) {
+      site_output$gs_rooting_depth_correlation_lateGS = states_all$gs_rooting_depth_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_fol_root_ratio_correlation_earlyGS")) {
+      site_output$gs_fol_root_ratio_correlation_earlyGS = states_all$gs_fol_root_ratio_correlation_earlyGS
+  }
+  
+  if (any(check_list == "gs_fol_root_ratio_correlation_midGS")) {
+      site_output$gs_fol_root_ratio_correlation_midGS = states_all$gs_fol_root_ratio_correlation_midGS
+  }
+  
+  if (any(check_list == "gs_fol_root_ratio_correlation_lateGS")) {
+      site_output$gs_fol_root_ratio_correlation_lateGS = states_all$gs_fol_root_ratio_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_npp_frac_roots_correlation_earlyGS")) {
+      site_output$gs_npp_frac_roots_correlation_earlyGS = states_all$gs_npp_frac_roots_correlation_earlyGS
+  }
+  
+  if (any(check_list == "gs_npp_frac_roots_correlation_midGS")) {
+      site_output$gs_npp_frac_roots_correlation_midGS = states_all$gs_npp_frac_roots_correlation_midGS
+  }
+  
+  if (any(check_list == "gs_npp_frac_roots_correlation_lateGS")) {
+      site_output$gs_npp_frac_roots_correlation_lateGS = states_all$gs_npp_frac_roots_correlation_lateGS
+  }
+  
+  if (any(check_list == "fol_root_ratio_rooting_depth_correlation_earlyGS")) {
+      site_output$fol_root_ratio_rooting_depth_correlation_earlyGS = states_all$fol_root_ratio_rooting_depth_correlation_earlyGS
+  }
+  
+  if (any(check_list == "fol_root_ratio_rooting_depth_correlation_midGS")) {
+      site_output$fol_root_ratio_rooting_depth_correlation_midGS = states_all$fol_root_ratio_rooting_depth_correlation_midGS
+  }
+  
+  if (any(check_list == "fol_root_ratio_rooting_depth_correlation_lateGS")) {
+      site_output$fol_root_ratio_rooting_depth_correlation_lateGS = states_all$fol_root_ratio_rooting_depth_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_parameter_correlation_lateGS")) {
+      site_output$gs_parameter_correlation_lateGS = states_all$gs_parameter_correlation_lateGS
+  }
+  
+  if (any(check_list == "gs_parameter_correlation_earlyGS")) {
+      site_output$gs_parameter_correlation_earlyGS = states_all$gs_parameter_correlation_earlyGS
+  }
+  
 
   # save to pixel specific file for the moment... in "run_mcmc_results" these will be combined into a single grid
   save(site_output,file=outfile_stock_fluxes, compress = "gzip", compression_level = 6)

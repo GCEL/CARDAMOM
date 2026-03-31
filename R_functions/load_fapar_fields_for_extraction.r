@@ -112,7 +112,7 @@ load_fapar_fields_for_extraction<-function(latlon_in,fapar_source,years_to_load,
                     # Adjust spatial resolution of the datasets, this occurs in all cases
                     if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                         # Create raster with the target resolution
-                        target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+                        target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
                         # Resample to correct grid.
                         # Probably should be done via aggregate function to allow for correct error propogation
                         var1 = resample(var1, target, method="bilinear") ; gc() 

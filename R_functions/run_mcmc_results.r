@@ -141,6 +141,7 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           grid_output$rauto_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
           grid_output$rhet_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
           grid_output$reco_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
+		  #grid_output$rhet_frac = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
           grid_output$npp_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
           grid_output$harvest_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
           grid_output$fire_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],dim(site_output$labile_gCm2)[2]))
@@ -160,7 +161,7 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           grid_output$mean_annual_fire_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],nos_years))
           grid_output$mean_annual_nbe_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],nos_years))
           grid_output$mean_annual_nbp_gCm2day = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],nos_years))
-
+		  #grid_output$mean_annual_rhet_frac = array(NA, dim=c(PROJECT$nosites,dim(site_output$labile_gCm2)[1],nos_years))
           # Based on the presence of each pool define the grids for the mean and final values.
           # Also, create the time varying but quantile based values and time
 
@@ -730,6 +731,233 @@ define_grid_output<-function(PROJECT,repair,outfile_grid,site_output){
           if (exists(x = "MTT_wood_years_to_NPP_wood_gCm2day_correlation", where = site_output)) {
               grid_output$MTT_wood_years_to_NPP_wood_gCm2day_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
           }
+		  
+		  if (exists(x = "wSWP_parameter_correlation_lateGS", where = site_output)) {
+              grid_output$wSWP_parameter_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  
+		  if (exists(x = "gs_demand_supply_ratio_parameter_correlation_lateGS", where = site_output)) {
+              grid_output$gs_demand_supply_ratio_parameter_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "wSWP_root_depth_correlation_lateGS", where = site_output)) {
+              grid_output$wSWP_root_depth_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "wSWP_npp_frac_roots_correlation_lateGS", where = site_output)) {
+              grid_output$wSWP_npp_frac_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "wSWP_roots_correlation_lateGS", where = site_output)) {
+              grid_output$wSWP_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_DS_ratio_root_depth_correlation_lateGS", where = site_output)) {
+              grid_output$gs_DS_ratio_root_depth_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_DS_ratio_npp_frac_roots_correlation_lateGS", where = site_output)) {
+              grid_output$gs_DS_ratio_npp_frac_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_DS_ratio_roots_correlation_lateGS", where = site_output)) {
+              grid_output$gs_DS_ratio_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  
+###		  
+		  if (exists(x = "gpp_perc_change_root_depth_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_root_depth_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_npp_frac_roots_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_npp_frac_roots_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_roots_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_roots_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_wSWP_late_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_wSWP_late_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_gs_DS_ratio_late_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_gs_DS_ratio_late_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_parameter_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "mean_Cfol_Croot_ratio", where = site_output)) {
+              grid_output$mean_Cfol_Croot_ratio = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
+          }  
+		  
+		  if (exists(x = "mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS", where = site_output)) {
+              grid_output$mean_Cfol_Croot_ratio_gs_DS_ratio_correlation_late_GS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "mean_Cfol_Croot_ratio_wSWP_correlation_late_GS", where = site_output)) {
+              grid_output$mean_Cfol_Croot_ratio_wSWP_correlation_late_GS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS", where = site_output)) {
+              grid_output$mean_Cfol_Croot_ratio_gpp_perc_change_correlation_late_GS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "wSWP_lai_correlation_lateGS", where = site_output)) {
+              grid_output$wSWP_lai_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "wSWP_lai_root_ratio_lateGS", where = site_output)) {
+              grid_output$wSWP_lai_root_ratio_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_DS_ratio_lai_correlation_lateGS", where = site_output)) {
+              grid_output$gs_DS_ratio_lai_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_DS_ratio_lai_root_ratio_lateGS", where = site_output)) {
+              grid_output$gs_DS_ratio_lai_root_ratio_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_lai_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_lai_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change_lai_root_ratio_correlation", where = site_output)) {
+              grid_output$gpp_perc_change_lai_root_ratio_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_perc_change", where = site_output)) {
+              grid_output$gpp_perc_change = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,dim(site_output$labile_gCm2)[1]))
+          }
+		  
+		  if (exists(x = "gpp_early_wSWP_early_correlation", where = site_output)) {
+              grid_output$gpp_early_wSWP_early_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_mid_wSWP_mid_correlation", where = site_output)) {
+              grid_output$gpp_mid_wSWP_mid_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_late_wSWP_late_correlation", where = site_output)) {
+              grid_output$gpp_late_wSWP_late_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_early_gs_DS_early_correlation", where = site_output)) {
+              grid_output$gpp_early_gs_DS_early_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_mid_gs_DS_mid_correlation", where = site_output)) {
+              grid_output$gpp_mid_gs_DS_mid_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_late_gs_DS_late_correlation", where = site_output)) {
+              grid_output$gpp_late_gs_DS_late_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_root_depth_correlation_lateGS", where = site_output)) {
+              grid_output$gpp_root_depth_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_npp_frac_roots_correlation_lateGS", where = site_output)) {
+              grid_output$gpp_npp_frac_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_roots_correlation_lateGS", where = site_output)) {
+              grid_output$gpp_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_lai_correlation_lateGS", where = site_output)) {
+              grid_output$gpp_lai_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_lai_root_ratio_lateGS", where = site_output)) {
+              grid_output$gpp_lai_root_ratio_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_fol_root_ratio_lateGS", where = site_output)) {
+              grid_output$gpp_fol_root_ratio_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_lai_correlation_earlyGS", where = site_output)) {
+              grid_output$gpp_lai_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gpp_lai_correlation_midGS", where = site_output)) {
+              grid_output$gpp_lai_correlation_midGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "parameter_correlation_across", where = site_output)) {
+              grid_output$parameter_correlation_across = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars),max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "mean_Cfol_Croot_ratio_parameter_correlation", where = site_output)) {
+              grid_output$mean_Cfol_Croot_ratio_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "mean_GS_rooting_depth_parameter_correlation", where = site_output)) {
+              grid_output$mean_GS_rooting_depth_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "gs_rooting_depth_correlation_earlyGS", where = site_output)) {
+              grid_output$gs_rooting_depth_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_rooting_depth_correlation_midGS", where = site_output)) {
+              grid_output$gs_rooting_depth_correlation_midGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_rooting_depth_correlation_lateGS", where = site_output)) {
+              grid_output$gs_rooting_depth_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_fol_root_ratio_correlation_earlyGS", where = site_output)) {
+              grid_output$gs_fol_root_ratio_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_fol_root_ratio_correlation_midGS", where = site_output)) {
+              grid_output$gs_fol_root_ratio_correlation_midGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_fol_root_ratio_correlation_lateGS", where = site_output)) {
+              grid_output$gs_fol_root_ratio_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_npp_frac_roots_correlation_earlyGS", where = site_output)) {
+              grid_output$gs_npp_frac_roots_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_npp_frac_roots_correlation_midGS", where = site_output)) {
+              grid_output$gs_npp_frac_roots_correlation_midGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_npp_frac_roots_correlation_lateGS", where = site_output)) {
+              grid_output$gs_npp_frac_roots_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "fol_root_ratio_rooting_depth_correlation_earlyGS", where = site_output)) {
+              grid_output$fol_root_ratio_rooting_depth_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "fol_root_ratio_rooting_depth_correlation_midGS", where = site_output)) {
+              grid_output$fol_root_ratio_rooting_depth_correlation_midGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "fol_root_ratio_rooting_depth_correlation_lateGS", where = site_output)) {
+              grid_output$fol_root_ratio_rooting_depth_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
+          }
+		  
+		  if (exists(x = "gs_parameter_correlation_lateGS", where = site_output)) {
+              grid_output$gs_parameter_correlation_lateGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
+		  
+		  if (exists(x = "gs_parameter_correlation_earlyGS", where = site_output)) {
+              grid_output$gs_parameter_correlation_earlyGS = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim,max(PROJECT$model$nopars)))
+          }
           # Quantify the mean absolute magnitude of correlations between parameters
           grid_output$absolute_mean_parameter_correlation = array(NA, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
 
@@ -777,6 +1005,9 @@ define_grid_output<-cmpfun(define_grid_output)
 
 run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
 
+  # Update the user 
+  if (use_parallel == FALSE) {print(paste("Site = ",PROJECT$sites[n]," ",n," of ",PROJECT$nosites," ",Sys.time(),sep=""))}
+
   # Define the output file names
   outfile_site         = paste(PROJECT$results_processedpath,PROJECT$sites[n],".RData",sep="")
   outfile_parameters   = paste(PROJECT$results_processedpath,PROJECT$sites[n],"_parameters.RData",sep="")
@@ -789,15 +1020,18 @@ run_each_site<-function(n,PROJECT,stage,repair,grid_override) {
 
       # Determine which parameter chains we will be using
       output = determine_parameter_chains_to_run(PROJECT,n)
-      parameters = output$parameters ; converged = output$converged ; rm(output)
-      # Check if we likely have an error flag
-      if (length(as.vector(parameters)) == 1) {
-          # Return the flag and allow the job to move on
-          return(parameters)
-      }
       
+      # Check if we likely have an error flag
+      if (length(as.vector(output)) == 1) {
+          # Return the flag and allow the job to move on
+          return(output)
+      }
+	  #otherwise we assume these variables exist
+      parameters = output$parameters ; converged = output$converged ; rm(output)
       # load the met data for each site
       drivers = read_binary_file_format(paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep=""))
+	  #read_binary_file_format(paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep=""))
+	  #read_binary_file_format("~/RDM/CARD_output/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/Finland_extreme_drought_get/DATA/Finland_extreme_drought_get_Finland_extreme_drought_get.bin")#read_binary_file_format(paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep=""))
 ## HACK to remove CO2 effect
 #drivers$met[,5] = drivers$met[1,5]
 ## HACK to create S2 simulations for GCP / Trendy v12
@@ -926,6 +1160,7 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       # Generate lists of expected files, which changes depending on whether this is a gridded or a site based run
       if (PROJECT$spatial_type == "grid") {
           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites,"_stock_fluxes.RData",sep="")
+		  #print(paste0("outfile_stocks = ",outfile_stocks))
       } else if (PROJECT$spatial_type == "site") {
           outfile_stocks = paste(PROJECT$results_processedpath,PROJECT$sites,".RData",sep="")
       } else {
@@ -937,16 +1172,16 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
            if (file.exists(outfile_stocks[n]) == FALSE) {
                keep_list=append(keep_list,n)
            } else {
-               existing_list = append(existing_list,n) ; existing_files[n] = outfile_stocks
+               existing_list = append(existing_list,n) ; existing_files[n] = outfile_stocks[n]
            }
       }
       # filter out the sites we already have then
       # Note conditional statments used later account for cases where no / all sites are removed.
-      keep_list = keep_list[-1]
+      keep_list = keep_list[-1] # TG [-1] removes the 0
       existing_list = existing_list[-1]
       # Update user
       print(paste("......removing ",length(nos_plots)-length(keep_list)," sites out of ",length(nos_plots)," from the analysis",sep=""))
-      nos_plots = nos_plots[keep_list]
+      nos_plots = nos_plots[keep_list] # TG change back to keep_list
   } # repair !=1
 
   # now request the creation of the plots
@@ -963,9 +1198,20 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       # Now we can deploy in anger
       cl <- min(length(nos_plots),numWorkers)
       site_output_all = mclapply(nos_plots,FUN=run_each_site,PROJECT=PROJECT,stage=stage,
-                                 repair=repair,grid_override=grid_override, mc.cores = cl)
-
+                                  repair=repair,grid_override=grid_override, mc.cores = cl)
+	
+	
+	
+# TG hack	site_output_all = rep(list(-5), length(PROJECT$sites))
+	
+	
+# TG hack	for(i in 1:length(existing_list)){
+# TG hack	site_output_all[[existing_list[i]]] = outfile_stocks[existing_list[i]]
+	
+# TG hack	}
+	
       print("...finished parallel operations")
+	  
 
   } else if (length(nos_plots) > 0) {
 
@@ -977,7 +1223,9 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
       # Run analysis
       site_output_all = lapply(nos_plots,FUN=run_each_site,PROJECT=PROJECT,stage=stage,
                                repair=repair,grid_override=grid_override)
-
+	
+	#print(paste0("Str site_output_all = ",str(site_output_all)))
+	
       print("...finished serial operations")
 
   } else {
@@ -987,15 +1235,15 @@ run_mcmc_results <- function (PROJECT,stage,repair,grid_override) {
 
   } # parallel option
   # Check whether we have some existing files...
-  if (length(existing_list) > 0) {
+	if (length(existing_list) > 0) {  # TG 
       #if (existing_list[1] > 0 | length(existing_list) > 1) {
-      if (existing_list[1] > 0) {
+     if (existing_list[1] > 0) { # TG 
           # ...then insert them into the overall output file list
-          for (n in seq(1, length(existing_list))) {
-               site_output_all[[existing_list[n]]] = existing_files[existing_list[n]]
-          }
-      } # More subtle control
-  } # does the variable have a value?
+         for (n in seq(1, length(existing_list))) { # TG 
+              site_output_all[[existing_list[n]]] = existing_files[existing_list[n]] # TG 
+         } # TG 
+     } # More subtle control # TG 
+ } # does the variable have a value? # TG 
 
   # now if this is a gridded run we want to take out individual site specific summary files and combine them into a single file
   if (PROJECT$spatial_type == "grid" & grid_override == FALSE) {

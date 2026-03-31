@@ -9,7 +9,7 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
                               path_to_met_source,met_source,wheat) {
 
     # Create target grid for aggregation if needed
-    target = rast(crs = crs(cardamom_ext), ext = ext(cardamom_ext), resolution = res(cardamom_ext))
+    target = rast(crs = crs(cardamom_ext), extent = ext(cardamom_ext), resolution = res(cardamom_ext))
 
     if (met_source == "ERA" | met_source == "isimip3a") {
 
@@ -57,7 +57,7 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
                   # Match resolutions
                   if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                       # Resample to correct grid
-                      var1 = resample(var1, target, method="bilinear") ; gc() 
+                      var1 = resample(var1, target, method="average") ; gc() #TG changing bilinear to average
                   } # Aggrgeate to resolution
 
                   # break out from the rasters so can manipulate
@@ -116,7 +116,7 @@ load_met_function<- function (year_to_do,varid,infile_varid,spatial_type,cardamo
              # Match resolutions of the datasets
              if (res(var1)[1] != res(cardamom_ext)[1] | res(var1)[2] != res(cardamom_ext)[2]) {
                  # Resample to correct grid
-                 var1 = resample(var1, target, method="bilinear") ; gc() 
+                 var1 = resample(var1, target, method="average") ; gc() #TG changing bilinear to average
              } # Aggrgeate to resolution
 
              # break out from the rasters so can manipulate

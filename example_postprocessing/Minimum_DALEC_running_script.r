@@ -6,16 +6,12 @@
 ###
 
 # Set working directory to the location which the CARDAMOM framework can be found
-setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/")
+setwd("~/RDM/CARDAMOM/")
 # This is so we can read in the R functions for CARDAMOM, after this you can change the directory
 source("./R_functions/load_all_cardamom_functions.r")
 
 # Load the info file for the project you will be calling from
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/CZO_lai_EDC_TendyMet_longterm/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A3.C1.D2.F2.H2.P1.#_MHMCMC/CZO_lai_EDC_TendyMet_longterm/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A3.C1.D2.F2.H2.P1.#_MHMCMC/CZO_fapar_EDC_TendyMet_longterm/infofile.RData")
-#load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A3.C1.D2.F2.H2.P1.#_MHMCMC/CZO_lai_fapar_EDC_TendyMet_longterm/infofile.RData")
-load("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A3.C3.H2.M1.#_MHMCMC/ATEC/infofile.RData")
+load("~/RDM/CARD_output/DALEC.A1.C1.D2.F2.H2.P1.#_MHMCMC/FI_Hyy_16_19_tempv99_satLAIsummerUNC02_MRTfol15unc_NEE_p12_p15_CP/infofile.RData")
 # If the project has more than one site within set "n" to the correct value, otherwise leave as 1
 n = 1
 # Load the already processed DALEC outputs - this has the parameters and drivers but also the existing DALEC output against which you can compare any modifications
@@ -56,7 +52,7 @@ new_drivers$met[,7] = new_drivers$met[,7] + 0 # mean precipitation rate (kgH2O/m
 # ACM2 enabled
 new_drivers$met[,14] = new_drivers$met[,14] + 0 # mean temperature (C)
 new_drivers$met[,15] = new_drivers$met[,15] + 0 # mean wind speed (m/s)
-new_drivers$met[,16] = new_drivers$met[,16] + 0 # mean vapour pressure deficit (Pa)
+new_drivers$met[,16] = new_drivers$met[,16] + 0  # mean vapour pressure deficit (Pa)
 
 # GSI models only
 #new_drivers$met[,10] = new_drivers$met[,10] + 0 # 21 day rolling mean avg max temperature (C)
@@ -108,7 +104,7 @@ lines(apply(C_cycle$gpp_gCm2day,2,median), col="green", lwd=3)
 #plotCI(czo$GPP_gCm2day, uiw = czo$GPP_unc_gCm2day, add=TRUE, ylim=c(0,9), col="red")
 #plot(apply(states_all$ET_kgH2Om2day,2,median), type="l", lwd=3, ylim=c(0,8), main="ET")
 #lines(apply(C_cycle$ET_kgH2Om2day,2,median), col="green", lwd=3)
-plot(apply(states_all$foliage_gCm2,2,median), type="l", lwd=3, ylim=c(0,250), main="Fol")
+plot(apply(states_all$foliage_gCm2,2,median), type="l", lwd=3, ylim=c(0,800), main="Fol")
 lines(apply(C_cycle$foliage_gCm2,2,median), col="green", lwd=3)
 #plotCI(czo$Evap_kgH2Om2day, uiw = czo$Evap_unc_kgH2Om2day, add=TRUE, col="red")
 plot(apply(states_all$SurfWater_kgH2Om2,2,median), type="l", lwd=3, ylim=c(0,150), main="SurfWater")
@@ -122,25 +118,31 @@ plotCI(drivers$obs[,3], uiw = drivers$obs[,4], add=TRUE)
 #plotCI(czo$Reco_gCm2day, uiw = czo$Reco_unc_gCm2day, add=TRUE, ylim=c(0,10), col="red")
 plot(apply(states_all$RootDepth_m,2,median), type="l", lwd=3, ylim=c(0,max(states_all$RootDepth_m, na.rm=TRUE)), main="RootDepth")
 lines(apply(C_cycle$RootDepth_m,2,median), col="green", lwd=3)
-plot(apply(states_all$harvest_gCm2day,2,median), type="l", lwd=3, ylim=c(0,350), main="Harvest")
-lines(apply(C_cycle$harvest_gCm2day,2,median), col="green", lwd=3)
-plot(apply(states_all$StorageOrgan_gCm2,2,median), type="l", lwd=3, ylim=c(0,350), main="StorageOrgan")
-lines(apply(C_cycle$StorageOrgan_gCm2,2,median), col="green", lwd=3)
-plot(apply(states_all$som_gCm2,2,median), type="l", lwd=3, main="Soil C")
-lines(apply(C_cycle$som_gCm2,2,median), col="green", lwd=3)
+#plot(apply(states_all$harvest_gCm2day,2,median), type="l", lwd=3, ylim=c(0,350), main="Harvest")
+#lines(apply(C_cycle$harvest_gCm2day,2,median), col="green", lwd=3)
+plot(apply(states_all$gs_mmolH2Om2s,2,median), type="l", lwd=3, ylim=c(0,max(states_all$gs_mmolH2Om2s, na.rm=TRUE)), main="gs")
+lines(apply(C_cycle$gs_mmolH2Om2s,2,median), col="green", lwd=3)
 
-par(mfrow=c(1,1))
-plot(apply(states_all$alloc_foliage_gCm2day,2,median), type="l", lwd=3, main="Allocation pattern", col="green", ylim=c(0,4))
-lines(apply(C_cycle$alloc_wood_gCm2day,2,median), col="brown", lwd=3)
-lines(apply(C_cycle$alloc_labile_gCm2day,2,median), col="blue", lwd=3)
-lines(apply(C_cycle$alloc_roots_gCm2day,2,median), col="red", lwd=3)
-lines(apply(C_cycle$alloc_StorageOrgan_gCm2day,2,median), col="black", lwd=3)
-lines(apply(C_cycle$alloc_autotrophic_gCm2day,2,median), col="yellow", lwd=3)
-par(new=TRUE) ; plot(apply(C_cycle$DevelopmentStage,2,median), col="black", lwd=3, lty = 2, type="l")
+plot(apply(states_all$gs_demand_supply_ratio,2,median), type="l", lwd=3, ylim=c(0,max(states_all$gs_demand_supply_ratio, na.rm=TRUE)), main="gs DS")
+lines(apply(C_cycle$gs_demand_supply_ratio,2,median), col="green", lwd=3)
 
-plot(cumsum(apply(C_cycle$alloc_StorageOrgan_gCm2day,2,median)), col="black", lwd=3, lty = 2, type="l")
+#plot(apply(states_all$StorageOrgan_gCm2,2,median), type="l", lwd=3, ylim=c(0,350), main="StorageOrgan")
+#lines(apply(C_cycle$StorageOrgan_gCm2,2,median), col="green", lwd=3)
+#plot(apply(states_all$som_gCm2,2,median), type="l", lwd=3, main="Soil C")
+#lines(apply(C_cycle$som_gCm2,2,median), col="green", lwd=3)
 
-for (i in seq(1, 300)) { if (i == 1) {plot(states_all$harvest_gCm2day[i,], ylim=c(0,250)) } else {lines(states_all$harvest_gCm2day[i,])} ; print(states_all$harvest_gCm2day[i,which(states_all$harvest_gCm2day[i,] > 0)]) }
+# par(mfrow=c(1,1))
+# plot(apply(states_all$alloc_foliage_gCm2day,2,median), type="l", lwd=3, main="Allocation pattern", col="green", ylim=c(0,4))
+# lines(apply(C_cycle$alloc_wood_gCm2day,2,median), col="brown", lwd=3)
+# lines(apply(C_cycle$alloc_labile_gCm2day,2,median), col="blue", lwd=3)
+# lines(apply(C_cycle$alloc_roots_gCm2day,2,median), col="red", lwd=3)
+# lines(apply(C_cycle$alloc_StorageOrgan_gCm2day,2,median), col="black", lwd=3)
+# lines(apply(C_cycle$alloc_autotrophic_gCm2day,2,median), col="yellow", lwd=3)
+# par(new=TRUE) ; plot(apply(C_cycle$DevelopmentStage,2,median), col="black", lwd=3, lty = 2, type="l")
+
+# plot(cumsum(apply(C_cycle$alloc_StorageOrgan_gCm2day,2,median)), col="black", lwd=3, lty = 2, type="l")
+
+#for (i in seq(1, 300)) { if (i == 1) {plot(states_all$harvest_gCm2day[i,], ylim=c(0,250)) } else {lines(states_all$harvest_gCm2day[i,])} ; print(states_all$harvest_gCm2day[i,which(states_all$harvest_gCm2day[i,] > 0)]) }
 
 #plot(apply(states_all$APAR_MJm2day,2,median)/(drivers$met[,4]*0.5), type="l", lwd=3, ylim=c(0,1))
 #lines(apply(C_cycle$APAR_MJm2day,2,median)/(new_drivers$met[,4]*0.5), col="green", lwd=3)

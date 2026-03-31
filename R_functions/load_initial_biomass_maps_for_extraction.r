@@ -121,7 +121,7 @@ load_initial_biomass_maps_for_extraction<-function(latlon_in,Cwood_initial_sourc
           # Create raster with the target crs (technically this bit is not required)
           target = rast(crs = ("+init=epsg:4326"), ext = ext(biomass_gCm2), resolution = res(biomass_gCm2))
           # Check whether the target and actual analyses have the same CRS
-          if (compareCRS(biomass_gCm2,target) == FALSE) {
+          if (compareGeom(biomass_gCm2,target) == FALSE) {
               # Resample to correct grid
               biomass_gCm2 = resample(biomass_gCm2, target, method="ngb") ; gc() 
               biomass_uncertainty_gCm2 = resample(biomass_uncertainty_gCm2, target, method="ngb") ; gc() 
