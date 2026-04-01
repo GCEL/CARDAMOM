@@ -862,7 +862,7 @@ module cardamom_io
     if (DATAin%nEvap > 0) allocate(DATAin%Evappts(DATAin%nEvap))
     if (DATAin%nSWE > 0) allocate(DATAin%SWEpts(DATAin%nSWE))
     if (DATAin%nNBE > 0) allocate(DATAin%NBEpts(DATAin%nNBE))
-    if (DATAin%nCwood_growth > 0) allocate(DATAin%Cwood_incpts(DATAin%nCwood_inc))
+    if (DATAin%nCwood_growth > 0) allocate(DATAin%Cwood_growthpts(DATAin%nCwood_growth))
     if (DATAin%nCwood_inc > 0) allocate(DATAin%Cwood_incpts(DATAin%nCwood_inc))
     if (DATAin%nCwood_mortality > 0) allocate(DATAin%Cwood_mortalitypts(DATAin%nCwood_mortality))
     if (DATAin%nfoliage_to_litter > 0) allocate(DATAin%foliage_to_litterpts(DATAin%nfoliage_to_litter))
