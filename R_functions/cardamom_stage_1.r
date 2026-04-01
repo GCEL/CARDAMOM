@@ -34,8 +34,9 @@ write_bin_files<-function(n,PROJECT,cardamom_ext,latlon,timestep_days,noyears
                          ,lai_all,Csom_all,forest_all
                          ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                          ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                         ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_mortality_all,fire_all
-						 ,fapar_all, et_all, RhetQ10_all, MTTsom_all,MaxRootDepth_all) {
+                         ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_growth_all
+                         ,Cwood_mortality_all,fire_all
+                         ,fapar_all, et_all, RhetQ10_all, MTTsom_all,MaxRootDepth_all) {
 
    # create the file name for the met/obs binary
    filename = paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep="")
@@ -422,7 +423,8 @@ cardamom_stage_1<-function(PROJECT) {
                            sand_clay_all = sand_clay_all, crop_man_all = crop_man_all,
                            burnt_all = burnt_all, soilwater_all = soilwater_all, nbe_all = nbe_all, 
                            lca_all = lca_all, gpp_all = gpp_all, Cwood_change_all = Cwood_change_all,
-                           Cwood_mortality_all = Cwood_mortality_all, fire_all = fire_all, 
+                           Cwood_growth_all = Cwood_growth_all, Cwood_mortality_all = Cwood_mortality_all, 
+                           fire_all = fire_all, 
                            fapar_all = fapar_all, et_all = et_all, RhetQ10_all = RhetQ10_all,
                            MTTsom_all = MTTsom_all, MaxRootDepth_all = MaxRootDepth_all)
 
@@ -438,7 +440,8 @@ cardamom_stage_1<-function(PROJECT) {
                               ,lai_all,Csom_all,forest_all
                               ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
                               ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
-                              ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_mortality_all,fire_all
+                              ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_growth_all
+                              ,Cwood_mortality_all,fire_all
                               ,fapar_all, et_all, RhetQ10_all, MTTsom_all, MaxRootDepth_all)    
 
           } # site loop

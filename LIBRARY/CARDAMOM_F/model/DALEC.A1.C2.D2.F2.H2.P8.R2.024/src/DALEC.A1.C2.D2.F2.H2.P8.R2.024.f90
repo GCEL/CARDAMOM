@@ -3504,8 +3504,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        cgi_gradient  = linear_model_gradient(cgi_ncce_lag_days(1:interval),cgi_lag_history(1:interval),interval)
        ncce_gradient = linear_model_gradient(cgi_ncce_lag_days(1:interval),ncce_lag_history(1:interval),interval)
 
-       ! Estimate the canopy mortality index following a logistic function of NCCE, temperature and labile storage
-       cmi(step) = (1d0+exp(cmi_ncce_coef*(ncce_gCgC(step)-cmi_ncce_k50)))**(-1d0)
+       ! Estimate the canopy mortality index following a Michaelis-Menten function
+       !tmp = max(0d0,ncce_gCgC(step)) ! prevents negative values giving a positive function.
+       !cmi(step) = 1d0 - (tmp / (tmp + cmi_ncce_k50))
+       ! Estimate the canopy mortality index following a logistic function
+       cmi(step) = ((1d0+exp(cmi_ncce_coef*(ncce_gCgC(step)-cmi_ncce_k50)))**(-1d0)) & 
+                 * ((1d0+exp(cmi_ncce_gradient_coef*(ncce_gradient-cmi_ncce_gradient_k50)))**(-1d0))
 
        ! Estimate the canopy mortality index - a function of temperature, labile pool size and NCCE
        ! First of all, if we are outside of the temperature range, then we have a CMI == 1

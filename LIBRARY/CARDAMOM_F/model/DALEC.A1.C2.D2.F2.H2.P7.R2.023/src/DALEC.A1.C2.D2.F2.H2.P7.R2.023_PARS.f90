@@ -211,11 +211,14 @@ module MODEL_PARAMETERS
     PI%parmin(43) = 0.10d0 !0.645
     PI%parmax(43) = 1.10d0 !0.911
 
-    ! NCCE per gCleaf at which
-    ! CMI is suppressed by 0.5
+    ! Parameters linking the NCCE to the CMI
+    ! via a logistic function. This is the NCCE
+    ! at which the CMI is suppressed by 0.5
     PI%parmin(44) = -0.5d0!0.0001d0 
     PI%parmax(44) =  0.5d0!0.5d0
-    ! Gradient for NCCE function for CMI logistic function
+    ! Parameters linking the NCCE to the CMI
+    ! via a logistic function. This is the gradient term
+    ! of the logistic function    
     PI%parmin(45) = 10d0
     PI%parmax(45) = 1000d0
 
@@ -237,8 +240,8 @@ module MODEL_PARAMETERS
     PI%parmax(49) =  0.10d0
 
     ! Parameters linking the NCCE gradient to the CMI
-    ! via a logistic function. This is the NCCE 50 % value
-    ! of the logistic function
+    ! via a logistic function. This is the NCCE gradient 
+    ! 50 % value of the logistic function
     PI%parmin(50) = -0.00001d0
     PI%parmax(50) = -0.005d0
 

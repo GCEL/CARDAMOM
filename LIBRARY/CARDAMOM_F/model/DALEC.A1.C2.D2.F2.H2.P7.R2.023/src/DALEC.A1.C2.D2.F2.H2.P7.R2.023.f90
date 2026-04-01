@@ -3498,9 +3498,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! Estimate the canopy mortality index following a Michaelis-Menten function
        !tmp = max(0d0,ncce_gCgC(step)) ! prevents negative values giving a positive function.
        !cmi(step) = 1d0 - (tmp / (tmp + cmi_ncce_k50))
-       ! Estimate the canopy mortality index following a logistic function
-       cmi(step) = ((1d0+exp(cmi_ncce_coef*(ncce_gCgC(step)-cmi_ncce_k50)))**(-1d0)) & 
-                 * ((1d0+exp(cmi_ncce_gradient_coef*(ncce_gradient-cmi_ncce_gradient_k50)))**(-1d0))
+       ! Estimate the canopy mortality index following a logistic function,
+       ! initally calculated as the reverse of the desired function for both for the combination.
+       ! i.e. cmi increases with greater ncce, cmi increases with greater (+ve) ncce gradient, 
+       ! which we then reverse into the intended
+       cmi(step) = 1d0 - (((1d0+exp(cmi_ncce_coef*(cmi_ncce_k50-ncce_gCgC(step))))**(-1d0)) * & 
+                          ((1d0+exp(cmi_ncce_gradient_coef*(cmi_ncce_gradient_k50-ncce_gradient)))**(-1d0)))
 
        ! We can only allocate if we have labile to spend and a CGI gradient above the leaf phenology threshold.
        if (cgi_gradient > cgi_phenology_threshold .and. cgi(step) > vsmall .and. available_labile > 0d0) then
