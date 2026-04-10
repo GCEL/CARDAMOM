@@ -3143,7 +3143,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H2.P1.004") {
-      output_dim = 68 ; MTT_dim = 6 ; SS_dim = 6
+      output_dim = 70 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       tmp=.Fortran( "rdalec4",output_dim=as.integer(output_dim)
                              ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -3349,6 +3349,8 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       hydraulic_conductivity_ms = output[,,66],
                       soil_waterpot_MPa = output[,,67],
                       field_capacity = output[,,68],
+                      porosity = output[,,69],
+                      water_balance_mm = output[,,70],
                       # Canopy (phenology) properties
                       lai_m2m2 = output[,,56],
                       mean_lai_m2m2 = output_mean[,56],
@@ -7777,7 +7779,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H4.P1.032") {
-    output_dim = 69 ; MTT_dim = 6 ; SS_dim = 6
+    output_dim = 88 ; MTT_dim = 6 ; SS_dim = 6
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
     tmp=.Fortran( "rdalec32",output_dim=as.integer(output_dim)
                   ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -7984,6 +7986,25 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       relative_waterfrac_m3m3 = output[,,67],
       soil_waterpot_MPa = output[,,68],
       field_capacity = output[,,69],
+      water_balance_mm = output[,,70],
+      rainfall_in_kgH2Om2day = output[,,71],
+      SurfWater_2_kgH2Om2 = output[,,72],
+      SurfWater_3_kgH2Om2 = output[,,73],
+      SurfWater_1_m3m3 = output[,,74],
+      SurfWater_2_m3m3 = output[,,75],
+      SurfWater_3_m3m3 = output[,,76],
+      L2Drainage_kgH2Om2day = output[,,77],
+      L3Drainage_kgH2Om2day = output[,,78],
+      infiltrated_L1_kgH2Om2day = output[,,79],
+      infiltrated_L2_kgH2Om2day = output[,,80],
+      infiltrated_L3_kgH2Om2day = output[,,81],
+      Runoff_dew_kgH2Om2day = output[,,82],
+      Layer_thickness_1_m = output[,,83],
+      Layer_thickness_2_m = output[,,84],
+      Layer_thickness_3_m = output[,,85],
+      Layer_thickness_4_m = output[,,86],
+      Water_change_L2_kgH2Om2 = output[,,87],
+      Depth_change_L2_m = output[,,88],
       # Canopy (phenology) properties
       lai_m2m2 = output[,,56],
       mean_lai_m2m2 = output_mean[,56],
