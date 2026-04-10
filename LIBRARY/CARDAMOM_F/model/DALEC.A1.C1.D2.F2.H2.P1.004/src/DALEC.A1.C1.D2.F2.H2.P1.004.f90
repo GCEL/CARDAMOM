@@ -818,11 +818,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     POOLS(1,7) = 1d3 * soil_waterfrac(1) * layer_thickness(1)
 
     do n = start, finish
-
        !!!!!!!!!!
        ! assign drivers and update some prognostic variables
        !!!!!!!!!!
-
+print*, "start", start
        ! Incoming drivers
        mint = met(2,n)  ! minimum temperature (oC)
        maxt = met(3,n)  ! maximum temperature (oC)
@@ -2631,11 +2630,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     !       For example, can we check how the various terms are changing and whether 
     !       we can assume an average for the rest of the time step?
     do day = 1, nint(days_per_step)
+  
        ! Possible conditions for avoiding looping all days
        ! 1) When drythick == min_drythick and rainfall_in > Esoil in first day
        ! 2) If initially, drythick > min_drythick, but rainfall_in > Esoil, iteration can stop once drythick == min_drythick
        ! 3) If drythick == min_drythick and rainfall_in < Esoil in first day, iteration can still be avoided if the time step multiple does not result in drythick >  min_drythick
        ! 4) 
+
 
        !!!!!!!!!!
        ! Evaporative losses
@@ -2690,6 +2691,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! NOTE: layer_thickness * 1d3 scales between m3/m3 to kg/m2
        ! Worth investigating whether this term is actually important, dew formation in unlikely
        ! to be large. Therefore, maybe a conditional statment and calculation unrequired
+	  ! print*, "swc, porosity", soil_waterfrac, porosity
        if (soil_waterfrac(1) > porosity(1)) then
            runoff = runoff + ((soil_waterfrac(1)-porosity(1)) * layer_thickness(1) * 1d3)
            soil_waterfrac(1) = porosity(1)
@@ -2716,6 +2718,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
        ! Determine drainage flux between surface -> sub surface
        call gravitational_drainage(1)
+
 
     end do ! days_per_step
 
@@ -2842,7 +2845,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
              - initial_soilwater)
 !
 !    if (abs(balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
-        print*,"water balance",balance_2
+!        print*,"water balance",balance_2
 !        print*,"Initial_soilwater (mm) = ",initial_soilwater
 !        print*,"Final_soilwater (mm) = ",sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
 !        print*,"State balance = ",sum(soil_waterfrac(1:nos_soil_layers)*layer_thickness(1:nos_soil_layers)*1d3)-initial_soilwater

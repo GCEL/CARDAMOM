@@ -43,7 +43,15 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
 							  residual_waterfrac, porosity, pore_size_dist,&
 							  air_entry, sat_conductivity, &
 							  conductivity_time, relative_waterfrac_time, &
-							  swp_time, field_capacity_time, wb_time
+							  swp_time, field_capacity_time, wb_time, &
+							  rainfall_in_time, soil_waterfrac_2_time, &
+							  soil_waterfrac_3_time, soil_waterfrac_1_m3m3_time, &
+							  soil_waterfrac_2_m3m3_time, soil_waterfrac_3_m3m3_time, &
+							  water_grav_flow_2_time, water_grav_flow_3_time, &
+							  infiltrated_L1_time, infiltrated_L2_time, infiltrated_L3_time, &
+							  runoff_dew_time, Layer_thickness_time1,Layer_thickness_time2, &
+							  Layer_thickness_time3, Layer_thickness_time4, &
+							  water_change_Layer_time, depth_change_Layer_time
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by
@@ -219,6 +227,25 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
 	 out_var1(i,1:nodays,68) = swp_time(1:nodays)          ! Soil water potential 
      out_var1(i,1:nodays,69) = field_capacity_time(1:nodays) ! Field capacity
      out_var1(i,1:nodays,70) = wb_time(1:nodays)
+	 out_var1(i,1:nodays,71) = rainfall_in_time(1:nodays)  ! Rainfall for infiltration
+	 out_var1(i,1:nodays,72) = soil_waterfrac_2_time(1:nodays) ! ! surface water (kgH2O.m-2. layer 2)
+	 out_var1(i,1:nodays,73) = soil_waterfrac_3_time(1:nodays) ! ! surface water (kgH2O.m-2. layer 3)
+     out_var1(i,1:nodays,74) = soil_waterfrac_1_m3m3_time(1:nodays)
+     out_var1(i,1:nodays,75) = soil_waterfrac_2_m3m3_time(1:nodays)
+     out_var1(i,1:nodays,76) = soil_waterfrac_3_m3m3_time(1:nodays)
+	 out_var1(i,1:nodays,77) = water_grav_flow_2_time(1:nodays)
+	 out_var1(i,1:nodays,78) = water_grav_flow_3_time(1:nodays)
+	 out_var1(i,1:nodays,79) = infiltrated_L1_time(1:nodays)
+	 out_var1(i,1:nodays,80) = infiltrated_L2_time(1:nodays)
+	 out_var1(i,1:nodays,81) = infiltrated_L3_time(1:nodays)
+     out_var1(i,1:nodays,82) = runoff_dew_time(1:nodays)
+     out_var1(i,1:nodays,83) = Layer_thickness_time1(1:nodays)
+     out_var1(i,1:nodays,84) = Layer_thickness_time2(1:nodays)
+	 out_var1(i,1:nodays,85) = Layer_thickness_time3(1:nodays)
+	 out_var1(i,1:nodays,86) = Layer_thickness_time4(1:nodays)
+     out_var1(i,1:nodays,87) = water_change_Layer_time(1:nodays)
+	 out_var1(i,1:nodays,88) = depth_change_Layer_time(1:nodays)
+
 	 !
 	 ! Calculate long-term mean of out_var1
      !

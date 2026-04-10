@@ -70,7 +70,25 @@ module CARBON_MODEL_MOD
            ,relative_waterfrac_time &
            ,swp_time                &
            ,field_capacity_time     &
-           ,wb_time
+           ,wb_time                 &
+		   ,rainfall_in_time        &
+		   ,soil_waterfrac_2_time   &
+		   ,soil_waterfrac_3_time   &
+		   ,soil_waterfrac_1_m3m3_time &
+		   ,soil_waterfrac_2_m3m3_time &
+		   ,soil_waterfrac_3_m3m3_time &
+		   ,water_grav_flow_2_time  &
+		   ,water_grav_flow_3_time  &
+		   ,infiltrated_L1_time     &
+		   ,infiltrated_L2_time     &
+		   ,infiltrated_L3_time     &
+		   ,runoff_dew_time         &
+		   ,Layer_thickness_time1   &
+		   ,Layer_thickness_time2   &
+		   ,Layer_thickness_time3   &
+		   ,Layer_thickness_time4   &
+		   ,water_change_Layer_time &
+		   ,depth_change_Layer_time 
 
   !!!!!!!!!
   ! Parameters
@@ -265,7 +283,13 @@ module CARBON_MODEL_MOD
                            !canopy_snow_storage, & ! snow storage on soil surface (kgH2O/m2)
                                 canopy_storage, & ! water storage on canopy (kgH2O.m-2)
                           intercepted_rainfall, & ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
-                            soil_water_balance    ! soil water balance
+                            soil_water_balance, & ! soil water balance
+							    infiltrated_L1, & ! infiltration layer 1
+								infiltrated_L2, & ! infiltration layer 2
+								infiltrated_L3, & ! infiltration layer 3
+								    runoff_dew, & ! Runoff generated from dew
+							water_change_Layer, & ! Water generated from change in layer thickness
+							depth_change_Layer
   ! Module level variables for ACM_GPP_ET parameters
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                             ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
@@ -318,7 +342,25 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                   relative_waterfrac_time, &
                         						 swp_time, &
 									  field_capacity_time, &
-									              wb_time
+									              wb_time, &
+										 rainfall_in_time, &
+									soil_waterfrac_2_time, &
+									soil_waterfrac_3_time, &
+							   soil_waterfrac_1_m3m3_time, &
+							   soil_waterfrac_2_m3m3_time, &
+							   soil_waterfrac_3_m3m3_time, &
+							       water_grav_flow_2_time, &
+								   water_grav_flow_3_time, &
+								      infiltrated_L1_time, &
+									  infiltrated_L2_time, &
+									  infiltrated_L3_time, &
+									      runoff_dew_time, &
+								    Layer_thickness_time1, &
+									Layer_thickness_time2, &
+									Layer_thickness_time3, &
+									Layer_thickness_time4, &
+								  water_change_Layer_time, &
+								  depth_change_Layer_time
   contains
   !
   !--------------------------------------------------------------------
@@ -392,7 +434,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                        ,coarse_root_residue          &
                        ,soil_loss_with_roots
 
-    integer :: harvest_management,n
+    integer :: harvest_management,n, iteration_count
+	iteration_count = 0
+
 
     ! met drivers are:
     ! 1st run day
@@ -520,7 +564,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                     ! This is in the full model the product of Nitrogen use efficiency (umolC/gN/m2leaf)
                     ! and average foliar nitrogen gN/m2leaf
     ! Rooting parameters
-    root_k = pars(26) ; max_depth = pars(27)
+    root_k = pars(26)/5d0 ; max_depth = pars(27)
 
     ! assigning initial conditions
     if (start == 1) then
@@ -539,7 +583,16 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
 				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays), &
-				 field_capacity_time(nodays), wb_time(nodays))
+				 field_capacity_time(nodays), wb_time(nodays), rainfall_in_time(nodays), &
+				 soil_waterfrac_2_time(nodays+1), soil_waterfrac_3_time(nodays+1), &
+				 soil_waterfrac_1_m3m3_time(nodays+1), soil_waterfrac_2_m3m3_time(nodays+1), &
+                 soil_waterfrac_3_m3m3_time(nodays+1), water_grav_flow_2_time(nodays), &
+                 water_grav_flow_3_time(nodays), infiltrated_L1_time(nodays), &
+				 infiltrated_L2_time(nodays), infiltrated_L3_time(nodays), &
+                 runoff_dew_time(nodays), Layer_thickness_time1(nodays), &
+                 Layer_thickness_time2(nodays), Layer_thickness_time3(nodays), &
+                 Layer_thickness_time4(nodays), water_change_Layer_time(nodays), &
+                 depth_change_Layer_time(nodays) ) 
 
         !
         ! Timing variables which are needed first
@@ -792,6 +845,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Initialise root reach based on initial coarse root biomass
     fine_root_biomass = max(min_root,POOLS(1,3)*2d0)
     root_biomass = fine_root_biomass + max(min_root,POOLS(1,4)*pars(25)*2d0)
+	
     ! calculate soil depth to which roots reach - needed here to set up
     ! layer_thickness correctly!
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
@@ -801,20 +855,24 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     layer_thickness(4) = top_soil_depth
     previous_depth = sum(layer_thickness(1:2))
     ! Needed to initialise soils
-	
     call calculate_Rtot
 	
+	!print*, porosity 
+	!print*, residual_waterfrac
+	!print*, sat_conductivity
+    !print*,	pore_size_dist
+	!print*, air_entry
     call calculate_update_soil_water(transpiration,soilevaporation,snowsublimation,&
                                      0d0,FLUXES(1,29)) ! assume no evap or rainfall
-
     ! Store soil water content of the surface zone (mm)
     POOLS(1,7) = 1d3 * soil_waterfrac(1) * layer_thickness(1)
-    
-	!print*,"swc before loop",soil_waterfrac
-
-
-    do n = start, finish
+    soil_waterfrac_2_time(1) = 1d3 * soil_waterfrac(2) * layer_thickness(2)
+	soil_waterfrac_3_time(1) = 1d3 * soil_waterfrac(3) * layer_thickness(3)
+	soil_waterfrac_1_m3m3_time(1) = soil_waterfrac(1)
+	soil_waterfrac_2_m3m3_time(1) = soil_waterfrac(2)
+    soil_waterfrac_3_m3m3_time(1) = soil_waterfrac(3)
 	
+    do n = start, finish
 	!print*,"swc begining loop",soil_waterfrac
 
        !!!!!!!!!!
@@ -851,36 +909,36 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !!!!!!!!!!
 
        ! snowing or not...?
-       if (((mint + maxt) * 0.5d0) > 0d0) then
+ !      if (((mint + maxt) * 0.5d0) > 0d0) then
            ! on average above freezing so no snow
-           snowfall = 0d0
-       else
+         !  snowfall = 0d0
+ !      else
            ! on average below freezing, so some snow based on proportion of temperature
            ! below freezing
-           snowfall = rainfall * (1d0 - airt_zero_fraction) ; rainfall = rainfall - snowfall
+          ! snowfall = rainfall * (1d0 - airt_zero_fraction) ; rainfall = rainfall - snowfall
            ! Add rainfall to the snowpack and clear rainfall variable
-           snow_storage = snow_storage + (snowfall*seconds_per_step)
-       end if
+           !snow_storage = snow_storage + (snowfall*seconds_per_step)
+ !      end if
 
        ! melting or not...?
-       if (mint < 0d0 .and. maxt > 0d0) then
+!       if (mint < 0d0 .and. maxt > 0d0) then
            ! Also melt some of the snow based on airt_zero_fraction
            ! default assumption is that snow is melting at 10 % per day hour above freezing
-           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * 0.1d0 * deltat(n))
-           snow_storage = snow_storage - snow_melt
+!           snow_melt = min(snow_storage, airt_zero_fraction * snow_storage * 0.1d0 * deltat(n))
+!           snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
-           snow_melt = snow_melt / seconds_per_step
-       elseif (maxt < 0d0) then
-           snow_melt = 0d0
-       else if (mint > 0d0 .and. snow_storage > 0d0) then
+ !          snow_melt = snow_melt / seconds_per_step
+ !      elseif (maxt < 0d0) then
+ !          snow_melt = 0d0
+ !      else if (mint > 0d0 .and. snow_storage > 0d0) then
            ! otherwise we assume snow is melting at 10 % per day above hour
-           snow_melt = min(snow_storage, snow_storage * 0.1d0 * deltat(n))
-           snow_storage = snow_storage - snow_melt
+  !         snow_melt = min(snow_storage, snow_storage * 0.1d0 * deltat(n))
+  !         snow_storage = snow_storage - snow_melt
            ! adjust to rate for later addition to rainfall
-           snow_melt = snow_melt / seconds_per_step
-       else
-           snow_melt = 0d0
-       end if
+  !         snow_melt = snow_melt / seconds_per_step
+  !     else
+  !         snow_melt = 0d0
+   !    end if
        DIAGS(n,2) = snow_storage
 
        !!!!!!!!!!
@@ -1028,7 +1086,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        POOLS(n+1,4) = POOLS(n,4) + (FLUXES(n,7)-FLUXES(n,11))*deltat(n)
        ! root pool
        POOLS(n+1,3) = POOLS(n,3) + (FLUXES(n,6) - FLUXES(n,12))*deltat(n)
-       ! litter pool
+	   ! litter pool
        POOLS(n+1,5) = POOLS(n,5) + (FLUXES(n,10)+FLUXES(n,12)-FLUXES(n,13)-FLUXES(n,15))*deltat(n)
        ! som pool
        POOLS(n+1,6) = POOLS(n,6) + (FLUXES(n,15)-FLUXES(n,14)+FLUXES(n,11))*deltat(n)
@@ -1044,21 +1102,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! do mass balance (i.e. is there enough water to support ET)
 	   
 	   
-	   print*, "porosity", porosity
-	   print*, "residual_waterfrac", residual_waterfrac
-	   print*, "n", pore_size_dist
-	   print*, "alpha", air_entry
-	   print*, "Ks", sat_conductivity
-	   
 
        call calculate_update_soil_water(transpiration,soilevaporation,snowsublimation, &
                                         ((rainfall-intercepted_rainfall)*seconds_per_day) &
                                        ,FLUXES(n,29))
-!    print*,"swc, water_grav_flow",soil_waterfrac,water_grav_flow
 
-	   
-		!print*,"swc after update_soils inside loop ",soil_waterfrac
-	   !print*, "a4", runoff
+	  iteration_count = iteration_count + 1
 
        ! now that soil mass balance has been updated we can add the wet canopy
        ! evaporation (kgH2O.m-2.day-1)
@@ -1070,17 +1119,39 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,42) = soilevaporation ! soil evaporation
        FLUXES(n,43) = wetcanopy_evap  ! wet canopy evaporation
        FLUXES(n,44) = runoff          ! soil surface runoff
-	   !print*, "a6", runoff
        FLUXES(n,45) = underflow       ! drainage from bottom of soil column
        FLUXES(n,46) = water_grav_flow(1) ! drainage from the surface soil layer to 2nd
        FLUXES(n,47) = infiltrated     ! soil surface infiltration by rain
        FLUXES(n,48) = uptake_fraction(1) ! transpiration fraction extracted from 1st rooting layer (the soil surface)
        FLUXES(n,49) = uptake_fraction(2) ! transpiration fraction extracted from 2nd rooting layer (dynamic 2nd layer)
+	
+	!print*, iteration_count
+	!if (iteration_count == 130) then
+     ! print *, "Stopping after 130 day"
+      !stop
+    !end if
 
 	     ! Printing or passing to output variable?
        swp_time(n) = SWP(1)
        wb_time(n) = soil_water_balance
-
+       rainfall_in_time(n) = (rainfall-intercepted_rainfall)*seconds_per_day
+	   soil_waterfrac_2_time(n+1) = 1d3 * soil_waterfrac(2) * layer_thickness(2)
+	   soil_waterfrac_3_time(n+1) = 1d3 * soil_waterfrac(3) * layer_thickness(3)
+	   soil_waterfrac_1_m3m3_time(n+1) = soil_waterfrac(1)
+	   soil_waterfrac_2_m3m3_time(n+1) = soil_waterfrac(2)
+       soil_waterfrac_3_m3m3_time(n+1) = soil_waterfrac(3)
+	   water_grav_flow_2_time(n) = water_grav_flow(2)
+	   water_grav_flow_3_time(n) = water_grav_flow(3)
+	   infiltrated_L1_time(n) = infiltrated_L1
+	   infiltrated_L2_time(n) = infiltrated_L2
+	   infiltrated_L3_time(n) = infiltrated_L3 
+	   runoff_dew_time(n) = runoff_dew
+	   Layer_thickness_time1(n) = layer_thickness(1)
+	   Layer_thickness_time2(n) = layer_thickness(2)
+	   Layer_thickness_time3(n) = layer_thickness(3)
+	   Layer_thickness_time4(n) = layer_thickness(4)
+	   water_change_Layer_time(n) = water_change_Layer
+	   depth_change_Layer_time(n) = depth_change_Layer
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
        !!!!!!!!!!
@@ -1886,7 +1957,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     end do
     ! Convert from relative water fraction (0-1) to actual field capacity (m3/m3)
     field_capacity = ((porosity - residual_waterfrac) * field_capacity) + residual_waterfrac
-    field_capacity(nos_soil_layers+1) = field_capacity(nos_soil_layers)
+    
+	!field_capacity(nos_soil_layers+1) = field_capacity(nos_soil_layers) 
+	field_capacity(nos_soil_layers+1) = porosity(nos_soil_layers+1) * 0.99d0
 	!print*, "Field Capacity", 
 	
 	
@@ -2636,8 +2709,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! set soil water exchanges
     Esoil = 0d0 ; Esnow = 0d0 ; corrected_ET = 0d0 ; evaporation_losses = 0d0
     underflow = 0d0 ; runoff = 0d0 ; infiltrated = 0d0 ; water_grav_flow = 0d0 ; pot_evap_losses = 0d0
+	infiltrated_L1 = 0d0 ; infiltrated_L2 = 0d0 ; infiltrated_L3 = 0d0 ; runoff_dew = 0d0 
+	water_change_Layer = 0d0 ; depth_change_Layer = 0d0
+	
+	!print*, "a1" , initial_soilwater, sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
     initial_soilwater = 1d3 * sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers))
-
+  
+	
     !! Assume leaf transpiration is drawn from the soil based on the
     !! update_fraction estimated in calculate_Rtot
     pot_evap_losses = Eleaf * uptake_fraction
@@ -2716,24 +2794,19 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
        ! adjust water already committed to evaporation
        ! convert kg.m-2 (or mm) -> Mg.m-2 (or m)
-	   !print*, "aa", soil_waterfrac
        soil_waterfrac(1:nos_root_layers) = soil_waterfrac(1:nos_root_layers) &
                                          + ((-evaporation_losses(1:nos_root_layers)*1d-3) / layer_thickness(1:nos_root_layers))
-	   !print*, "aa1", soil_waterfrac
 
        ! Correct for dew formation; any water above porosity in the top layer is assumed runoff
        ! NOTE: layer_thickness * 1d3 scales between m3/m3 to kg/m2
        ! Worth investigating whether this term is actually important, dew formation in unlikely
        ! to be large. Therefore, maybe a conditional statment and calculation unrequired
-	   !print*, "a1", soil_waterfrac(1), porosity(1)
        
-	   
 	   if (soil_waterfrac(1) > porosity(1)) then
            runoff = runoff + ((soil_waterfrac(1)-porosity(1)) * layer_thickness(1) * 1d3)
-		!   print*, "a2", runoff, soil_waterfrac(1), porosity(1)
            soil_waterfrac(1) = porosity(1)
        endif
-	   print*, "a3", soil_waterfrac(1), porosity(1), runoff
+       runoff_dew = runoff 
        !!!!!!!!!!
        ! Rainfall infiltration drainage
        !!!!!!!!!!
@@ -2742,22 +2815,20 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        ! if rainfall is probably liquid / soil surface is probably not frozen
        ! reset soil water change variable
        waterchange = 0d0
-	   !print *, 'soil_waterfrac before infiltration', soil_waterfrac
 	   
       call infiltrate(rainfall_in)
-	   
-	   !print*, "a4", runoff
+
        ! update soil profiles. Convert fraction into depth specific values
        ! (rather than m3/m3) then update fluxes
        soil_waterfrac(1:nos_soil_layers) = soil_waterfrac(1:nos_soil_layers) &
-                                         + (waterchange(1:nos_soil_layers) / layer_thickness(1:nos_soil_layers))
-       ! soil waterchange variable reset in gravitational_drainage()
-	   !print*, "aa3", soil_waterfrac
+                                         + (waterchange(1:nos_soil_layers) / layer_thickness(1:nos_soil_layers)) 
+       
+
+	   ! soil waterchange variable reset in gravitational_drainage()
 
        !!!!!!!!!!
        ! Gravitational drainage
        !!!!!!!!!!
-		!print *, 'soil_waterfrac', soil_waterfrac
 
        ! Determine drainage flux between surface -> sub surface
        call gravitational_drainage(1)
@@ -2770,10 +2841,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     corrected_ET = corrected_ET * days_per_step_1
     underflow = underflow * days_per_step_1
     runoff = runoff * days_per_step_1
-	!print*, "a5", runoff
     Esoil = Esoil * days_per_step_1
     Esnow = Esnow * days_per_step_1
-
+	infiltrated_L1 = infiltrated_L1 * days_per_step_1
+	infiltrated_L2 = infiltrated_L2 * days_per_step_1
+    infiltrated_L3 = infiltrated_L3 * days_per_step_1
+    runoff_dew = runoff_dew * days_per_step_1
+	
     ! Based on the soil mass balance corrected_ET, make assumptions to correct Eleaf and Esnow
     soil_water_balance = (corrected_ET-Eleaf) / Esoil
     if (soil_water_balance < 1d0 .and. soil_water_balance > 0d0) Esoil = Esoil * soil_water_balance
@@ -2784,10 +2858,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     !!!!!!!!!!
     ! Update soil layer thickness
     !!!!!!!!!!
-
     depth_change = (top_soil_depth+min_layer) ; water_change = 0
-    ! if roots extent down into the bucket
-    if (root_reach > depth_change .and. previous_depth <= depth_change) then
+	
+    if (root_reach > depth_change ) then
 
         !!!!!!!!!!
         ! Soil profile is within the bucket layer (layer 3)
@@ -2800,7 +2873,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
             ! how much has root depth extended since last step?
             depth_change = root_reach - depth_change
         endif
-
+       depth_change_Layer = depth_change
         ! if there has been an increase
         if (depth_change > 0.05d0) then
 
@@ -2809,13 +2882,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
             ! now assign that new volume of water to the deep rooting layer
             soil_waterfrac(nos_root_layers) = ((soil_waterfrac(nos_root_layers)*layer_thickness(nos_root_layers))+water_change) &
                                             / (layer_thickness(nos_root_layers)+depth_change)
-
             ! explicitly update the soil profile if there has been rooting depth
             ! changes
             layer_thickness(1) = top_soil_depth
             layer_thickness(2) = root_reach - top_soil_depth
             layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
-
             ! keep track of the previous rooting depth
             previous_depth = root_reach
 
@@ -2877,22 +2948,22 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         previous_depth = previous_depth
 
     endif ! root reach beyond top layer
-	
+    water_change_Layer = water_change * 1d3
 	
     ! Update soil water potential
     call soil_water_potential
-    !print*,"SWP",SWP
 
     ! check water balance
     soil_water_balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
 	
+
     soil_water_balance = soil_water_balance &
                        - (sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3) - initial_soilwater)
+	
 
-!
-    !if (abs(soil_water_balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
+  if (abs(soil_water_balance) > 1d-6 .or. soil_waterfrac(1) < -1d-6) then
        
-	 !  print*,"Water Balance (mm)",soil_water_balance
+	  print*,"Water Balance (mm)",soil_water_balance
 !        print*,"Initial_soilwater (mm) = ",initial_soilwater
 !        print*,"Final_soilwater (mm) = ",sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
 !        print*,"State balance = ",sum(soil_waterfrac(1:nos_soil_layers)*layer_thickness(1:nos_soil_layers)*1d3)-initial_soilwater
@@ -2901,7 +2972,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 !        print*,"Rainfall (mm/step)",rainfall_in,"ET",corrected_ET,"underflow",underflow,"runoff",runoff
 !        print*,"Rainfall (kgH2O/m2/s)",rainfall
 !        print*,"Soil Water Fraction = ",soil_waterfrac
-  !  end if ! abs(balance) > 1d-10
+   end if ! abs(balance) > 1d-10
 
     ! explicit return needed to ensure that function runs all needed code
     return
@@ -2931,8 +3002,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     add = rainfall_in * 1d-3
 
 	
-    do i = 1 , nos_soil_layers
-
+   do i = 1 , nos_soil_layers
+  !  do i = 1, nos_soil_layers
        ! is the input of water greater than available space
        ! if so fill and subtract from input and move on to the next
        ! layer determine the available pore space in current soil layer
@@ -2953,8 +3024,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! if after all of this we have some water left assume it is runoff (kgH2O.m-2.day-1)
     ! NOTE that runoff is reset outside of the daily soil loop
     runoff = runoff + (add * 1d3)
-    infiltrated = infiltrated + (waterchange(1) * 1d3)
-
+	!infiltrated = infiltrated + (waterchange(1) * 1d3)
+    infiltrated = infiltrated + (sum(waterchange) * 1d3)
+	infiltrated_L1 = infiltrated_L1 + (waterchange(1) * 1d3)
+	infiltrated_L2 = infiltrated_L2 + (waterchange(2) * 1d3)
+	infiltrated_L3 = infiltrated_L3 + (waterchange(3) * 1d3 )
   end subroutine infiltrate
   !
   !-----------------------------------------------------------------
@@ -2992,7 +3066,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! except the surface layer in the mean daily temperature is < 0oC
     if (meant < 1d0) iceprop(1) = 1d0
-
     ! zero water fluxes
     waterchange = 0d0
 
@@ -3088,9 +3161,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
           end if ! some liquid water and drainage possible
 	!
        end do ! soil layers
-	
-  !     
-
+!
        ! update soil water profile
        soil_waterfrac(1:nos_soil_layers) = soil_waterfrac(1:nos_soil_layers) &
                                          + (waterchange(1:nos_soil_layers)/layer_thickness(1:nos_soil_layers))
@@ -3199,14 +3270,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     do i = 1, nos_soil_layers
        call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
     end do ! soil layers
-	!print*, "check 3",soil_waterfrac
 
     ! but apply the lowest soil layer to the core as well in initial conditions
     relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
 
     ! calculate soil water potential (MPa)
     call soil_water_potential
-	!print*, "check 4",soil_waterfrac
 
 
     ! Separately calculate the soil conductivity as this applies to each layer
@@ -3215,7 +3284,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     end do ! soil layers
     ! but apply the lowest soil layer to the core as well in initial conditions
     soil_conductivity(nos_soil_layers+1) = soil_conductivity(nos_soil_layers)
-	!print*, "check 5",soil_waterfrac
 
   end subroutine update_soil_initial_conditions
   !
