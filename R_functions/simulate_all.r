@@ -7779,7 +7779,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
     # Tidy up variables
     rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H4.P1.032") {
-    output_dim = 88 ; MTT_dim = 6 ; SS_dim = 6
+    output_dim = 89 ; MTT_dim = 6 ; SS_dim = 6
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
     tmp=.Fortran( "rdalec32",output_dim=as.integer(output_dim)
                   ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -8005,6 +8005,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       Layer_thickness_4_m = output[,,86],
       Water_change_L2_kgH2Om2 = output[,,87],
       Depth_change_L2_m = output[,,88],
+      WTD_m = output[,,89],
       # Canopy (phenology) properties
       lai_m2m2 = output[,,56],
       mean_lai_m2m2 = output_mean[,56],
