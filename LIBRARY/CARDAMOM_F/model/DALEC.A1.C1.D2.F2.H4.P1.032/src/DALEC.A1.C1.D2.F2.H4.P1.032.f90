@@ -88,7 +88,8 @@ module CARBON_MODEL_MOD
 		   ,Layer_thickness_time3   &
 		   ,Layer_thickness_time4   &
 		   ,water_change_Layer_time &
-		   ,depth_change_Layer_time 
+		   ,depth_change_Layer_time &
+           ,WTD_time		   
 
   !!!!!!!!!
   ! Parameters
@@ -289,7 +290,8 @@ module CARBON_MODEL_MOD
 								infiltrated_L3, & ! infiltration layer 3
 								    runoff_dew, & ! Runoff generated from dew
 							water_change_Layer, & ! Water generated from change in layer thickness
-							depth_change_Layer
+							depth_change_Layer, & ! change in layer depth
+							               WTD    ! Water table depth
   ! Module level variables for ACM_GPP_ET parameters
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                             ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
@@ -360,7 +362,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 									Layer_thickness_time3, &
 									Layer_thickness_time4, &
 								  water_change_Layer_time, &
-								  depth_change_Layer_time
+								  depth_change_Layer_time, &
+								                 WTD_time
   contains
   !
   !--------------------------------------------------------------------
@@ -592,7 +595,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                  runoff_dew_time(nodays), Layer_thickness_time1(nodays), &
                  Layer_thickness_time2(nodays), Layer_thickness_time3(nodays), &
                  Layer_thickness_time4(nodays), water_change_Layer_time(nodays), &
-                 depth_change_Layer_time(nodays) ) 
+                 depth_change_Layer_time(nodays), WTD_time(nodays) ) 
 
         !
         ! Timing variables which are needed first
@@ -1128,7 +1131,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	!print*, iteration_count
 	!if (iteration_count == 130) then
      ! print *, "Stopping after 130 day"
-      !stop
+     ! stop
     !end if
 
 	     ! Printing or passing to output variable?
@@ -1152,6 +1155,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   Layer_thickness_time4(n) = layer_thickness(4)
 	   water_change_Layer_time(n) = water_change_Layer
 	   depth_change_Layer_time(n) = depth_change_Layer
+	   WTD_time(n) = WTD 
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
        !!!!!!!!!!
@@ -2710,7 +2714,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     Esoil = 0d0 ; Esnow = 0d0 ; corrected_ET = 0d0 ; evaporation_losses = 0d0
     underflow = 0d0 ; runoff = 0d0 ; infiltrated = 0d0 ; water_grav_flow = 0d0 ; pot_evap_losses = 0d0
 	infiltrated_L1 = 0d0 ; infiltrated_L2 = 0d0 ; infiltrated_L3 = 0d0 ; runoff_dew = 0d0 
-	water_change_Layer = 0d0 ; depth_change_Layer = 0d0
+	water_change_Layer = 0d0 ; depth_change_Layer = 0d0 ; WTD = 0d0
 	
 	!print*, "a1" , initial_soilwater, sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
     initial_soilwater = 1d3 * sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers))
@@ -2952,6 +2956,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	
     ! Update soil water potential
     call soil_water_potential
+	
+	! Estimate Water Table Depth using Soil water potential method 
+	! Dimitrov et al 2022
+	WTD = 100d0*SWP(1) + layer_thickness(1)
 
     ! check water balance
     soil_water_balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
