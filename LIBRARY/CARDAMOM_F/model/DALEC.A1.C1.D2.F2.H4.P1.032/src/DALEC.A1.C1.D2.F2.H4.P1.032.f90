@@ -2958,8 +2958,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     call soil_water_potential
 	
 	! Estimate Water Table Depth using Soil water potential method 
-	! Dimitrov et al 2022
-	WTD = 100d0*SWP(1) + layer_thickness(1)
+	! Dimitrov et al 2022 related water table depth to soil water potential and layer thickness 
+	! by using the hydraulic head to convert SWP from MPa to meters of head.
+	
+	WTD = head*SWP(1) + layer_thickness(1)
 
     ! check water balance
     soil_water_balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
@@ -3394,9 +3396,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Description:
     ! SWP is the negative suction that water experiences in the soil due to capillary and adsorptive forces.
     ! It also controls how water moves through the soil and how much of it can be available to plants. In the VGM model
-    ! SWP estimation depends on relative water fraction, which depends on water fraction, and the VGM parameters
-    ! porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). The units for the SWP in VGM model are meters,
-    ! here we convert meters to MPa by multiplying by gravity to the minus 6 (g_ms2*0.001).
+    ! SWP estimation depends on relative water fraction, which depends on water fraction (soil_waterfrac), and the VGM parameters
+    ! porosity (m3/m3), residual water content (m3/m3), air entry pressure (m-1), and pore size distribution (-). 
+	! The units for the SWP in VGM model are meters of head, here we convert it to MPa by multiplying it by hydraulic head (head).
 
     implicit none
 
@@ -3404,7 +3406,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     integer :: i
 
     ! Estimate soil water potential using the VGM model and parameters
-    SWP = (g_ms2*1.0E-3) * (-1.0d0 / air_entry) * &
+    SWP = head * (-1.0d0 / air_entry) * &
           (relative_water_frac**(-1.0d0/m_pore_size_dist) - 1.0d0) ** (1.0d0/pore_size_dist)
 
     ! NOTE: profiling indicates that 'where' is slower for very short vectors
@@ -3595,7 +3597,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
    ! SWP estimation depends on relative water fraction, which depends on water fraction, and the VGM parameters
    ! porosity (m3/m3), air entry pressure (m-1), and pore size distribution (-). This estimation of SWP is used in the
    ! subroutine to estimate field capacity. The units for the SWP in VGM model are meters,
-   ! here we convert meters to KPa by multiplying by gravity(g_ms2).
+   ! here we convert meters to KPa by multiplying by gravity(g_ms2), this is equivalent to multiplyig the hydraulic head by water density.
 
    implicit none
 
