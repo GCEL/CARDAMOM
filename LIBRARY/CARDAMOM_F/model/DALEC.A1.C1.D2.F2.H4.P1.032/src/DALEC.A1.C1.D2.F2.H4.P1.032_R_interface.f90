@@ -52,7 +52,7 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
 							  runoff_dew_time, Layer_thickness_time1,Layer_thickness_time2, &
 							  Layer_thickness_time3, Layer_thickness_time4, &
 							  water_change_Layer_time, depth_change_Layer_time, &
-							  WTD_time
+							  WTD_time, root_length_time_L1, root_length_time_L2
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by
@@ -247,6 +247,9 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,87) = water_change_Layer_time(1:nodays)
 	 out_var1(i,1:nodays,88) = depth_change_Layer_time(1:nodays)
 	 out_var1(i,1:nodays,89) = WTD_time(1:nodays)
+	 out_var1(i,1:nodays,90) = root_length_time_L1(1:nodays)
+	 out_var1(i,1:nodays,91) = root_length_time_L2(1:nodays)
+
 	 !
 	 ! Calculate long-term mean of out_var1
      !

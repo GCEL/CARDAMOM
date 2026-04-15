@@ -89,7 +89,9 @@ module CARBON_MODEL_MOD
 		   ,Layer_thickness_time4   &
 		   ,water_change_Layer_time &
 		   ,depth_change_Layer_time &
-           ,WTD_time		   
+           ,WTD_time                &
+           ,root_length_time_L1     &
+           ,root_length_time_L2		   
 
   !!!!!!!!!
   ! Parameters
@@ -217,7 +219,8 @@ module CARBON_MODEL_MOD
   double precision, dimension(nos_root_layers) :: uptake_fraction, & ! fraction of water uptake from each root layer
                                                            demand, & ! maximum potential canopy hydraulic demand
                                             water_flux_mmolH2Om2s, & ! potential transpiration flux (mmolH2O.m-2.s-1)
-                                        conductance_mmolH2OMPam2s    ! Effective hydraulic resistance of each layer (mmolH2O.MPa-1.m-2.s-1)
+                                        conductance_mmolH2OMPam2s, & ! Effective hydraulic resistance of each layer (mmolH2O.MPa-1.m-2.s-1)
+										           root_length_out
   double precision, dimension(nos_soil_layers+1) :: SWP, & ! soil water potential (MPa)
                                       soil_conductivity, & ! soil conductivity
                                             waterchange, & ! net water change by specific soil layers (m)
@@ -292,6 +295,7 @@ module CARBON_MODEL_MOD
 							water_change_Layer, & ! Water generated from change in layer thickness
 							depth_change_Layer, & ! change in layer depth
 							               WTD    ! Water table depth
+								
   ! Module level variables for ACM_GPP_ET parameters
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                             ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
@@ -363,7 +367,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 									Layer_thickness_time4, &
 								  water_change_Layer_time, &
 								  depth_change_Layer_time, &
-								                 WTD_time
+								                 WTD_time, &
+									  root_length_time_L1, &
+									  root_length_time_L2
   contains
   !
   !--------------------------------------------------------------------
@@ -567,7 +573,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                     ! This is in the full model the product of Nitrogen use efficiency (umolC/gN/m2leaf)
                     ! and average foliar nitrogen gN/m2leaf
     ! Rooting parameters
-    root_k = pars(26)/5d0 ; max_depth = pars(27)
+    root_k = pars(26)/10d0 ; max_depth = pars(27)
 
     ! assigning initial conditions
     if (start == 1) then
@@ -595,7 +601,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                  runoff_dew_time(nodays), Layer_thickness_time1(nodays), &
                  Layer_thickness_time2(nodays), Layer_thickness_time3(nodays), &
                  Layer_thickness_time4(nodays), water_change_Layer_time(nodays), &
-                 depth_change_Layer_time(nodays), WTD_time(nodays) ) 
+                 depth_change_Layer_time(nodays), WTD_time(nodays), &
+                 root_length_time_L1(nodays), root_length_time_L2(nodays) ) 
 
         !
         ! Timing variables which are needed first
@@ -1156,6 +1163,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   water_change_Layer_time(n) = water_change_Layer
 	   depth_change_Layer_time(n) = depth_change_Layer
 	   WTD_time(n) = WTD 
+	   root_length_time_L1(n) = root_length_out(1)
+	   root_length_time_L2(n) = root_length_out(2)
+
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
        !!!!!!!!!!
@@ -2382,6 +2392,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! reset water flux
     total_water_flux = 0d0 ; water_flux_mmolH2Om2s = 0d0 ; wSWP = 0d0 ; rSWP = 0d0 ; Reff = 0d0
     slpa = 0d0 ; root_length = 0d0 ; root_mass = 0d0 ; Rcond_layer = 0d0 ; conductance_mmolH2OMPam2s = 0d0
+	root_length_out = 0d0
     ! calculate soil depth to which roots reach
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
     ! calculate the plant hydraulic resistance component. Currently unclear
@@ -2547,7 +2558,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! profile being dry while not losing leaves within some toleration.
         rSWP = sum(SWP(1:rooted_layer) * (Rcond_layer(1:rooted_layer) / sum(Rcond_layer(1:rooted_layer))))
     endif
-
+    root_length_out = root_length
+	
     ! and return
     return
 
@@ -2961,7 +2973,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	! Dimitrov et al 2022 related water table depth to soil water potential and layer thickness 
 	! by using the hydraulic head to convert SWP from MPa to meters of head.
 	
-	WTD = head*SWP(1) + layer_thickness(1)
+	WTD = head_1*SWP(1) + layer_thickness(1)
 
     ! check water balance
     soil_water_balance = (rainfall_in - corrected_ET - underflow - runoff) * days_per_step
