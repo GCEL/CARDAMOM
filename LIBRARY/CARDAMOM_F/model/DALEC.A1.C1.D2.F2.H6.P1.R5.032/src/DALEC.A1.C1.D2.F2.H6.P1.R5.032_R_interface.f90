@@ -36,8 +36,14 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
                    ,nofluxes,nopools,nodiags,nodays,nos_years,deltat &
                    ,nos_iter)
 
-  use CARBON_MODEL_MOD, only: CARBON_MODEL, nos_soil_layers
-                             
+  use CARBON_MODEL_MOD, only: CARBON_MODEL, nos_soil_layers , &
+                              conductivity_time, relative_waterfrac_time, &
+							  swp_time, field_capacity_time, wb_time, &
+							  soil_waterfrac_2_time, soil_waterfrac_1_m3m3_time, &
+							  soil_waterfrac_2_m3m3_time, &
+							  runoff_dew_time, soil_waterfrac_total_time, &
+							  porosity_time_L1, porosity_time_L2,&
+                              field_capacity_time_L2, rainfall_in_time
 
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
@@ -165,8 +171,7 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,48) = FLUXES(1:nodays,45)         ! underflow (kgH2O.m-2.day-1)
      out_var1(i,1:nodays,49) = FLUXES(1:nodays,46)         ! 1st->2nd layer drainage (kgH2O.m-2.day-1)
      out_var1(i,1:nodays,50) = FLUXES(1:nodays,47) &       ! infiltration (kgH2O.m-2.day-1)
-                             + FLUXES(1:nodays,50) &       ! 
-                             + FLUXES(1:nodays,51)         !
+                             + FLUXES(1:nodays,50)         !
      out_var1(i,1:nodays,51) = FLUXES(1:nodays,48)         ! Etrans extracted from 1st layer (0-1)
      out_var1(i,1:nodays,52) = FLUXES(1:nodays,49)         ! Etrans extracted from 2nd layer (0-1)
      out_var1(i,1:nodays,53) = POOLS(1:nodays,7)           ! surface water (kgH2O.m-2.30cmdepth)
@@ -187,8 +192,24 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      ! Canopy aerodynamic diagnostics
      out_var1(i,1:nodays,64) = DIAGS(1:nodays,14)          ! Canopy area scaling as a function of light
      out_var1(i,1:nodays,65) = DIAGS(1:nodays,15)          ! Canopy area scaling as a function of wind
+     out_var1(i,1:nodays,66) = conductivity_time(1:nodays) ! Soil hydraulic conductivity
+	 out_var1(i,1:nodays,67) = relative_waterfrac_time(1:nodays) ! Relative water fraction
+	 out_var1(i,1:nodays,68) = swp_time(1:nodays)          ! Soil water potential 
+     out_var1(i,1:nodays,69) = field_capacity_time(1:nodays) ! Field capacity
+     out_var1(i,1:nodays,70) = wb_time(1:nodays)
+     out_var1(i,1:nodays,71) = soil_waterfrac_2_time(1:nodays) ! ! surface water (kgH2O.m-2. layer 2)
+     out_var1(i,1:nodays,72) = soil_waterfrac_1_m3m3_time(1:nodays)
+     out_var1(i,1:nodays,73) = soil_waterfrac_2_m3m3_time(1:nodays)
+	 out_var1(i,1:nodays,74) = runoff_dew_time(1:nodays)
+	 out_var1(i,1:nodays,75) = soil_waterfrac_total_time(1:nodays)
+     out_var1(i,1:nodays,76) =  FLUXES(1:nodays,47)      ! infiltration into layer 1 (kgH2O.m-2.day-1)
+     out_var1(i,1:nodays,77) =  FLUXES(1:nodays,50)      ! infiltration into layer 2 (kgH2O.m-2.day-1)
+     out_var1(i,1:nodays,78) = porosity_time_L1(1:nodays) ! Field capacity
+     out_var1(i,1:nodays,79) = porosity_time_L2(1:nodays) ! Field capacity
+     out_var1(i,1:nodays,80) = field_capacity_time_L2(1:nodays) ! Field capacity
+     out_var1(i,1:nodays,81) = rainfall_in_time(1:nodays) ! Field capacity
 
-     !
+	 !
      ! Calculate long-term mean of out_var1
      !
      

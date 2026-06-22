@@ -182,19 +182,19 @@ module MODEL_PARAMETERS
     PI%parmax(33) = 0.95d0
     ! Top of soil profile residual water fraction (m3/m3)
     PI%parmin(34) = 0.01d0
-    PI%parmax(34) = 0.25d0    
+    PI%parmax(34) = 0.5d0    
     ! Top of soil profile saturated_conductivity (m/s)
-    PI%parmin(35) = 7d-7
-    PI%parmax(35) = 1d-1
+    PI%parmin(35) = 5.5d-10
+    PI%parmax(35) = 4.20d-2
     ! Top of soil profile pore size distribution (-)
     ! larger is a more uniform pore size
-    PI%parmin(36) = 1.0d0
-    PI%parmax(36) = 10d0
+    PI%parmin(36) = 0.85d0
+    PI%parmax(36) = 2.68d0
     ! Air entry pressure (m-1)
     ! Can be converted to MPa equivalent, see code for examples
     ! larger is a coarser texture
-    PI%parmin(37) = 0.1d0
-    PI%parmax(37) = 100d0
+    PI%parmin(37) = 0.2d0
+    PI%parmax(37) = 290d0
 
     !
     ! INITIAL VALUES DECLARED HERE
