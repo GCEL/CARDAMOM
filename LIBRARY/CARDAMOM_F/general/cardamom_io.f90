@@ -944,6 +944,7 @@ contains
    !
    subroutine read_options(solutions_wanted, freq_print, freq_write, outfile, MCO)
       use cardamom_MHMCMC, only: MCMC_OPTIONS
+      use samplers_shared, only: SAMPLER_OPTIONS
 
       ! loads required options about the MHMCMC either form hardcoded sources or
       ! from variables which were read form the command line
@@ -953,7 +954,7 @@ contains
       ! declare input variables
       character(350), intent(inout) :: outfile
       integer, intent(in) :: solutions_wanted, freq_print, freq_write
-      class(MCMC_OPTIONS), intent(inout) :: MCO
+      class(SAMPLER_OPTIONS), intent(inout) :: MCO
 
       ! defining hardcoded MCMC options
       MCO%append = .true.

@@ -22,7 +22,7 @@ module DEMCz
    !  (not implemented yet) Optionally set OMP_NUM_THREADS
    !  Call subroutine run_DEMCz(fct, parinfo, demczopt, mcmcout)
    !-
-   use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, MCMC_options, filenames_insert_threadid
+   use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, sampler_options, filenames_insert_threadid
    use random_uniform, only: UNIF_VECTOR
    use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files, close_output_files
    use samplers_math, only: random_int
@@ -34,7 +34,7 @@ module DEMCz
 
    !> A collection of input options to the DEMCz sampler run
    !> contains default values
-   type, extends(MCMC_options):: DEMCZOPT
+   type, extends(SAMPLER_options):: DEMCZOPT
       ! DEMcz algorithm parameters
       double precision:: differential_weight = 0.8d0  ! differential weight gamma, [0, 2]
       double precision:: crossover_probability = 0.9d0 ! crossover probability CR, [0, 1]
@@ -200,8 +200,9 @@ contains
          call random_uniform_vectors(j)%initialize_random(seed+j)
          ! choose initial values
          ! TODO better function for initial state : latin square
-         if (.not. MCO%restart) then
+         if (.not. MCO%fixedpars) then
             call init_pars_random(PI, pars_current(:, j), PI%fix_pars, random_uniform_vectors(j))
+            write(*,*) "Initialized to random pars"
          else
             pars_current(:, j) = mcout_list(j)%pars
          end if
@@ -216,6 +217,8 @@ contains
          ! write first values to history matrix
          PARS_history(:, j) = PARS_current(:, j)
          ACC(j) = 0
+      write(*,*) "starting at ", PARs_current(:,j)
+      write(*,*) " ll  ", l0(j)
 
       end do
 !$OMP END PARALLEL DO
@@ -294,6 +297,8 @@ contains
             ACC(j) = ACC(j) + ACCLOC(j)
             ! write the chain's state after nadapt steps to Z
             PARS_history(:, len_history + j) = PARS_current(:, j)
+            write(*,*) "round ending at", PARS_current(:,j)
+            write(*,*) l0(j)
          end do  ! nchains
 
          !$OMP END PARALLEL DO !!Barrier implicit

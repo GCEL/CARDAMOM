@@ -76,7 +76,7 @@ module cardamom_main_utils
   !
   !------------------------------------------------------------------
   !
-  subroutine find_edc_initial_values(MCO, MCOUT_list, nchains, seed)
+  subroutine find_edc_initial_values(MCOUT_list, nchains, seed)
     !! subroutine deals with the determination of initial parameter and initial
     !! conditions which are consistent with EDCs
     !! pre-loop, Run MCMC sampler with modified likelihood fct
@@ -91,7 +91,7 @@ module cardamom_main_utils
     integer, intent(in) :: nchains, seed
     type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout) :: MCOUT_list
     type(MCMC_OUTPUT), dimension(:), allocatable :: MCOUT_list_tmp
-    type(mcmc_OPTIONS), intent(out) :: MCO
+    type(mcmc_OPTIONS) :: MCO ! options settings will be on defaults
     integer :: i, counter_local(nchains), nOUT_save, nWRITE_save, nADAPT_save
     integer :: success_count
     logical :: append_save

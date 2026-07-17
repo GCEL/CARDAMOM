@@ -93,7 +93,7 @@ contains
    end subroutine
    
    subroutine check_for_existing_output_files(npars, MCO, sub_fraction, chainid, restart)
-      use samplers_shared, only: MCMC_OPTIONS, filenames_insert_threadid
+      use samplers_shared, only: SAMPLER_OPTIONS, filenames_insert_threadid
 
       ! subroutine checks whether both the parameter and step files exist for this
       ! job. If they do we will assume that this is a restart job that we want to
@@ -105,7 +105,7 @@ contains
       ! declare input variables
       integer, intent(in):: npars
       integer:: nOUT, nWRITE
-      type(MCMC_OPTIONS), intent(in):: MCO
+      type(SAMPLER_OPTIONS), intent(in):: MCO
       !! simulation settings object-to read nOut, nWrite, filenames
       double precision, intent(in):: sub_fraction
       character(350):: outfile, stepfile, covfile, covifile 
@@ -192,13 +192,13 @@ contains
       !! information into the current object MCOUT.
       !! modifies: arg MCOUT%pars. To be used as starting point for next run.
       !! Also MCOUT%nos_iterations , %parvar, %covariance, %meanpar, %nparvar
-      use samplers_shared, only: MCMC_OUTPUT, MCMC_OPTIONS, filenames_insert_threadid
+      use samplers_shared, only: MCMC_OUTPUT, SAMPLER_OPTIONS, filenames_insert_threadid
       use samplers_math, only: std, covariance_matrix, inverse_matrix, par2nor
 
       implicit none(type, external)
 
       ! Arguments
-      class(MCMC_OPTIONS), intent(inout):: MCO
+      class(SAMPLER_OPTIONS), intent(inout):: MCO
       type(MCMC_OUTPUT), intent(inout):: MCOUT
       integer, intent(in):: npars
       integer, intent(in):: chainid

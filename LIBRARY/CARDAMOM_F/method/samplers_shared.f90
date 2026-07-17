@@ -57,7 +57,7 @@ module samplers_shared
 
    !> A collection of input options to the MCMC sampler run
    !> contains default values
-   type MCMC_options
+   type SAMPLER_options
       integer:: MAXITER = 10000, & ! overall steps, if convergence not reached
                  nadapt = 1000,  & ! steps per "local" sampling period, between adaptation steps
                 Nchains = 1,     & ! consider setting OMP env to something compatible
@@ -77,6 +77,9 @@ module samplers_shared
             returnpars    ! a variable that is never used and has no effect, needs deleting in all model likelihood files
       logical:: restart = .false., & ! is it a restart ?
               fixedpars = .false.    ! Continue from last state in MCOUT (don't initialize to random points) ?
+   end type SAMPLER_OPTIONS
+
+   type , extends (SAMPLER_OPTIONS) :: MCMC_OPTIONS ! Additional settings for adaptive-MCMC family samplers
       !> setting for adaptive AP-MCMC step size
       double precision:: par_minstepsize = 0.001d0 & ! 0.0005 -> 0.001 -> 0.01 -> 0.1 -> 0.005
                         ,par_maxstepsize = 0.01d0  & ! 
