@@ -37,9 +37,112 @@ module cardamom_main_utils
 
   implicit none(type, external)
 
+  integer, parameter :: sampler_APMCMC = 1, sampler_MHMCMC = 2, sampler_DEMCZ = 3 ! enum-like codes for sampler types
+
   public
 
   contains
+
+  function to_lower(str) result(str_lower)
+    character(len=*) :: str
+    character(len=len_trim(str)) :: str_lower
+    integer :: i, j
+    str_lower = str
+    do i=1, LEN_TRIM(str)
+      j = iachar(str(i:i)) 
+      if (j>=65 .and. j<97) then
+        j = j+32 
+      endif 
+      str_lower(i:i) = achar(j)
+    end do
+  end function
+
+  logical function str_equal(str1, str2)
+    ! check string match, case insensitive
+    character(len=*) :: str1, str2 
+    character(len=LEN_TRIM(str1)) :: str1_lower
+    character(len=LEN_TRIM(str2)) :: str2_lower
+    str1_lower = to_lower(trim(str1))
+    str2_lower = to_lower(trim(str2))
+    str_equal = str1_lower == str2_lower 
+  end function
+
+
+   subroutine parse_sampler_choice( arg1, arg2, arg3, sampler, args_start)
+     character(len=*), intent(in):: arg1, arg2, arg3
+     integer, intent(out):: sampler
+     integer, intent(out):: args_start
+
+     character(len=350):: arg, arg_next
+     integer :: pos_in_word
+     logical :: found_equals
+     character(350) :: sampler_name
+
+   args_start = 0
+   sampler = sampler_APMCMC !default when the optional command line argument is not present
+   arg = trim(arg1)
+   arg_next = arg2
+   if (len_trim(arg) >= 7) then
+   if (str_equal("sampler",arg1(1:7))) then
+     args_start = 1
+     pos_in_word = 8
+
+     ! does it continue with = ?
+     found_equals = .false.
+     if (len_trim(arg) >= pos_in_word) then
+     if (str_equal("=",arg(pos_in_word:pos_in_word))) then 
+       found_equals = .true.
+       pos_in_word = pos_in_word + 1
+     endif 
+     endif 
+
+     ! or is = in the next argument ?
+     if (.not. found_equals) then 
+       args_start = 2
+       arg = arg2
+       arg_next = arg3
+       pos_in_word = 1
+     if (len_trim(arg2) >= pos_in_word) then
+     if (str_equal("=",arg2(pos_in_word:pos_in_word))) then 
+       found_equals = .true.
+       pos_in_word = pos_in_word + 1
+     endif 
+     endif 
+     endif 
+
+       ! else parse error, `sampler` but no `=` 
+     if (.not. found_equals) then
+         write(*,*) "Could not parse command line, found keyword `sampler` but no `=`"
+         STOP 1
+     endif 
+
+     ! does it continue with a sampler name in the same word?
+     if (len_trim(arg) >= pos_in_word + 4) then
+     sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
+     else 
+     args_start = args_start + 1 
+     pos_in_word = 1
+     arg = trim(arg_next) !arg2 or arg3
+     sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
+     endif
+     if (str_equal("demcz", sampler_name) ) then
+       sampler = sampler_DEMCZ
+     elseif (str_equal("APMCM", sampler_name) ) then
+       sampler = sampler_APMCMC
+     elseif (str_equal("MHMCM", sampler_name) ) then
+       sampler = sampler_MHMCMC
+     else 
+         write(*,*) "Could not parse command line, found keyword `sampler=` ", sampler_name
+         write(*,*) "Choose from sampler=DEMCZ, APMCMC, or MHMCMC"
+         STOP 1
+     endif
+   endif
+   endif
+   ! else : `sampler` keyword not found, continue with default
+
+   end subroutine
+
+
   !
   !--------------------------------------------------------------------
   !

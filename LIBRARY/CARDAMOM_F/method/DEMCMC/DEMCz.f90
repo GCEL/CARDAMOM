@@ -1,6 +1,6 @@
 module DEMCz
    !-
-   ! Differential evolution sampler (with history z), see ter Braak & Vrugt, Stat Comput 2008,
+   ! Differential evolution sampler (with history Z), see ter Braak & Vrugt, Stat Comput 2008,
    ! "Differential Evolution Markov Chain with snooker updater and fewer chains".
    !
    !  jklebes 2024-2025
@@ -18,8 +18,7 @@ module DEMCz
    !                 default values in type definiton here
    !  Create an object of type MCMC_OUTPUT to write reults to.
    !  Create a double precision function loglikelihood taking a vector of npars (same as in PARINFO) parameters and
-   !                 returning rel:: loglikelihood.
-   !  (not implemented yet) Optionally set OMP_NUM_THREADS
+   !                 returning real:: loglikelihood.
    !  Call subroutine run_DEMCz(fct, parinfo, demczopt, mcmcout)
    !-
    use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, sampler_options, filenames_insert_threadid
@@ -167,7 +166,8 @@ contains
 
       !!! Initial state
 
-!$OMP PARALLEL DO default(shared) private(MCOUT, norpars, outfile, stepfile, covfile, covifile)
+!$OMP PARALLEL DO default(shared) private(MCOUT, norpars, outfile, stepfile, covfile, covifile, &
+!$OMP  pfileunit, sfileunit, cfileunit, cifileunit )
       do j = 1, mco%nchains
 
          MCOUT = MCOUT_list(j)
@@ -193,7 +193,7 @@ contains
 
             ! allocate buffers io_space (different one for each chain)
             call initialize_buffers(npars, MAXITER/MCO%nwrite, io_space(j))
-            call open_output_files(outfile, stepfile, covfile, covifile, j, sfileunit, pfileunit, cfileunit, cifileunit)
+            call open_output_files(outfile, stepfile, covfile, covifile, j, pfileunit, sfileunit, cfileunit, cifileunit)
          end if
 
          ! Initialize pregenerated random numbers, if using-local to this chain
@@ -217,8 +217,6 @@ contains
          ! write first values to history matrix
          PARS_history(:, j) = PARS_current(:, j)
          ACC(j) = 0
-      write(*,*) "starting at ", PARs_current(:,j)
-      write(*,*) " ll  ", l0(j)
 
       end do
 !$OMP END PARALLEL DO
@@ -297,8 +295,6 @@ contains
             ACC(j) = ACC(j) + ACCLOC(j)
             ! write the chain's state after nadapt steps to Z
             PARS_history(:, len_history + j) = PARS_current(:, j)
-            write(*,*) "round ending at", PARS_current(:,j)
-            write(*,*) l0(j)
          end do  ! nchains
 
          !$OMP END PARALLEL DO !!Barrier implicit

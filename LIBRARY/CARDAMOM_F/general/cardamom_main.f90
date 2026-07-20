@@ -103,12 +103,12 @@ program cardamom_framework
    implicit none(type, external)
 
    ! declare local variables
-   character(350) :: infileORsampler, infile, outfile, solution_wanted_char, freq_print_char, &
+   character(350) :: infile, outfile, solution_wanted_char, freq_print_char, &
                     freq_write_char, do_inflate_char, cost_func_scaling_char, &
                     nchains_char
+   character(350) :: arg1, arg2, arg3
    integer :: args_start 
-   integer, parameter :: sampler_APMCMC = 1, sampler_MHMCMC = 2, sampler_DEMCZ = 3 ! enum-like codes for sampler types
-   integer :: sampler ! set to one of the integer codes above
+   integer :: sampler ! set to one of the integer codes 
    integer :: solution_wanted, freq_print, freq_write, time1, time2, time3, &
               do_inflate_dble, cost_func_scaling_dble, idum
    logical :: do_inflate = .false.
@@ -127,23 +127,15 @@ program cardamom_framework
 
    call init_infinity()
 
+   ! check command line for a potential first arg sampler=... 
+   ! effects : set this program's `sampler` variable  and args_start to offset following command line args
+   call get_command_argument(1, arg1)
+   call get_command_argument(2, arg2)
+   call get_command_argument(3, arg3)
+   call parse_sampler_choice(arg1, arg2, arg3, sampler, args_start)
+
    ! user update
    write (*,*) "Beginning read of the command line"
-
-   call get_command_argument(1, infileORSampler) 
-   infileORSampler = trim(infileORSampler)
-   if ("sampler" == infileORSampler(1:7)) then
-	! find "=" , either in this arg or in next arg
-	! find a value , either in this arg or next arg 
-        ! for now assume no spaces, "sampler=DEMCZ"
-        ! TODO flexibility for sapces and case
-        sampler = sampler_DEMCZ
-        args_start = 1
-   else 
-        sampler = sampler_APMCMC !default when the optional command line argument is not present
-        args_start = 0
-   endif
-
    ! read user options from the command line
    call get_command_argument(args_start+1, infile)
    call get_command_argument(args_start+2, outfile)
