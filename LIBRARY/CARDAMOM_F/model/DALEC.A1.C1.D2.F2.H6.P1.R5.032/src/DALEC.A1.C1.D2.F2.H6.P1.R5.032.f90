@@ -1129,7 +1129,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
  ! Printing or passing to output variable?
        swp_time(n) = SWP(1)
-	  ! print*, swp_time
        wb_time(n) = soil_water_balance
        rainfall_in_time(n) = (rainfall-intercepted_rainfall)*seconds_per_day
 	   soil_waterfrac_2_time(n+1) = 1d3 * soil_waterfrac(2) * layer_thickness(2)
@@ -1140,12 +1139,12 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   Layer_thickness_time1(n) = layer_thickness(1)
 	   Layer_thickness_time2(n) = layer_thickness(2)
 	   Layer_thickness_time3(n) = layer_thickness(3)
-
-	!print*, iteration_count
-	!if (iteration_count == 20) then
-     !print *, "Stopping after 20 day"
-     !stop
-    !end if
+   
+!	print*, iteration_count
+!	if (iteration_count == 200) then
+!     print *, "Stopping after 20 day"
+!     stop
+!    end if
 
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
@@ -2705,7 +2704,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     double precision, intent(out) :: corrected_ET      ! water balance corrected evapotranspiration (kgH2O/m2/day)
 
     ! local variables
-    integer :: day, a
+    integer :: day, a,i
     double precision :: depth_change, water_change, initial_soilwater, balance, mass_check, &
                         Esoil_local, Esnow_local
     double precision, dimension(nos_root_layers) :: avail_flux, evaporation_losses, pot_evap_losses
@@ -2851,125 +2850,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! Update corrected_ET with snow sublimation
     corrected_ET = corrected_ET + Esnow
 
-    !!!!!!!!!!
-    ! Update soil layer thickness
-    !!!!!!!!!!
 
-    ! Determine the root depth below which we will consider layer thickness changes,
-    ! and reset the water_change variable, used for maintaining mass balance.
-!    depth_change = top_soil_depth+min_layer ; water_change = 0
-    ! if roots extent down into the bucket
-!    if (root_reach > depth_change) then
-
-        !!!!!!!!!!
-        ! Soil profile is within the bucket layer (layer 3)
-        ! therefore we must expand the soil layer (layer 2).
-        !!!!!!!!!!
-
-!        if (previous_depth > depth_change) then
-            ! how much has root depth extended since last step?
-!            depth_change = root_reach - previous_depth
-!        else
-            ! how much has root depth extended since last step?
-!            depth_change = root_reach - depth_change
-!        endif
-
-        ! if there has been an increase
-!        if (depth_change > 0.05d0) then
-
-            ! determine how much water (mm) is within the new volume of soil
-!            water_change = soil_waterfrac(nos_soil_layers) * depth_change
-            ! now assign that new volume of water to the deep rooting layer
-!            soil_waterfrac(nos_root_layers) = ((soil_waterfrac(nos_root_layers)*layer_thickness(nos_root_layers))+water_change) &
-!                                            / (layer_thickness(nos_root_layers)+depth_change)
-
-            ! explicitly update the soil profile if there has been rooting depth
-            ! changes
-!            layer_thickness(1) = top_soil_depth
-!            layer_thickness(2) = root_reach - top_soil_depth
-!            layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
-
-            ! keep track of the previous rooting depth
-!            previous_depth = root_reach
-
-!        else if (depth_change < -0.05d0) then
-
-            ! make positive to ensure easier calculations
-!            depth_change = -depth_change
-
-            ! determine how much water is lost from the old volume of soil
-!            water_change = soil_waterfrac(nos_root_layers) * depth_change
-            ! now assign that new volume of water to the deep rooting layer
-!            soil_waterfrac(nos_soil_layers) = ((soil_waterfrac(nos_soil_layers)*layer_thickness(nos_soil_layers))+water_change) &
-!                                            / (layer_thickness(nos_soil_layers)+depth_change)
-
-            ! explicitly update the soil profile if there has been rooting depth
-            ! changes
-!            layer_thickness(1) = top_soil_depth
-!            layer_thickness(2) = root_reach - top_soil_depth
-!            layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
-
-            ! keep track of the previous rooting depth
-!            previous_depth = root_reach
-
-!        else
-
-            ! keep track of the previous rooting depth
-!            previous_depth = previous_depth
-
-!        end if ! depth change
-
-        ! Do any vertical profile scaling for various parameters to their depths....
-        ! These will need to be updated each time the rooting depth modifies the soil profile
-        !saturated_conductivity(2) = exp(soil_depth_decay * (layer_thickness(1) + (layer_thickness(2) * 0.5d0) - 0.3d0))
-!        saturated_conductivity(3) = saturated_conductivity(1) &
-!                                  * exp(soil_depth_decay * (sum(layer_thickness(1:2)) + (layer_thickness(3) * 0.5d0) - 0.3d0))
-        ! Sensible boundings
-        !saturated_conductivity(2) = max(0.1d0,min(1d0,saturated_conductivity(2)))
-!        saturated_conductivity(3) = min(saturated_conductivity(1)*1d0,saturated_conductivity(3))
-!        saturated_conductivity(3) = max(saturated_conductivity(1)*0.1d0,saturated_conductivity(3))
-
-!    else if (root_reach < depth_change .and. previous_depth > depth_change) then
-
-        !!!!!!!!!!
-        ! Model has explicitly contracted from the bucket layer
-        !!!!!!!!!!
-
-        ! In this circumstance we want to return the soil profile to it's
-        ! default structure with a minimum sized third layer
-!        depth_change = previous_depth - depth_change
-
-        ! determine how much water is lost from the old volume of soil
-!        water_change = soil_waterfrac(nos_root_layers) * depth_change
-        ! now assign that new volume of water to the deep rooting layer
-!        soil_waterfrac(nos_soil_layers) = ((soil_waterfrac(nos_soil_layers)*layer_thickness(nos_soil_layers))+water_change) &
-!                                        / (layer_thickness(nos_soil_layers)+depth_change)
-
-        ! explicitly update the soil profile if there has been rooting depth
-        ! changes
-!        layer_thickness(1) = top_soil_depth
-!        layer_thickness(2) = min_layer
-!        layer_thickness(3) = max_depth - sum(layer_thickness(1:2))
-
-        ! keep track of the previous rooting depth
-!        previous_depth = min_layer
-
-        ! Do any vertical profile scaling for various parameters to their depths....
-        ! These will need to be updated each time the rooting depth modifies the soil profile
-        !saturated_conductivity(2) = exp(soil_depth_decay * (layer_thickness(1) + (layer_thickness(2) * 0.5d0) - 0.3d0))
-!        saturated_conductivity(3) = saturated_conductivity(1) &
-!                                  * exp(soil_depth_decay * (sum(layer_thickness(1:2)) + (layer_thickness(3) * 0.5d0) - 0.3d0))
-        ! Sensible boundings
-        !saturated_conductivity(2) = max(0.1d0,min(1d0,saturated_conductivity(2)))
-!        saturated_conductivity(3) = min(saturated_conductivity(1)*1d0,saturated_conductivity(3))
-!        saturated_conductivity(3) = max(saturated_conductivity(1)*0.1d0,saturated_conductivity(3))
-
-!    else ! root_reach > (top_soil_depth + min_layer)
-
-        ! if we are outside of the range when we need to consider rooting depth changes keep track in case we move into a zone when we do
-!        previous_depth = previous_depth
-
-!    endif ! root reach beyond top layer
+    ! Separately update relative water content as this applies to each layer
+    do i = 1, nos_soil_layers
+       call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
+    end do ! soil layers
 
     ! Update soil water potential
     call soil_water_potential
@@ -3505,18 +3390,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	residual_waterfrac(3) = 0.15d0
 	pore_size_dist(3) = 1.19d0
 	air_entry(3) = 1.6d0
-	
-    ! Do any vertical profile scaling for various parameters to their depths....
-    ! These will need to be updated each time the rooting depth modifies the soil profile
-    !saturated_conductivity(2) = saturated_conductivity(1) * exp(soil_depth_decay * (layer_thickness(1) + (layer_thickness(2) * 0.5d0) - 0.3d0))
-    saturated_conductivity(3) = 5.0d-8
-    
-	! Sensible boundings
-    !saturated_conductivity(2) = max(0.1d0,min(1d0,saturated_conductivity(2)))
-    !saturated_conductivity(2) = min(saturated_conductivity(1)*1d0,saturated_conductivity(2))
-    !saturated_conductivity(2) = max(saturated_conductivity(1)*0.1d0,saturated_conductivity(2))    
-    !saturated_conductivity(3) = min(saturated_conductivity(1)*1d0,saturated_conductivity(3))
-    !saturated_conductivity(3) = max(saturated_conductivity(1)*0.1d0,saturated_conductivity(3))    
 
 
     ! Estimation of parameter m. This parameter is related to the pore size distribution (pore_size_dist)
@@ -3526,17 +3399,26 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! calculate field capacity (m3/m3)
     call calculate_field_capacity
-
-    ! Load initial soil water fraction to the dynamic layers
+    
+	!print*, "input swc", input_soilwater_frac
+    !print*, "porosity", porosity
+    !print*, "fc", field_capacity
+	!print*, "saturated_conductivity",saturated_conductivity
+	!print*, "residual_waterfrac" ,residual_waterfrac
+	!print*, "pore_size_dist", pore_size_dist
+	!print*, "air_entry", air_entry
+    
+	! Load initial soil water fraction to the dynamic layers
     !soil_waterfrac(1:nos_soil_layers) = input_soilwater_frac
     ! Load initial soil water fraction into the top soil layer...
     soil_waterfrac(1) = input_soilwater_frac
     ! ...and assume that the below dynamic layers have the same water content as a fraction of porosity.
     ! This is to avoid the adverse changes to soil water potential estimates in deeper layers due to
     ! differences in hydraulic characteristics at depth
-    soil_waterfrac(2) = (input_soilwater_frac / field_capacity(1)) * field_capacity(2)
+    soil_waterfrac(2) = min(porosity(2),(input_soilwater_frac / field_capacity(1)) * field_capacity(2))
     ! Assume that the 'core' soil layer is field capacity
     soil_waterfrac(nos_soil_layers+1) = field_capacity(nos_soil_layers)
+    !print*, "soilwaterfrac", soil_waterfrac
 
     ! Separately calculate relative water content as this applies to each layer
     do i = 1, nos_soil_layers
@@ -3563,6 +3445,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     do i = 1, nos_soil_layers+1
        if (porosity(i) < (field_capacity(i)+0.05d0)) porosity(i) = field_capacity(i) + 0.05d0
     end do
+
 
   end subroutine initialise_soils
   !
@@ -3671,7 +3554,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! Estimate soil water potential using the VGM model and parameters
     SWP = head * (-1d0 / air_entry) * &
-          (relative_water_frac**(-1d0/m_pore_size_dist) - 1d0) ** (1d0/pore_size_dist)
+          ((relative_water_frac**(-1d0/m_pore_size_dist) - 1d0) ** (1d0/pore_size_dist))
 
     ! NOTE: profiling indicates that 'where' is slower for very short vectors
     do i = 1, nos_soil_layers+1

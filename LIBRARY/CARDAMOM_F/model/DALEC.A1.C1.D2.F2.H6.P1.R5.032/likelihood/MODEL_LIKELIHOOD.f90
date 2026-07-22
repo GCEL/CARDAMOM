@@ -271,6 +271,7 @@ module model_likelihood_module
     double precision :: pool_error, flux_error, diags_error
 
     ! Run model
+ 
 
     print*,"sanity_check: carbon_model run 1"
     ! next need to run the model itself
@@ -834,6 +835,63 @@ module model_likelihood_module
        end do
 
     end if ! min pool assessment
+	
+	if (EDC2 == 1 .or. DIAG == 1) then
+		! Condition to Keep Saturated Hydraulic Conductivity (Ks, pars(35)) in the acrotelm (top layer)
+		! higher than Catotelm layer (bottom layer) 
+
+        if (pars(35) < 5.00d-8) then
+            ! The current Ks value is lower that catotelm layer
+            EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0
+        endif              
+ endif ! EDC2 == 1 .or. DIAG == 1
+ 
+ if (EDC2 == 1 .or. DIAG == 1) then
+		! Condition to keep Pore Size Distribution Index (n, pars(36)) between the lower
+		! and upper bounds (95CI) from the linear regression between n and Ks
+		! for peatlands 
+		! upper bound
+        if (pars(36) > exp(0.01978d0*log(pars(35)) + 0.57165d0)) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(57) = 0
+        endif
+		! lower bound
+        if (pars(36) < exp(0.01954d0*log(pars(35)) + 0.41871d0) ) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(58) = 0
+       endif 		
+endif ! EDC2 == 1 .or. DIAG == 1
+
+
+if (EDC2 == 1 .or. DIAG == 1) then
+		! Condition to keep Air Entry Pressure (alpha, pars(37)) between the lower
+		! and upper bounds (95CI) from the linear regression between alpha and Ks
+		! for peatlands 
+		! Upper bound
+       if (pars(37) > exp(0.3506d0*log(pars(35)) + 10.2885d0)) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(59) = 0
+       endif
+	   ! Lower bound
+       if (pars(37) < exp(0.3374d0*log(pars(35)) + 2.1986d0)) then
+           EDC2 = 0d0 ; EDCD%PASSFAIL(60) = 0
+       endif 		
+endif ! EDC2 == 1 .or. DIAG == 1
+ 
+
+  if (EDC2 == 1 .or. DIAG == 1) then
+		! Condition to keep Air Entry Pressure (alpha, pars(37)) between the lower
+		! and upper bounds (95CI) from the linear regression between alpha and n
+		! for peatlands 
+
+		! Upper bound
+        if ( pars(37) > exp(18.8151d0*log(pars(36)) + 0.6588d0)) then
+            ! The current Ks value is lower that catotelm layer
+           EDC2 = 0d0 ; EDCD%PASSFAIL(61) = 0
+		endif
+		! Lower bound
+       if ( pars(37) < exp(19.412*log(pars(36)) - 6.468d0)) then
+            ! The current Ks value is lower that catotelm layer
+           EDC2 = 0d0 ; EDCD%PASSFAIL(62) = 0
+       endif 		
+endif ! EDC2 == 1 .or. DIAG == 1
 
 !    ! Debugging print statements
 !    print*,"assess_EDC2: done"
