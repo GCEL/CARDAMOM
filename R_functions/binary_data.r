@@ -1146,7 +1146,10 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           #PARPRIORS[30] = 0.1                              ; PARPRIORUNC[30] = 0.25 # Root / wood combustion completeness
           PARPRIORS[31] = 0.01                             ; PARPRIORUNC[31] = 0.05 # Soil combustion completeness
           #PARPRIORS[32] = 0.25                             ; PARPRIORUNC[32] = 0.25 # Foliage + root litter combustion completeness
-
+          #PARPRIORS[33] = 0.79                              ; PARPRIORUNC[33] = 0.13  # VGM Saturated Water Fraction (Porosity, m3/m3)  
+          #PARPRIORS[34] = 0.15                              ; PARPRIORUNC[34] = 0.17  # VGM Residual Water Fraction (m3/m3)
+          #PARPRIORS[35] = 0.0038                            ; PARPRIORUNC[35] = 0.009  # VGM Saturated hydraulic conductivity (Ks, m/s)
+          #PARPRIORS[37] = 68.19                            ; PARPRIORUNC[37] = 83.04  # VGM Air Entry Pressure (alpha, m-1)
 
 
           # Other priors
@@ -1154,6 +1157,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 #; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
           OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
+
           # Hack to remove LAI observations out of growing season for high LCA areas
           if (PARPRIORS[17] > 100) {
 #              if (lat_degrees > 50) {
