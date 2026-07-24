@@ -23,7 +23,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 !!!!!!!!!!!! File specific description !!!!!!!!!!
-! This file contains the source code of various different 
+! This file contains the source code of various different
 ! declarable types used in the MCMC solvers.
 !
 ! This code was implemented by Jason Klebes (Jason.Klebes@ed.ac.uk)
@@ -35,7 +35,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module samplers_shared
-   
+
    implicit none(type, external)
    public
 
@@ -63,7 +63,7 @@ module samplers_shared
                 Nchains = 1,     & ! consider setting OMP env to something compatible
                  nwrite = 1000,  & ! Frequency (steps) of writing current parameters to file
                  nprint = 1000     ! Frequency (steps) of prining current solver information to screen
-      integer:: nout ! 
+      integer:: nout !
       double precision:: P_target = 0d0 ! termination criterion-a loglikelihood to stop at (optional)
 
       !> file names for outputs, note output format is a raw binary format.
@@ -72,8 +72,8 @@ module samplers_shared
                         covfile = "covout.bin", &
                    covifile = "covinfoout.bin"
       real:: fadapt  ! TODO fraction adapt-move to outside
-      logical:: append, & ! 
-            randparini, & ! 
+      logical:: append, & !
+            randparini, & !
             returnpars    ! a variable that is never used and has no effect, needs deleting in all model likelihood files
       logical:: restart = .false., & ! is it a restart ?
               fixedpars = .false.    ! Continue from last state in MCOUT (don't initialize to random points) ?
@@ -82,8 +82,8 @@ module samplers_shared
    type , extends (SAMPLER_OPTIONS) :: MCMC_OPTIONS ! Additional settings for adaptive-MCMC family samplers
       !> setting for adaptive AP-MCMC step size
       double precision:: par_minstepsize = 0.001d0 & ! 0.0005 -> 0.001 -> 0.01 -> 0.1 -> 0.005
-                        ,par_maxstepsize = 0.01d0  & ! 
-                       ,par_initstepsize = 0.005d0 & ! 
+                        ,par_maxstepsize = 0.01d0  & !
+                       ,par_initstepsize = 0.005d0 & !
                                    ,beta = 0.05d0    ! weighting for gaussian step in multivariate proposals
       !> Optimal scaling variable for parameter searching
       double precision:: opt_scaling_const = 2.381204**2 ! scd = 2.381204 the optimal scaling parameter
@@ -149,10 +149,10 @@ contains
 
       ! TODO add optional pregen random
       ! l1/l2 > r  <=> logl1-logl2 > log(r)
-      ! TODO very small chance of r = exactly 0 .  (is this true with our generator)  
+      ! TODO very small chance of r = exactly 0 .  (is this true with our generator)
       ! should catch and supply log(r) = -inf .  Performance  impact of check?
       metropolis_choice = ((new_loglikelihood - old_loglikelihood) > log(r))
- 
+
    end function metropolis_choice
    !
    !--------------------------------------------------------------------
@@ -165,7 +165,7 @@ contains
       use random_uniform, only: UNIF_VECTOR, next_random_uniform
       use samplers_math, only: log_nor2par
       implicit none(type, external)
-      
+
       ! Arguments
       type(PARINFO), intent(in):: PI  ! give number, bounds of params
       double precision, dimension(PI%npars), intent(inout):: pars0  ! return random initial values-nonnormalized
@@ -241,17 +241,17 @@ contains
       bounds_check = all((PARS > PI%parmin) .and. (PARS < PI%parmax))
 
    end function bounds_check
-   ! 
+   !
    !--------------------------------------------------------------------
    !
    subroutine filenames_insert_threadid(outfile, stepfile, covfile, covifile, chainid)
       !! Amends the given 4 filenames by inserting chainid in the appropriate place
       !! e.g. stem_COV -> stem_1_COV
-      
+
       ! Arguments
       character(len=*), intent(inout):: outfile, stepfile, covfile, covifile
       integer, intent(in):: chainid
-      
+
       call filename_insert_threadid_single(outfile, chainid)
       call filename_insert_threadid_single(stepfile, chainid)
       call filename_insert_threadid_single(covfile, chainid)
@@ -261,13 +261,13 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine filename_insert_threadid_single(filename, chainid) 
+   subroutine filename_insert_threadid_single(filename, chainid)
 
       ! inserts thread id into a single filename,
       ! STEM_FILETYPE -> STEM_NUMBER_FILETYPE
 
       ! Arguements
-      character(len=*), intent(inout):: filename  ! expected format STEM_FILETYPE eg "UK_baseline_sites_AliceHolt_COV" 
+      character(len=*), intent(inout):: filename  ! expected format STEM_FILETYPE eg "UK_baseline_sites_AliceHolt_COV"
       integer, intent(in):: chainid
 
       ! Local variables
@@ -278,10 +278,10 @@ contains
       write (chainid_str, '(i0)') chainid
 
       ! separate filename into stem and suffix again at last _
-      index_split = scan(filename, '_', back=.true.) !location of last _     
+      index_split = scan(filename, '_', back=.true.) !location of last _
       ! assemble new filename
       filename =  trim(filename(1:index_split))//trim(chainid_str)//"_"//trim(filename((index_split+1):))
- 
+
    end subroutine filename_insert_threadid_single
    !
    !--------------------------------------------------------------------

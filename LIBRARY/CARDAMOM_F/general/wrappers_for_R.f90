@@ -92,7 +92,7 @@ module cardamom_Rinterfaces
     real(c_double), dimension(npars), intent(out)  :: parmax
     !call pars_info(PI)
     parmax = PI%parmax
- 
+
   end subroutine get_parmax
   !
   !--------------------------------------------------------------------
@@ -104,7 +104,7 @@ module cardamom_Rinterfaces
 
     implicit none(type, external)
 
-!TLS: This needs to be changed, depending on how it is used. 
+!TLS: This needs to be changed, depending on how it is used.
 !     Not sure why there is a need to hardcode this path, as all information should be passed through the interface, not the filename
 
     !character(kind = c_char, len = *), intent(in) :: datain_filename
@@ -132,7 +132,7 @@ module cardamom_Rinterfaces
     use MHMCMC_StressTests
 
     implicit none(type, external)
- 
+
     character(len=350) :: infile, outfile
     infile = ""
     outfile = "Circle"

@@ -1,11 +1,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CARbon DAta MOdel fraMework (CARDAMOM) and DALEC terrestrial ecosystem model suite
-! CARDAMOM is a Bayesian model-data fusion software framework. CARDAMOM is used to 
-! assimilate observations and ecological theory to retrieve parameters for the 
+! CARDAMOM is a Bayesian model-data fusion software framework. CARDAMOM is used to
+! assimilate observations and ecological theory to retrieve parameters for the
 ! DALEC suite of intermediate complexity terrestrial ecosystem models. DALEC can be
-! used as a fully integrated component of CARDAMOM or independently. 
+! used as a fully integrated component of CARDAMOM or independently.
 ! Copyright (C) 2024  University of Edinburgh,
-!                     Mathew Williams (mat.williams@ed.ac.uk), 
+!                     Mathew Williams (mat.williams@ed.ac.uk),
 !                     T. Luke Smallman (t.l.smallman@ed.ac.uk)
 ! UoE = University of Edinburgh
 !
@@ -58,7 +58,7 @@
 ! See function / subroutine specific comments for exceptions and contributors
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   
+
 module cardamom_MHMCMC
 
    use samplers_shared, only: PARINFO, MCMC_output, MCMC_options, filenames_insert_threadid, neg_inf
@@ -168,7 +168,7 @@ contains
       ! each do a complete independent run.  The parallelization structure of this module is
       ! trivial.  It exists mainly as template for samplers with more crossover and more complex
       ! structure.
-      ! `shared` is already omp default behvaior, just making it explicit.  This is ok because 
+      ! `shared` is already omp default behvaior, just making it explicit.  This is ok because
       ! all arguments are read-only / intent(in) except MCOUT_list(i), which has its own array entry.
       !$OMP parallel do default(shared)
       do i = 1, MCO%nchains
@@ -206,7 +206,7 @@ contains
                                               ,PARS_proposed & ! parameter values for current proposal
                                               ,BESTPARS        ! best set of parameters so far
 
-      double precision, allocatable, dimension(:,:) :: PARSALL  ! The history, accepted normalised parameter values in intervals nadapt .  npars x nadapt       
+      double precision, allocatable, dimension(:,:) :: PARSALL  ! The history, accepted normalised parameter values in intervals nadapt .  npars x nadapt
       double precision :: loglikelihood_previous, &
                           loglikelihood_proposed, & ! loglikelihood of a set of parameters
                             output_loglikelihood, & ! loglikelihood according to  alternative loglikelihood calculation for writing to file
@@ -377,7 +377,7 @@ contains
          llmax = loglikelihood_previous
       else
          ! TODO recalculatig because not read from file in case of restart , although
-         ! present in column npars+1 
+         ! present in column npars+1
          !loglikelihood_previous = MCOUT%ll
          call model_likelihood(PARS_previous, npars, loglikelihood_previous, chainid_)
          ! BESTPARS = MCOUT%bestll  ! not available from file read
@@ -425,8 +425,8 @@ contains
             if (multivariate) ACC_first = ACC_first + 1
 
             ! Save accepted pars as previous pars, save previous log-likelihood
-            PARS_previous(1:npars) = PARS_proposed(1:npars)  
-            loglikelihood_previous = loglikelihood_proposed  
+            PARS_previous(1:npars) = PARS_proposed(1:npars)
+            loglikelihood_previous = loglikelihood_proposed
             ! store the best parameter set
             if (loglikelihood_previous >= llmax) then
                BESTPARS = PARS_previous
@@ -589,17 +589,17 @@ contains
 
          cov_backup = MCOUT%covariance; meanpar_backup = MCOUT%meanpar; Nparvar_backup = MCOUT%Nparvar
 
-	 ! 3rd difference between cardamom APMCMC and standard MHMCMC : 
+	 ! 3rd difference between cardamom APMCMC and standard MHMCMC :
          ! Have started hardcoding a maximum number of observations to be N_before_mv_target.
          ! While not strictly following Haario et al., (2001) or Roberts and Rosenthal, (2009)
          ! this allows for the covariance matrix to be more responsive to its local environment.
          ! in fact this is having the effect of extremely downweighting history
          ! in the running calculations of mean and covariance matrix in new covariance matrix .
          ! They will not converge, and represent mean and covariance for the local neighborhood.
-         ! 
-	 ! caution : subroutine increment_covariance_matrix changes not just its last argument 'covariance', 
+         !
+	 ! caution : subroutine increment_covariance_matrix changes not just its last argument 'covariance',
          ! but also its second argument 'mean' and its
-         ! 4th argument 'cur' .  
+         ! 4th argument 'cur' .
          Nparvar_local = min(N_before_mv_target, Nparvar_backup)
          call increment_covariance_matrix(PARSALL(1:npars, 1:ACCLOC), MCOUT%meanpar, npars &
                                           , Nparvar_local, ACCLOC, MCOUT%covariance)
@@ -694,7 +694,7 @@ contains
       ! Local variables
       double precision, dimension(PI%npars) :: pars0_norm, pars_norm
 
-      ! Normalise the current parameters 
+      ! Normalise the current parameters
       pars0_norm = log_par2nor(pars0, PI%parmin, PI%parmax, PI%paradj)
       ! Step in normalised space
       call step_pars(pars0_norm, pars_norm, PI%npars, multivariate, covariance, beta, opt_scaling, par_minstepsize, &
@@ -718,7 +718,7 @@ contains
       ! normalized space )
       ! OUT: PARS new proposed state (normalized)
       ! plus take beta from module data
-   
+
       implicit none(type, external)
 
       ! declare input variables

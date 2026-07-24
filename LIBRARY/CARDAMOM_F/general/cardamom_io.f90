@@ -228,7 +228,7 @@ contains
         DATAin%nopools = 7
         DATAin%nopars = 37
         DATAin%nofluxes = 51
-        DATAin%nodiags = 24 ! Initial value, will need updating        
+        DATAin%nodiags = 24 ! Initial value, will need updating
     else if (DATAin%ID == 25) then
         ! ID = 25 - DALEC...025 NOT IN USE
         DATAin%nopools = 8
@@ -276,17 +276,17 @@ contains
         DATAin%nopools = 7
         DATAin%nopars = 37
         DATAin%nofluxes = 51
-        DATAin%nodiags = 24 ! Initial value, will need updating        
+        DATAin%nodiags = 24 ! Initial value, will need updating
     else if (DATAin%ID == 33) then
         ! ID = 33 - DALEC.A4.C6.D2.F2.H3.P12.033
         DATAin%nopools = 7
         DATAin%nopars = 46
         DATAin%nofluxes = 51
-        DATAin%nodiags = 30       
+        DATAin%nodiags = 30
     else if (DATAin%ID == 34) then
         ! ID = 34 -
         print*,"Model ID 34 not currently in use"
-        stop 
+        stop
     else if (DATAin%ID == 35) then
         ! ID = 35
         print*,"Model ID 35 not currently in use"
@@ -296,13 +296,13 @@ contains
         DATAin%nopools = 11
         DATAin%nopars = 50
         DATAin%nofluxes = 67
-        DATAin%nodiags = 20      
+        DATAin%nodiags = 20
     else if (DATAin%ID == 37) then
         ! ID = 37 - DALEC.A1.C1.D2.F2.H5.P1.037
         DATAin%nopools = 7
         DATAin%nopars = 34
         DATAin%nofluxes = 51
-        DATAin%nodiags = 24 ! Initial value, will need updating        
+        DATAin%nodiags = 24 ! Initial value, will need updating
     else if (DATAin%ID == 38) then
         ! ID = 38 -
         print*,"Model ID 38 not currently in use"
@@ -761,7 +761,7 @@ contains
       a = 1; b = 1; c = 1; d = 1; e = 1; f = 1; g = 1
       h = 1; i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
       o = 1; p = 1; q = 1; r = 1; s = 1; t = 1; u = 1
-      v = 1; w = 1; 
+      v = 1; w = 1;
       ! Read through each timestep to extract any available assimilatable observations
       do day = 1, DATAin%nodays
          if (DATAin%GPP(day) > -9998d0) then

@@ -59,14 +59,14 @@ contains
       implicit none(type, external)
 
       ! Arguments
-      type(PARINFO), intent(in) :: PI ! PARINFO struct from model giving number, bounds of parameters    
+      type(PARINFO), intent(in) :: PI ! PARINFO struct from model giving number, bounds of parameters
       type(DEMCZOPT), intent(inout) :: MCO ! struct of options for the run, shared between all threads
       type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout) :: MCOUT_list  ! Array of MCMC_OUTPUT structs for each thread's results
       type(MCMC_OUTPUT) :: MCOUT ! A single thread's output object
 
       integer, optional, intent(in) :: nchains ! number chains optional, default 1
       integer, intent(in):: seed
-      
+
       !> Matrix X, (npars x nchains), holding current state of the n chains
       double precision, allocatable, dimension(:,:):: PARS_current
       double precision, dimension(PI%npars):: norPARS
@@ -245,7 +245,7 @@ contains
                do while (R1 == R2)  ! should not equal R1 ("without replacement")
                   R2 = random_int(len_history)
                end do
-               call step_real(proposed_vector, PARS_current(:, j), PARS_history(:, R1), PARS_history(:, R2), & 
+               call step_real(proposed_vector, PARS_current(:, j), PARS_history(:, R1), PARS_history(:, R2), &
                               differential_weight, random_uniform_vectors(j), PI)
                if (bounds_check(PI, proposed_vector)) then
                   call model_likelihood(proposed_vector, PI%npars, l, j)

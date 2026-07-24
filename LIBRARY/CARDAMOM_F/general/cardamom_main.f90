@@ -107,8 +107,8 @@ program cardamom_framework
                     freq_write_char, do_inflate_char, cost_func_scaling_char, &
                     nchains_char
    character(350) :: arg1, arg2, arg3
-   integer :: args_start 
-   integer :: sampler ! set to one of the integer codes 
+   integer :: args_start
+   integer :: sampler ! set to one of the integer codes
    integer :: solution_wanted, freq_print, freq_write, time1, time2, time3, &
               do_inflate_dble, cost_func_scaling_dble, idum
    logical :: do_inflate = .false.
@@ -127,7 +127,7 @@ program cardamom_framework
 
    call init_infinity()
 
-   ! check command line for a potential first arg sampler=... 
+   ! check command line for a potential first arg sampler=...
    ! effects : set this program's `sampler` variable  and args_start to offset following command line args
    call get_command_argument(1, arg1)
    call get_command_argument(2, arg2)
@@ -186,9 +186,9 @@ program cardamom_framework
       print*, "8) Number of chains (optional, integer >= 1; defaults to 3)."
       stop
    end if
-   
+
    ! decide on the exact type of the sampler_options struct
-   if (sampler==sampler_APMCMC .or. sampler==sampler_MHMCMC) then 
+   if (sampler==sampler_APMCMC .or. sampler==sampler_MHMCMC) then
      allocate(MCMC_OPTIONS::MCO)
    else if (sampler==sampler_DEMCZ) then
      allocate(DEMCzopt::MCO)
@@ -208,8 +208,8 @@ program cardamom_framework
 
    if (sampler==sampler_DEMCZ .and. do_inflate) then
     write(*,*) "WARNING: Value of 6th command line argument do_inflate=1 will be ignored, there will be no &
-                    &  log-scaled sampling phase when the chosen sampler is DEMCZ" 
-   endif 
+                    &  log-scaled sampling phase when the chosen sampler is DEMCZ"
+   endif
 
    ! user update
    write (*,*) "Command line options read, moving on now"
@@ -257,7 +257,7 @@ program cardamom_framework
       call check_for_existing_output_files(PI%npars, MCO, sub_fraction, i, restart)
       MCO%restart = MCO%restart .and. restart
    end do
-    
+
       !if all nchains files were found, read them
     if (MCO%restart) then
        do i = 1, nchains
@@ -279,8 +279,8 @@ program cardamom_framework
       end do
    end if
 
-   ! At this point, whether from restart or from edc search , we should have values to start from 
-   ! in MCOUT_list(i)%pars 
+   ! At this point, whether from restart or from edc search , we should have values to start from
+   ! in MCOUT_list(i)%pars
    ! In case of restart, number of steps already done is noted in MCOUT_list(i)%nos_iterations
 
    do i = 1, nchains
@@ -316,7 +316,7 @@ program cardamom_framework
       MCO%nOUT = MCO%nOUT - MCOUT_list(1)%nos_iterations ! TODO again just using 1 , assuming all restart files are same length
 
       MCO%fADAPT = 1d0
-      MCO%fixedpars = .true. ! start from end points of EDC (or pre-restart) phase , preserve latest MCO%pars already existing in MCO 
+      MCO%fixedpars = .true. ! start from end points of EDC (or pre-restart) phase , preserve latest MCO%pars already existing in MCO
 
       ! Update user again
       write (*,*) "Nos iterations to be proposed = ", MCO%nOUT
@@ -350,10 +350,10 @@ program cardamom_framework
          ! (desired number of steps in this phase == number of steps actually done)
          ! TODO this phase should NOT be able to exit early due to convergence condition !
          ! tmp : check
-         if (.not. (nOUT_save == MCOUT_list(i)%nos_iterations) ) then 
+         if (.not. (nOUT_save == MCOUT_list(i)%nos_iterations) ) then
            write(*,*) "WARNING sampling first phase completed an unexpected number of steps, &
              & ", MCOUT_list(i)%nos_iterations, " on thread " , i, " where ", nOUT_save,  "were expected."
-         endif 
+         endif
 
          ! reset iterations counter.
          MCOUT_list(i)%nos_iterations = 0
@@ -364,7 +364,7 @@ program cardamom_framework
      ! Continue as if this number of steps has been done
      ! NOTE always assuming that the number of steps requested (command line argument) is the same
      ! on original run and restart run
-     nOUT_save = nint(dble(MCO%nOUT)*sub_fraction) 
+     nOUT_save = nint(dble(MCO%nOUT)*sub_fraction)
    else ! no first phase was done
      nOUT_save = 0 ! number of steps done in first phase
    end if
@@ -379,13 +379,13 @@ program cardamom_framework
    if ( MCO%restart ) then
      ! Restart : subtract what's already present in files
      MCO%nOUT = MCO%nOUT - MCOUT_list(1)%nos_iterations
-   endif 
+   endif
 
    MCO%fixedpars = .true. ! start next phase from values in MCOUT%pars, whether from restart, edc, or first phase
 
    ! Update the user
    write (*,*) "Beginning parameter search in real likelihoods"
-   write (*,*) "Nos iterations to be proposed = ", MCO%nOUT 
+   write (*,*) "Nos iterations to be proposed = ", MCO%nOUT
 
    ! Call the main MCMC
    ! The specific normalisation of the cost function is determined here.

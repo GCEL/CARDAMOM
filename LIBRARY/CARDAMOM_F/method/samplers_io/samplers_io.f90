@@ -38,7 +38,7 @@ module samplers_io
 
    integer:: pfile_unit = 10, sfile_unit = 11, cfile_unit = 12, cifile_unit = 13
    !! In case of single set of output files, these are literally the file unit numbers.
-   !! In case of MCMC simulation, these are ids of the first thread's files; others are 
+   !! In case of MCMC simulation, these are ids of the first thread's files; others are
    !! calculated based on them.
 
    ! parameters
@@ -68,10 +68,10 @@ contains
    !------------------------------------------------------------------
    !
 
-   subroutine calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread) 
+   subroutine calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
       !! Calculate unit numbers for the simulation's nth thread's files.
       !! Applies to APMCMC and MHMCMC sampelrs, where each thread writes its own set of output files.
-      !! The numbers are based on module variables pfile_unit etc , Assigned io unit numbers in the pattern 
+      !! The numbers are based on module variables pfile_unit etc , Assigned io unit numbers in the pattern
       !!, where module data is integer:: pfile_unit = 10, sfile_unit = 11, cfile_unit = 12, cifile_unit = 13
       !! 10  pfile thread 1
       !! 11  sfile thread 1
@@ -90,8 +90,8 @@ contains
       sfile_unit_thread = sfile_unit + offset
       cfile_unit_thread = cfile_unit + offset
       cifile_unit_thread = cifile_unit + offset
-   end subroutine
-   
+   end subroutine calculate_file_ids
+
    subroutine check_for_existing_output_files(npars, MCO, sub_fraction, chainid, restart)
       use samplers_shared, only: SAMPLER_OPTIONS, filenames_insert_threadid
 
@@ -99,7 +99,7 @@ contains
       ! job. If they do we will assume that this is a restart job that we want to
       ! finish off. Important for large jobs or running on machines with may crash
       ! / have runtime limits
-      ! For a single thread's output 
+      ! For a single thread's output
       implicit none(type, external)
 
       ! declare input variables
@@ -108,8 +108,8 @@ contains
       type(SAMPLER_OPTIONS), intent(in):: MCO
       !! simulation settings object-to read nOut, nWrite, filenames
       double precision, intent(in):: sub_fraction
-      character(350):: outfile, stepfile, covfile, covifile 
-         !! filenames stems + numbering 
+      character(350):: outfile, stepfile, covfile, covifile
+         !! filenames stems + numbering
       integer :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
          !! file unit numbers for this thread
       integer, intent(in) :: chainid
@@ -151,7 +151,7 @@ contains
 
          status = 0; num_lines = 0
          do
-            read (pfile_unit_thread, iostat=status) dummy 
+            read (pfile_unit_thread, iostat=status) dummy
             if (status /= 0) exit
             num_lines = num_lines + 1
          end do
@@ -202,8 +202,8 @@ contains
       type(MCMC_OUTPUT), intent(inout):: MCOUT
       integer, intent(in):: npars
       integer, intent(in):: chainid
-      character(350):: outfile, stepfile, covfile, covifile 
-         !! filenames 
+      character(350):: outfile, stepfile, covfile, covifile
+         !! filenames
 
       ! local variables
       integer:: a, b, c, i, j, num_lines, status
@@ -222,7 +222,7 @@ contains
           call filenames_insert_threadid(outfile, stepfile, covfile, covifile, chainid)
       end if
 
-      ! open output files, determine file unit numbers 
+      ! open output files, determine file unit numbers
       ! last 4 arguments set with the unit numbers opened
       call open_output_files(outfile, stepfile, covfile, covifile, chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
@@ -330,7 +330,7 @@ contains
       ! Determine whether there is 1 or more matrice here
       write(*,*) "Cfile unit" , cfile_unit_thread
       write(*,*) "Cov file nlines" , num_lines
-      write(*,*) "Cov file nlines/npars/npars" , (num_lines/npars)/npars 
+      write(*,*) "Cov file nlines/npars/npars" , (num_lines/npars)/npars
       if ((num_lines/npars)/npars == 1) then
          ! the size of the file is consistent with a single matrix having been
          ! saved
@@ -358,7 +358,7 @@ contains
 
       if (a > 0) then
          ! Have at least a first covariance matrix
-         ! Set this flag so that the restarted simulation will not overwrite first 
+         ! Set this flag so that the restarted simulation will not overwrite first
          ! covariance matrix in the file with first after restart
          MCOUT%cov = .true.
       endif

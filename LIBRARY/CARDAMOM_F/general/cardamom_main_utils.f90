@@ -49,23 +49,23 @@ module cardamom_main_utils
     integer :: i, j
     str_lower = str
     do i=1, LEN_TRIM(str)
-      j = iachar(str(i:i)) 
+      j = iachar(str(i:i))
       if (j>=65 .and. j<97) then
-        j = j+32 
-      endif 
+        j = j+32
+      endif
       str_lower(i:i) = achar(j)
     end do
-  end function
+  end function to_lower
 
   logical function str_equal(str1, str2)
     ! check string match, case insensitive
-    character(len=*) :: str1, str2 
+    character(len=*) :: str1, str2
     character(len=LEN_TRIM(str1)) :: str1_lower
     character(len=LEN_TRIM(str2)) :: str2_lower
     str1_lower = to_lower(trim(str1))
     str2_lower = to_lower(trim(str2))
-    str_equal = str1_lower == str2_lower 
-  end function
+    str_equal = str1_lower == str2_lower
+  end function str_equal
 
 
    subroutine parse_sampler_choice( arg1, arg2, arg3, sampler, args_start)
@@ -90,37 +90,37 @@ module cardamom_main_utils
      ! does it continue with = ?
      found_equals = .false.
      if (len_trim(arg) >= pos_in_word) then
-     if (str_equal("=",arg(pos_in_word:pos_in_word))) then 
+     if (str_equal("=",arg(pos_in_word:pos_in_word))) then
        found_equals = .true.
        pos_in_word = pos_in_word + 1
-     endif 
-     endif 
+     endif
+     endif
 
      ! or is = in the next argument ?
-     if (.not. found_equals) then 
+     if (.not. found_equals) then
        args_start = 2
        arg = arg2
        arg_next = arg3
        pos_in_word = 1
      if (len_trim(arg2) >= pos_in_word) then
-     if (str_equal("=",arg2(pos_in_word:pos_in_word))) then 
+     if (str_equal("=",arg2(pos_in_word:pos_in_word))) then
        found_equals = .true.
        pos_in_word = pos_in_word + 1
-     endif 
-     endif 
-     endif 
+     endif
+     endif
+     endif
 
-       ! else parse error, `sampler` but no `=` 
+       ! else parse error, `sampler` but no `=`
      if (.not. found_equals) then
          write(*,*) "Could not parse command line, found keyword `sampler` but no `=`"
          STOP 1
-     endif 
+     endif
 
      ! does it continue with a sampler name in the same word?
      if (len_trim(arg) >= pos_in_word + 4) then
      sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
-     else 
-     args_start = args_start + 1 
+     else
+     args_start = args_start + 1
      pos_in_word = 1
      arg = trim(arg_next) !arg2 or arg3
      sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
@@ -131,7 +131,7 @@ module cardamom_main_utils
        sampler = sampler_APMCMC
      elseif (str_equal("MHMCM", sampler_name) ) then
        sampler = sampler_MHMCMC
-     else 
+     else
          write(*,*) "Could not parse command line, found keyword `sampler=` ", sampler_name
          write(*,*) "Choose from sampler=DEMCZ, APMCMC, or MHMCMC"
          STOP 1
@@ -140,7 +140,7 @@ module cardamom_main_utils
    endif
    ! else : `sampler` keyword not found, continue with default
 
-   end subroutine
+   end subroutine parse_sampler_choice
 
 
   !

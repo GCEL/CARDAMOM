@@ -187,8 +187,8 @@ contains
          , PARS_proposed & ! parameter values for current proposal
          , BESTPARS        ! best set of parameters so far
 
-      double precision, allocatable, dimension(:,:):: PARSALL  
-         !! The history, accepted normalised parameter values in intervals nadapt .  npars x nadapt 
+      double precision, allocatable, dimension(:,:):: PARSALL
+         !! The history, accepted normalised parameter values in intervals nadapt .  npars x nadapt
       double precision:: loglikelihood_previous, loglikelihood_proposed
         !! loglikelihood of a set of parameters
       double precision:: output_loglikelihood

@@ -67,7 +67,7 @@ module model_likelihood_wrapper
     real(c_double), intent(out) :: loglikelihood
 
     ! Local variables
-    real(c_double) :: ML_obs_out, ML_prior_out  
+    real(c_double) :: ML_obs_out, ML_prior_out
 
     ! call the function to write to ML_obs_out and ML_prior_out
     call model_likelihood(params, ML_obs_out, ML_prior_out, id)
@@ -92,7 +92,7 @@ module model_likelihood_wrapper
     real(c_double), intent(out) :: loglikelihood
 
     ! Local variables
-    real(c_double) :: ML_obs_out, ML_prior_out  
+    real(c_double) :: ML_obs_out, ML_prior_out
 
     ! call the function to write to ML_obs_out and ML_prior_out
     call scaled_model_likelihood(params, ML_obs_out, ML_prior_out, id)
@@ -108,7 +108,7 @@ module model_likelihood_wrapper
     use iso_c_binding
 
     implicit none(type, external)
-   
+
     ! Wrapper for EDC function, which finds a set of parameters fulfilling otherwise
     ! hard boundary conditions with a softer stepped potential
 
@@ -118,7 +118,7 @@ module model_likelihood_wrapper
     real(c_double), intent(out) :: loglikelihood
 
     ! Local variables
-    real(c_double) :: ML_obs_out, ML_prior_out  
+    real(c_double) :: ML_obs_out, ML_prior_out
 
     call edc_model_likelihood(params, ML_obs_out, ML_prior_out, id)
 

@@ -1065,10 +1065,10 @@ contains
       !! An integer in range 1 to N (incl), if given.
       !! If no argument N is given, an integer in range 1 to
       !! HUGE (max value of default int type).
-      !! Not intended for use with negative N, 
+      !! Not intended for use with negative N,
       !! but will give random int in range N+1 to 0.
       !! Same behavior as random_number intrinsic:
-      !! Next pseudorandom value from the series each call, 
+      !! Next pseudorandom value from the series each call,
       !! affected by initialization calls to random_seed random_init.
       !! Note intrinsic IRAND is similar, but not supoprted by ifx.
       integer, intent(in), optional:: N
@@ -1078,7 +1078,7 @@ contains
          N_ = N
       else
          N_ = huge(1)
-      endif 
+      endif
       call random_number(r)
       random_int = floor(N_*r) + 1
    end function random_int
