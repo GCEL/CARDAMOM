@@ -54,7 +54,7 @@ subroutine test_step_pars(error)
   double precision:: par_minstepsize = 0.001d0 ! ?? what does this do ?
   type(UNIF_VECTOR):: random_uniform
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call random_uniform%initialize_random(seed)
   call init_PI()
   pars0 = [0d0, 0d0]
@@ -81,7 +81,7 @@ subroutine test_step_pars_real(error)
   double precision:: par_minstepsize = 0.001d0 ! ?? what does this do ?
   type(UNIF_VECTOR):: random_uniform
   integer:: seed
-  seed = random_int()  
+  seed = random_int()
   opt_scaling = 5.67/dble(PI_xy%npars)
   call random_uniform%initialize_random(seed)
   call init_PI()
@@ -144,7 +144,7 @@ subroutine test_run_mcmc_len0(error)
   ! outputs/writes unchanged state
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   mcopt%nout = 0
   call run_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed)
@@ -170,7 +170,7 @@ subroutine test_not_static(error)
   double precision, dimension(2):: state0, state1, state2
     !! Evolving values of x, y estimate of normal distribution ll_normal
   integer:: seed
-  seed = random_int()  
+  seed = random_int()
   call init_pi()
   mcopt%nout = 0
   ! a Zero-length run to intialize to random state
@@ -196,7 +196,7 @@ subroutine test_run_mcmc_len1000(error)
   type(mcmc_options):: mcopt  ! filled with defaults only
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int()  
+  seed = random_int()
   call init_pi()
   mcopt%nout = 1000
   call run_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed)
@@ -222,7 +222,7 @@ subroutine test_run_parallel_mcmc_nchains1_len0(error)
   ! outputs/writes unchanged state
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   mcopt%nout = 0
   call run_parallel_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed)
@@ -245,7 +245,7 @@ subroutine test_run_parallel_mcmc_nchains4_len0(error)
   ! outputs/writes unchanged state
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   mcopt%nout = 0
   write(*,*) "calling"
@@ -273,7 +273,7 @@ subroutine test_run_parallel_mcmc_nchains4_enforceomp_len0(error)
   ! outputs/writes unchanged state
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call omp_set_num_threads(4)
   call init_pi()
   mcopt%nout = 0
@@ -295,7 +295,7 @@ subroutine test_run_parallel_mcmc_len1000(error)
   type(MCMC_OPTIONS):: MCOPT
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int()  
+  seed = random_int()
   MCOPT%nout = 1000
   call run_mcmc(ll_normal, PI_xy, MCOPT, MCOUT, seed=seed)
   ! Expect x and y close to true values were found
@@ -319,7 +319,7 @@ subroutine test_run_parallel_mcmc_nchains4_enforceomp_len100000(error)
   ! outputs/writes unchanged state
   ! all on defaults, without optional arguments
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call omp_set_num_threads(4)  ! error if not compiled with omp library
   call init_pi()
   mcopt%nout = 10000
@@ -350,7 +350,7 @@ subroutine test_mcmc_stop_condition(error)
   type(mcmc_options):: mcopt  ! filled with defaults only
   integer:: maxsteps
   integer:: seed
-  seed = random_int()  
+  seed = random_int()
   call init_pi()
   maxsteps = 1000000  ! don't expect to actually run for this long before convergence ll = 0.0
   mcopt%nout = maxsteps
@@ -377,7 +377,7 @@ subroutine test_mcmc_stop_condition_exact(error)
   type(mcmc_options):: mcopt  ! filled with defaults only
   integer:: maxsteps
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   maxsteps = 1000000  ! don't expect to actually run for this long before convergence ll = 0.0
   mcopt%nout = maxsteps
@@ -404,7 +404,7 @@ subroutine test_mcmc_stop_condition_initial(error)
   type(mcmc_options):: mcopt  ! filled with defaults only
   integer:: maxsteps
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   maxsteps = 1000000  ! don't expect to actually run for this long before convergence ll = 0.0
   mcopt%nout = maxsteps
@@ -429,7 +429,7 @@ subroutine test_mcmc_two_phase(error)
   integer:: maxsteps
   double precision, dimension(2):: startingpars
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call init_pi()
   maxsteps = 1000000  ! don't expect to actually run for this long before convergence ll = 0.0
   mcopt%nout = maxsteps
@@ -475,7 +475,7 @@ subroutine test_mcmc_two_phase_parallel(error)
   double precision, dimension(nchains, 2):: startingpars
   integer:: i
   integer:: seed
-  seed = random_int() 
+  seed = random_int()
   call omp_set_num_threads(nchains)
   allocate(mcout_list(nchains))
   call init_pi()

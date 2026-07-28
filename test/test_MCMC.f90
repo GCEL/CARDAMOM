@@ -174,13 +174,13 @@ contains
       mcopt%nout = 0
       ! a Zero-length run to intialize to random state
       call run_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed, standard=.true.)
-      ! expect 
+      ! expect
       state0 = mcout%pars
       mcopt%fixedpars = .true. ! start from same state
       mcopt%nout = 1000
       ! A short run
       call run_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed, standard=.true.)
-      ! expect 
+      ! expect
       state1 = mcout%pars
       ! another 1000 sampling steps
       call run_mcmc(ll_normal, pi_xy, mcopt, mcout, seed=seed, standard=.true.)

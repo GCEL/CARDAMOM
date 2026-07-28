@@ -405,15 +405,20 @@ program cardamom_framework
    end if  ! cost_func_scaling_dble ==
 
    !  Finally run the mcmc
-   if (sampler==sampler_APMCMC) then
+   if (sampler==sampler_APMCMC .or. sampler==sampler_MHMCMC) then
    select type(MCO)
    type is (MCMC_options)
-       call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
+       if (sampler==sampler_APMCMC) then
+         call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
+       else ! sampler = MHMCMC , the more standard adaptive MCMC algorithm 
+         call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = &
+          & idum, standard = .true.)
+       endif 
    end select
    else if (sampler==sampler_DEMCZ) then
          select type(MCO)
          type is(DEMCzopt)
-   call run_demcz(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
+           call run_demcz(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
          end select
    endif
 

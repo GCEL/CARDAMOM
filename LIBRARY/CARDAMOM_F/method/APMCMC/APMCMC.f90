@@ -116,9 +116,9 @@ contains
       !! Array of MCMC_OUTPUT structs for each thread's results
       integer, optional, intent(in):: nchains
       integer, intent(in) :: seed
-      logical, intent(in), optional :: standard 
-	!! Run standard adaptive MCMC algorithm, or include cardamom-specific modifications 
-        !! Default standard=false => use cardamom quirks 
+      logical, intent(in), optional :: standard
+	!! Run standard adaptive MCMC algorithm, or include cardamom-specific modifications
+        !! Default standard=false => use cardamom quirks
 
       logical :: standard_
 
@@ -134,7 +134,7 @@ contains
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
             use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            real(c_double), dimension(n), intent(inout):: param_vector  
+            real(c_double), dimension(n), intent(inout):: param_vector
 			!! used as read-only, but has to be inout for compatibility with R via C
             integer(c_int), intent(in):: n, id
             real(c_double), intent(out):: ML
@@ -251,7 +251,7 @@ contains
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
             use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            real(c_double), dimension(n), intent(inout):: param_vector  
+            real(c_double), dimension(n), intent(inout):: param_vector
             integer(c_int), intent(in):: n, id
             real(c_double), intent(out):: ML
          end subroutine model_likelihood
@@ -323,7 +323,7 @@ contains
     !! Calculate derived  settings of the run...
       ! Determine how long we will continue to adapt our proposal covariance
       ! matrix and use of Delayed Rejection
-      burn_in_period = MCO%fADAPT*dble(MAXITER)  
+      burn_in_period = MCO%fADAPT*dble(MAXITER)
       ! See step() for relevant references.
       ! scd = 2.381204 the optimal scaling parameter for MCMC search, when applied
       ! to multivariate proposal.
@@ -462,7 +462,7 @@ contains
             if (standard_) then
                 ACCLOC = ACCLOC + 1
                 PARSALL(1:npars, ACCLOC) = log_par2nor(PARS_previous, PI%parmin, PI%parmax, PI%paradj)
-            endif 
+            endif
             ! Cardamom quirk 1:  not done in CARDAMOM-MHMCMC version to match original
             ! Likely the samplers lose ergodicity.  Helps samplers not get stuck, from experience.
          end if  ! accept or reject proposed pars
@@ -500,11 +500,11 @@ contains
             ! Second, are we still in the adaption phase?
             if (burn_in_period > ITER .or. .not. MCOUT%use_multivariate) then
                if (standard_) then
-               ! PARSALL and ACCLOC stay as they are - full history and count of all states sampled 
+               ! PARSALL and ACCLOC stay as they are - full history and count of all states sampled
                ! in this phase i.e. since last (mod(ITER, MCO%nadapt) == 0)
                ! to be added to running statistacs calculations
                ! there should be MCO%nadapt new rows in this matrix
-               else 
+               else
 
                ! Cardamom quirk 2: initial estimate comes from first, middle, and last 3 states out of the last
                ! period of nadapt steps only.
@@ -568,9 +568,6 @@ contains
       ! set flag MCMC completed
       MCOUT%complete = .true.
       ! tidy up
-      write(*,*) "thread", chainid_
-      write(*,*) "size", size(PARSALL)
-      write(*,*) "expect", PI%npars, MCO%nadapt
       deallocate(PARSALL)
 
       ! completed AP-MCMC loop
@@ -581,7 +578,9 @@ contains
       write (*, *) "Best log-likelihood = ", llmax
       !write (*, *) "Best parameters = ", MCOUT%bestpars
 
-      call close_output_files(pfileunit, sfileunit, cfileunit, cifileunit)
+      if (MCO%nwrite > 0) then
+         call close_output_files(pfileunit, sfileunit, cfileunit, cifileunit)
+      endif
 
    end subroutine run_mcmc
    !
@@ -620,10 +619,10 @@ contains
 	!! number of accepted steps as of before the current round of nadapt , = ITER - nadapt
         !!     Read it from MCOUT%Nparvar where it was saved at the end of last roung
       integer:: Nparvar_local
-        !! min(Nparvar_backup, N_bfore_mv_target) , 
+        !! min(Nparvar_backup, N_bfore_mv_target) ,
         !! a version of Nparvar_backup that is artificially capped at a constant
       integer, intent(in):: N_before_mv_target
-      logical, intent(in) :: standard ! use standard literature adaptive MCMC (true) 
+      logical, intent(in) :: standard ! use standard literature adaptive MCMC (true)
                           ! or apply downweighting of history (false) for increased adaptiveness
 
       ! if we have a covariance matrix then we want to update it, if not then we need to create one
@@ -634,15 +633,15 @@ contains
 
          cov_backup = MCOUT%covariance; meanpar_backup = MCOUT%meanpar; Nparvar_backup = MCOUT%Nparvar
          if (standard) then
-		 ! update statistics : 
-                 !  Requesting running update of covariance and mean with 4th argument correctly 
-                 ! Giving number of states that entered into the calculation so far, 
-		 ! Nparvar_backup 
+		 ! update statistics :
+                 !  Requesting running update of covariance and mean with 4th argument correctly
+                 ! Giving number of states that entered into the calculation so far,
+		 ! Nparvar_backup
 		 ! = ITER-nadapt instead of being artificially capped at 100
 		 Nparvar_local = Nparvar_backup
 		 call increment_covariance_matrix(PARSALL, MCOUT%meanpar, npars &
 		                                  , Nparvar_local, nadapt, MCOUT%covariance)
-         else 
+         else
 		 ! 3rd difference between cardamom APMCMC and standard MHMCMC :
 		 ! Have started hardcoding a maximum number of observations to be N_before_mv_target.
 		 ! While not strictly following Haario et al., (2001) or Roberts and Rosenthal, (2009)
@@ -650,9 +649,9 @@ contains
 		 ! in fact this is having the effect of extremely downweighting history
 		 ! in the running calculations of mean and covariance matrix in new covariance matrix .
 		 ! They will not converge, and represent mean and covariance for the local neighborhood.
-		 
+
 		 Nparvar_local = min(N_before_mv_target, Nparvar_backup)
-		 
+
          endif
 		 ! caution : subroutine increment_covariance_matrix changes not just its last argument 'covariance',
 		 ! but also its second argument 'mean' and its

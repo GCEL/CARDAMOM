@@ -66,12 +66,12 @@ subroutine test_random_int_noarg(error)
   ! expect integers in range 1 to HUGE inclusive.
   ! check all positive
   call check(error, all(results > 0) )
-  ! Check values are approx evenly distributed in quarters of the range  
+  ! Check values are approx evenly distributed in quarters of the range
   call check(error, count(results <= (expected_upper_bound * 0.25d0) ) >= n_samples * 0.2  )
   call check(error, count(results > (expected_upper_bound * 0.25d0) .and. (results <= expected_upper_bound * 0.5d0) ) >= n_samples * 0.2  )
   call check(error, count(results > (expected_upper_bound * 0.5d0) .and. (results <= expected_upper_bound * 0.75d0) ) >= n_samples * 0.2  )
   call check(error, count(results > expected_upper_bound * 0.75d0 ) >= n_samples * 0.2  )
-  ! check average is in the ballpark of HUGE/2 
+  ! check average is in the ballpark of HUGE/2
   avg =sum( results / dble(n_samples))  ! scaling happens before summing to avoid integer overflow
   call check(error, avg >= expected_upper_bound * 0.4d0 .and. avg <= expected_upper_bound * 0.6d0 )
 end subroutine test_random_int_noarg
