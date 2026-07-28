@@ -155,6 +155,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "DEGUG")
 else ()
   set(DALEC_FFLAGS -O2 -ffree-line-length-0 -fPIC -shared)
 endif()
+# This custom command compiles and links dalec.so in one gfortran invocation,
+# so it does not inherit CMake's project-wide add_link_options(). Explicitly
+# mark the stack non-executable here too (see top-level CMakeLists.txt for why).
+list(APPEND DALEC_FFLAGS -Wl,-z,noexecstack)
 
 file(MAKE_DIRECTORY "${DALEC_MODDIR}")
 add_custom_command(
