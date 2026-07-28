@@ -64,7 +64,6 @@ add_library(cardamom-samplers-lib
               method/samplers_io/samplers_io.f90
               method/samplers_shared.f90
               method/APMCMC/APMCMC.f90
-              method/APMCMC/MHMCMC.f90
               method/DEMCMC/DEMCz.f90
 )
 

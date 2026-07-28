@@ -72,7 +72,7 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine run_parallel_mcmc(model_likelihood, PI, MCO, MCOUT_list, model_likelihood_write_in, nchains, seed)
+   subroutine run_parallel_mcmc(model_likelihood, PI, MCO, MCOUT_list, model_likelihood_write_in, nchains, seed, standard)
       !- Run multiple parallel MCMC simulations (adaptive MCMC algorithm with CARDAMOM-specific quirks)
       !
       !/* ***********INPUTS************
@@ -116,6 +116,11 @@ contains
       !! Array of MCMC_OUTPUT structs for each thread's results
       integer, optional, intent(in):: nchains
       integer, intent(in) :: seed
+      logical, intent(in), optional :: standard 
+	!! Run standard adaptive MCMC algorithm, or include cardamom-specific modifications 
+        !! Default standard=false => use cardamom quirks 
+
+      logical :: standard_
 
       !! number chains optional, default 1
       integer:: i
@@ -127,10 +132,12 @@ contains
       !> given the inputted parameter values.
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            integer, intent(in)  :: n, id
-            double precision, intent(inout), dimension(n) :: param_vector
-            double precision, intent(out) :: ML
+            real(c_double), dimension(n), intent(inout):: param_vector  
+			!! used as read-only, but has to be inout for compatibility with R via C
+            integer(c_int), intent(in):: n, id
+            real(c_double), intent(out):: ML
          end subroutine model_likelihood
       end interface
 
@@ -143,6 +150,13 @@ contains
       procedure(model_likelihood), pointer:: model_likelihood_write
 
       ! Argument processing  !!!!!!!!!!!!!!!
+
+      if (.not. present(standard)) then
+         standard_  = .false.
+      else
+         standard_ = standard
+      end if
+
 
       if (.not. present(nchains)) then
          MCO%nchains = 1
@@ -173,13 +187,13 @@ contains
       !$OMP parallel do default(shared)
       do i = 1, MCO%nchains
          ! saves latest, best loglikelihood and associated parameters to MCOUT_list(i)
-         call run_mcmc(model_likelihood, PI, MCO, MCOUT_list(i), model_likelihood_write, i, seed+i)
+         call run_mcmc(model_likelihood, PI, MCO, MCOUT_list(i), model_likelihood_write, i, seed+i, standard_)
       end do
       !$OMP end parallel do
 
    end subroutine run_parallel_mcmc
 
-   subroutine run_mcmc(model_likelihood, PI, MCO, MCOUT, model_likelihood_write_in, chainid, seed)
+   subroutine run_mcmc(model_likelihood, PI, MCO, MCOUT, model_likelihood_write_in, chainid, seed, standard)
    !! Main function for a single-thread adaptive MCMC simulation
       use samplers_math, only: log_par2nor, log_nor2par, par2nor, nor2par
       use samplers_shared, only: init_pars_random, bounds_check,  metropolis_choice
@@ -196,7 +210,9 @@ contains
 
       integer, intent(in), optional:: chainid
       integer, intent(in) :: seed
+      logical, intent(in), optional :: standard
       integer:: chainid_
+      logical:: standard_
 
       type(io_buffer_space):: io_space
       !! buffer for writing to out files, private to this chain
@@ -233,10 +249,11 @@ contains
       ! make it conform to this form.
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            integer, intent(in)  :: n, id
-            double precision, intent(inout), dimension(n) :: param_vector
-            double precision, intent(out) :: ML
+            real(c_double), dimension(n), intent(inout):: param_vector  
+            integer(c_int), intent(in):: n, id
+            real(c_double), intent(out):: ML
          end subroutine model_likelihood
       end interface
 
@@ -249,6 +266,14 @@ contains
       logical:: accept
 
       ! process arguments...
+
+      if (.not. present(standard)) then
+         standard_  = .false.
+      else
+         standard_ = standard
+      end if
+
+
       if (present(model_likelihood_write_in)) then
          ! if second function given use it for writing to file
          model_likelihood_write => model_likelihood_write_in
@@ -298,7 +323,7 @@ contains
     !! Calculate derived  settings of the run...
       ! Determine how long we will continue to adapt our proposal covariance
       ! matrix and use of Delayed Rejection
-      burn_in_period = MCO%fADAPT*dble(MAXITER)  ! TODO used?
+      burn_in_period = MCO%fADAPT*dble(MAXITER)  
       ! See step() for relevant references.
       ! scd = 2.381204 the optimal scaling parameter for MCMC search, when applied
       ! to multivariate proposal.
@@ -369,7 +394,7 @@ contains
          ! start statistics from previous statistics in MCOUT
       end if
 
-      if (.not. MCO%restart) then  ! if new simulation, from fixedpars or random pars
+      if (.not. MCO%restart) then  ! if new simulation, whether from fixedpars or random pars
          ! calculate initial ll
          call model_likelihood(PARS_previous, npars, loglikelihood_previous, chainid_)
          ! best value so far = starting value
@@ -378,7 +403,7 @@ contains
       else
          ! TODO recalculatig because not read from file in case of restart , although
          ! present in column npars+1
-         !loglikelihood_previous = MCOUT%ll
+         ! loglikelihood_previous = MCOUT%ll
          call model_likelihood(PARS_previous, npars, loglikelihood_previous, chainid_)
          ! BESTPARS = MCOUT%bestll  ! not available from file read
          BESTPARS = PARS_previous
@@ -413,14 +438,14 @@ contains
          end if  ! in bound
 
          if (accept) then
+            ! Keep count of the number of accepted proposals in this local period
+            ACCLOC = ACCLOC + 1
             ! Store accepted parameter proposals (unnormalized values)
             ! keep record of all parameters accepted since step adaption
             ! (this chain)
             ! Because this history matrix is used for (normalized) statistics for adaptiveness,
             ! store normalized version of pars
-            PARSALL(1:npars, ACCLOC + 1) = log_par2nor(PARS_proposed, PI%parmin, PI%parmax, PI%paradj)  ! add row in history matrix
-            ! Keep count of the number of accepted proposals in this local period
-            ACCLOC = ACCLOC + 1
+            PARSALL(1:npars, ACCLOC) = log_par2nor(PARS_proposed, PI%parmin, PI%parmax, PI%paradj)  ! add row in history matrix
             ! Accepted first proposal from multivariate
             if (multivariate) ACC_first = ACC_first + 1
 
@@ -432,9 +457,13 @@ contains
                BESTPARS = PARS_previous
                 llmax = loglikelihood_previous
             end if
-            !else
-            ! here we would write the same state to history again, in a standard MCMC
-            ! Cardamom quirk :  not done in CARDAMOM-MHMCMC version to match original
+         else
+            ! here we write the same state to history again, in a standard MCMC
+            if (standard_) then
+                ACCLOC = ACCLOC + 1
+                PARSALL(1:npars, ACCLOC) = log_par2nor(PARS_previous, PI%parmin, PI%parmax, PI%paradj)
+            endif 
+            ! Cardamom quirk 1:  not done in CARDAMOM-MHMCMC version to match original
             ! Likely the samplers lose ergodicity.  Helps samplers not get stuck, from experience.
          end if  ! accept or reject proposed pars
 
@@ -470,8 +499,14 @@ contains
 
             ! Second, are we still in the adaption phase?
             if (burn_in_period > ITER .or. .not. MCOUT%use_multivariate) then
+               if (standard_) then
+               ! PARSALL and ACCLOC stay as they are - full history and count of all states sampled 
+               ! in this phase i.e. since last (mod(ITER, MCO%nadapt) == 0)
+               ! to be added to running statistacs calculations
+               ! there should be MCO%nadapt new rows in this matrix
+               else 
 
-               ! Cardamom quirk : initial estimate comes from first, middle, and last 3 states out of the last
+               ! Cardamom quirk 2: initial estimate comes from first, middle, and last 3 states out of the last
                ! period of nadapt steps only.
                ! then (new 2025) continue with all accepted samples from last period.
                if (.not. MCOUT%cov .and. ACCLOC > 3) then
@@ -480,10 +515,10 @@ contains
                   ACCLOC = 3
                   ! leads to attempting to make new covariance matrix from the first, middle, and last rows of local history
                end if
+               endif
 
                ! update the covariance matrix for multivariate proposal
-               ! TODO rename "parsall" to reflect that it's really a small subsample of period's history
-               call update_statistics(PARSALL, npars, MCOUT, MCOUT%use_multivariate, ACCLOC, N_before_mv_target)
+               call update_statistics(PARSALL, npars, MCOUT, MCOUT%use_multivariate, ACCLOC, N_before_mv_target, standard_)
 
                if (MCO%nwrite > 0 .and. ACCLOC == 3 .and. MCOUT%cov) then
                   ! we just switched from not having a covraiance matrix to having an initial covariance matrix
@@ -501,7 +536,6 @@ contains
          ! Should I be write(*,*)ing to screen or not?
          if (MCO%nPRINT > 0) then
             if (mod(ITER, MCO%nPRINT) == 0) then
-               write (*, *) "ITER ", ITER
                write (*, *) "Chain ", chainid, "of", mco%nchains
                write (*, *) "Using multivariate sampling = ", MCOUT%use_multivariate
                write (*, *) "Total proposal = ", ITER, " out of ", MAXITER
@@ -534,6 +568,9 @@ contains
       ! set flag MCMC completed
       MCOUT%complete = .true.
       ! tidy up
+      write(*,*) "thread", chainid_
+      write(*,*) "size", size(PARSALL)
+      write(*,*) "expect", PI%npars, MCO%nadapt
       deallocate(PARSALL)
 
       ! completed AP-MCMC loop
@@ -550,7 +587,7 @@ contains
    !
    !------------------------------------------------------------------
    !
-   subroutine update_statistics(PARSALL, npars, MCOUT, use_multivariate, ACCLOC, N_before_mv_target)
+   subroutine update_statistics(PARSALL, npars, MCOUT, use_multivariate, nadapt, N_before_mv_target, standard)
       !! Calculate/update running mean, variance, and covariance.
       !! Formerly adapt_step_size, this function is central to the adaptive method from Roberts and Rosenthal 2009
       !! which adjusts proposal step size proportional to observed variances/covariances.
@@ -569,17 +606,25 @@ contains
       !! covariance matrix exists and is useable, i.e. positive definite
       ! declare inputs variables
       integer, intent(in):: npars
-      integer, intent(in):: ACCLOC
-      !! "accepted local", number of new states to add into running statistics
-      double precision, intent(in):: PARSALL(npars, ACCLOC)  ! collection of recently accepted normalised parameter combinations
+      !! total length of history of simulation (including the nadapt recent steps)
+      integer, intent(in):: nadapt
+      !! nadapt = ACCLOC "accepted local", number of new states to add into running statistics
+      double precision, intent(in):: PARSALL(npars, nadapt)  ! collection of recently accepted normalised parameter combinations
 
       ! declare local variables
       integer :: p, info  ! counters
       double precision, dimension(npars, npars):: cov_backup
       double precision, dimension(npars, npars):: cholesky
       double precision, dimension(npars):: meanpar_backup
-      integer:: Nparvar_backup, Nparvar_local
+      integer:: Nparvar_backup
+	!! number of accepted steps as of before the current round of nadapt , = ITER - nadapt
+        !!     Read it from MCOUT%Nparvar where it was saved at the end of last roung
+      integer:: Nparvar_local
+        !! min(Nparvar_backup, N_bfore_mv_target) , 
+        !! a version of Nparvar_backup that is artificially capped at a constant
       integer, intent(in):: N_before_mv_target
+      logical, intent(in) :: standard ! use standard literature adaptive MCMC (true) 
+                          ! or apply downweighting of history (false) for increased adaptiveness
 
       ! if we have a covariance matrix then we want to update it, if not then we need to create one
       if (MCOUT%cov) then
@@ -588,21 +633,32 @@ contains
          ! NOTE: that this also increments the total accepted counter (PI%Nparvar)
 
          cov_backup = MCOUT%covariance; meanpar_backup = MCOUT%meanpar; Nparvar_backup = MCOUT%Nparvar
-
-	 ! 3rd difference between cardamom APMCMC and standard MHMCMC :
-         ! Have started hardcoding a maximum number of observations to be N_before_mv_target.
-         ! While not strictly following Haario et al., (2001) or Roberts and Rosenthal, (2009)
-         ! this allows for the covariance matrix to be more responsive to its local environment.
-         ! in fact this is having the effect of extremely downweighting history
-         ! in the running calculations of mean and covariance matrix in new covariance matrix .
-         ! They will not converge, and represent mean and covariance for the local neighborhood.
-         !
-	 ! caution : subroutine increment_covariance_matrix changes not just its last argument 'covariance',
-         ! but also its second argument 'mean' and its
-         ! 4th argument 'cur' .
-         Nparvar_local = min(N_before_mv_target, Nparvar_backup)
-         call increment_covariance_matrix(PARSALL(1:npars, 1:ACCLOC), MCOUT%meanpar, npars &
-                                          , Nparvar_local, ACCLOC, MCOUT%covariance)
+         if (standard) then
+		 ! update statistics : 
+                 !  Requesting running update of covariance and mean with 4th argument correctly 
+                 ! Giving number of states that entered into the calculation so far, 
+		 ! Nparvar_backup 
+		 ! = ITER-nadapt instead of being artificially capped at 100
+		 Nparvar_local = Nparvar_backup
+		 call increment_covariance_matrix(PARSALL, MCOUT%meanpar, npars &
+		                                  , Nparvar_local, nadapt, MCOUT%covariance)
+         else 
+		 ! 3rd difference between cardamom APMCMC and standard MHMCMC :
+		 ! Have started hardcoding a maximum number of observations to be N_before_mv_target.
+		 ! While not strictly following Haario et al., (2001) or Roberts and Rosenthal, (2009)
+		 ! this allows for the covariance matrix to be more responsive to its local environment.
+		 ! in fact this is having the effect of extremely downweighting history
+		 ! in the running calculations of mean and covariance matrix in new covariance matrix .
+		 ! They will not converge, and represent mean and covariance for the local neighborhood.
+		 
+		 Nparvar_local = min(N_before_mv_target, Nparvar_backup)
+		 
+         endif
+		 ! caution : subroutine increment_covariance_matrix changes not just its last argument 'covariance',
+		 ! but also its second argument 'mean' and its
+		 ! 4th argument 'Nparvar_local' .
+         call increment_covariance_matrix(PARSALL(1:npars, 1:nadapt), MCOUT%meanpar, npars &
+		                                  , Nparvar_local, nadapt, MCOUT%covariance)
          ! Calculate the cholesky factor as this includes a determination of
          ! whether the covariance matrix is positive definite.
          cholesky = MCOUT%covariance
@@ -634,12 +690,12 @@ contains
 
          ! we have not yet created a covariance matrix based on accepted
          ! parameters. Assuming we have some then create one...
-         if (ACCLOC > 2) then
+         if (nadapt > 2) then
 
             ! estimate covariance matrix
-            call covariance_matrix(PARSALL(1:npars, 1:ACCLOC), MCOUT%meanpar, &
-            & npars, ACCLOC, MCOUT%covariance)
-            MCOUT%cov = .true.; MCOUT%Nparvar = ACCLOC
+            call covariance_matrix(PARSALL(1:npars, 1:nadapt), MCOUT%meanpar, &
+            & npars, nadapt, MCOUT%covariance)
+            MCOUT%cov = .true.; MCOUT%Nparvar = nadapt
 
             ! Calculate the cholesky factor as this includes a determination of
             ! whether the covariance matrix is positive definite.
@@ -657,7 +713,7 @@ contains
                use_multivariate = .true.
             end if
 
-         end if  ! N%ACCLOC > 2
+         end if  ! nadapt > 2
 
       end if  ! PI%cov == .true.
 
