@@ -340,7 +340,7 @@ contains
       double precision, dimension(interval):: x, y
 
       ! declare local variables
-      double precision:: sum_x, sum_y, sumsq_x, sum_product_xy
+      double precision:: sum_x, sum_y
 
       ! calculate the sum of x
       sum_x = sum(x)

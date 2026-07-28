@@ -240,7 +240,7 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine prepare_for_stress_test(infile, outfile)
+   subroutine prepare_for_stress_test(test_choice, outfile)
       use cardamom_MHMCMC, only: MCMC_OUTPUT, MCMC_OPTIONS
       use cardamom_structures, only: DATA_type, set_datain
       use cardamom_main_utils, only: initialize_stats
@@ -250,18 +250,17 @@ contains
       implicit none
 
       ! Arguments
-      character(350), intent(inout):: infile, outfile
+      character(350), intent(in):: test_choice
+      character(350), intent(out):: outfile
       type(Data_type):: DATAin  ! local tmp copy
 
       ! local variables
-      integer:: i
       type(MCMC_OUTPUT):: MCOUT  ! TODO no effect
-      type(MCMC_OPTIONS):: MCO  ! TODO no effect
 
       ! Set internal parameters in the absence of an input file
       ! allocate the default run information
 
-      if (outfile == "Circle") then
+      if (trim(test_choice) == "Circle") then
          ! ID = -1 StressTest-Circle
          DATAin%ID = -1
          DATAin%nodays = 1
@@ -270,7 +269,7 @@ contains
          DATAin%nopools = 1
          DATAin%nopars = 10
          DATAin%nofluxes = 1
-      else if (outfile == "Single") then
+      else if (trim(test_choice) == "Single") then
          ! ID = -2 StressTest-Single parameter
          DATAin%ID = -2
          DATAin%nodays = 1
@@ -279,7 +278,7 @@ contains
          DATAin%nopools = 1
          DATAin%nopars = 1  ! 2
          DATAin%nofluxes = 1
-      else if (outfile == "SingleCircle") then
+      else if (trim(test_choice) == "SingleCircle") then
          ! ID = -3 StressTest-Single Circle
          DATAin%ID = -3
          DATAin%nodays = 1
@@ -293,9 +292,6 @@ contains
          stop 1
       end if
 
-      ! Now we have used the infile to determine that this is going to be stress test,
-      ! and the specific one has been determined from the outfile,
-      ! we will now overwrite the outfile to give a default output location
       outfile = "stress_test_output_"
 
       ! need to allocate memory to the model output variables
@@ -426,9 +422,6 @@ contains
 
       ! declare inputs
       double precision, dimension(PI%npars), intent(inout):: PARS  ! current parameter vector
-      double precision, dimension(DATAin%nodays):: M_LAI, M_NEE, M_GPP
-      double precision, dimension(DATAin%nodays, DATAin%nofluxes):: M_FLUXES
-      double precision, dimension((DATAin%nodays + 1), DATAin%nopools):: M_POOLS
       ! output
       double precision, intent(inout):: ML_obs_out, &  ! observation+EDC log-likelihood
          ML_prior_out   ! prior log-likelihood

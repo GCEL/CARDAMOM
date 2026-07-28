@@ -43,8 +43,8 @@ module cardamom_main_utils
 
   contains
 
-  function to_lower(str) result(str_lower)
-    character(len=*) :: str
+  pure function to_lower(str) result(str_lower)
+    character(len=*), intent(in) :: str
     character(len=len_trim(str)) :: str_lower
     integer :: i, j
     str_lower = str
@@ -57,9 +57,9 @@ module cardamom_main_utils
     end do
   end function to_lower
 
-  logical function str_equal(str1, str2)
+  pure logical function str_equal(str1, str2)
     ! check string match, case insensitive
-    character(len=*) :: str1, str2
+    character(len=*), intent(in)  :: str1, str2
     character(len=LEN_TRIM(str1)) :: str1_lower
     character(len=LEN_TRIM(str2)) :: str2_lower
     str1_lower = to_lower(trim(str1))
@@ -198,7 +198,6 @@ module cardamom_main_utils
     integer :: i, counter_local(nchains), nOUT_save, nWRITE_save, nADAPT_save
     integer :: success_count
     logical :: append_save
-    logical :: restart(nchains)
     double precision :: ll
     double precision :: PEDC(nchains), PEDC_prev(nchains), P_target
     double precision, dimension(PI%npars) :: parini  ! local variable, or array

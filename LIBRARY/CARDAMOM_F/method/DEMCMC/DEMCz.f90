@@ -90,7 +90,7 @@ contains
       !! acceptance counter for each thread
       integer, dimension(:), allocatable:: ACCLOC
       !! acceptance counter for each thread, local to each nadapt phase
-      integer:: i, j, k, ITER, len_history, kinit  ! counters
+      integer:: j, k, ITER, len_history, kinit  ! counters
       integer:: R1, R2
       !!random indices in history
 
@@ -106,10 +106,11 @@ contains
       !> given the inputted parameter values.
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only: c_int, c_double
             implicit none(type, external)
-            integer, intent(in)  :: n, id
-            double precision, intent(inout), dimension(n) :: param_vector
-            double precision, intent(out) :: ML
+            integer(c_int), intent(in)  :: n, id
+            real(c_double), intent(inout), dimension(n) :: param_vector
+            real(c_double), intent(out) :: ML
          end subroutine model_likelihood
       end interface
 

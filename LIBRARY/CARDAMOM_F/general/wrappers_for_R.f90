@@ -133,10 +133,9 @@ module cardamom_Rinterfaces
 
     implicit none(type, external)
 
-    character(len=350) :: infile, outfile
-    infile = ""
-    outfile = "Circle"
-    call prepare_for_stress_test(infile, outfile)
+    character(len=350) :: choice, outfile
+    choice = "Circle"
+    call prepare_for_stress_test(choice, outfile)
 
    end subroutine initialize_stresstest_circle
   !

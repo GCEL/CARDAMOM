@@ -111,10 +111,11 @@ contains
       !> given the inputted parameter values.
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            double precision, dimension(n), intent(inout):: param_vector  ! intent(in), inout for compatibility with R via C
-            integer, intent(in):: n, id
-            double precision, intent(out):: ML
+            real(c_double), dimension(n), intent(inout):: param_vector  ! intent(in), inout for compatibility with R via C
+            integer(c_int), intent(in):: n, id
+            real(c_double), intent(out):: ML
          end subroutine model_likelihood
       end interface
 
@@ -218,10 +219,11 @@ contains
 
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only:  c_int, c_double
             implicit none(type, external)
-            double precision, dimension(n), intent(inout):: param_vector  ! intent(in), inout for compatibility with R via C
-            integer, intent(in):: n, id
-            double precision, intent(out):: ML
+            real(c_double), dimension(n), intent(inout):: param_vector  ! intent(in), inout for compatibility with R via C
+            integer(c_int), intent(in):: n, id
+            real(c_double), intent(out):: ML
          end subroutine model_likelihood
       end interface
 
@@ -535,7 +537,7 @@ contains
       double precision, dimension(npars, npars):: cov_backup
       double precision, dimension(npars, npars):: cholesky
       double precision, dimension(npars):: meanpar_backup
-      integer:: Nparvar_backup, Nparvar_local
+      integer:: Nparvar_backup
       integer, intent(in):: N_before_mv_target
       ! if we have a covariance matrix then we want to update it, if not then we need to create one
       if (MCOUT%cov) then
@@ -557,14 +559,14 @@ contains
          ! Calculate the cholesky factor as this includes a determination of
          ! whether the covariance matrix is positive definite.
          cholesky = MCOUT%covariance
-! caution: writes to its second argument, in addition to checkinng positive definiteness
+	 ! caution: writes to its second argument, in addition to checkinng positive definiteness
          call cholesky_factor(npars, cholesky, info)
          ! If the updated covariance matrix is not positive definite we should
          ! reject the update in favour of the existing matrix
          if (info == 0) then
             ! Set multivariate sampling to true
             use_multivariate = .true.
-            MCOUT%Nparvar = Nparvar_local
+            MCOUT%Nparvar = cur !number of values that have gone into covariance & mean calculation
          else
             ! The current addition of a parameter leads to a matrix which is not
             ! positive definite. If we previously had a matrix which is positive

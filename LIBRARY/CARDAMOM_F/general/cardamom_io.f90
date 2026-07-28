@@ -56,7 +56,7 @@ module cardamom_io
             , initialize
 
    ! declare module level variables
-   integer :: pfile_unit = 10, sfile_unit = 11, cfile_unit = 12, cifile_unit = 13, ifile_unit = 14
+   integer ::  ifile_unit = 9
 
    ! parameters
    integer, parameter :: real_bytes = 8  ! number of bytes in real variable, 8 bytes is to make double precision
@@ -345,14 +345,12 @@ contains
       character(350), intent(in) :: infile
 
       ! declare local variables
-      integer :: nopars_dummy, subsample
-      integer :: a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, day &
+      integer :: nopars_dummy
+      integer :: a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, day &
                 , start &
                 , finish &
                 , totcol & ! total number of columns (met+obs)
                 , totread      ! total number of records already read
-      double precision :: mz
-      double precision, save :: subsample_fraction = 0.20  ! startd at 0.25
       double precision, dimension(:), allocatable :: statdat & ! static data input
          , mettemp & ! met data input
          , obstemp   ! obs data input

@@ -113,7 +113,8 @@ program cardamom_framework
               do_inflate_dble, cost_func_scaling_dble, idum
    logical :: do_inflate = .false.
    logical :: sub_sample_complete = .false.
-   double precision :: nOUT_save = 0d0, sub_fraction = 0.2d0
+   integer :: nOUT_save = 0d0
+   double precision :: sub_fraction = 0.2d0
     !! run this percentage of simulation with variant function
    type(MCMC_OUTPUT), dimension(:), allocatable :: MCOUT_list
     !! array of output objects from each thread
@@ -310,7 +311,8 @@ program cardamom_framework
       write (*,*) "Beginning parameter search on sample size normalised likelihoods"
 
       ! Set MCMC parameters
-      nOUT_save = nint(dble(MCO%nOUT)*sub_fraction) ; MCO%nOUT = nOUT_save !number of steps to do in this phase
+      nOUT_save = nint(dble(MCO%nOUT)*sub_fraction)
+      MCO%nOUT = nOUT_save !number of steps to do in this phase
 
       ! Actual number still to do = this minus MCOUT%nos_iterations steps already done pre-restart
       MCO%nOUT = MCO%nOUT - MCOUT_list(1)%nos_iterations ! TODO again just using 1 , assuming all restart files are same length

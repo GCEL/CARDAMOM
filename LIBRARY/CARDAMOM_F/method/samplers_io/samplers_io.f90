@@ -402,7 +402,7 @@ contains
       ! Store the most recent step size, which corresponds with the saved
       ! parmeters (above) and covariance matrix (below)
       MCOUT%meanpar = tmp(num_lines, 1:npars)
-      MCOUT%Nparvar = tmp(num_lines, npars + 1)
+      MCOUT%Nparvar = nint(tmp(num_lines, npars + 1))
 
       call close_output_files(pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
