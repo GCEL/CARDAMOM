@@ -18,6 +18,7 @@ module model_shared
   subroutine initialize_parinfo()
     use MODEL_PARAMETERS, only:  pars_info
     implicit none 
+    integer:: i
 
     ! load parameter max/min information, npars 
     call pars_info(PI)
@@ -53,7 +54,7 @@ module model_shared
     where (PI%parmin <= 0d0) PI%paradj = abs(PI%parmin) + 1d0
 
     ! defining initial MHMCMC stepsize and standard deviation
-    ! PI%parvar = 1d0; PI%Nparvar = 0
+    ! PI%parvar = 1d0; PI%Nparvar = 0d0
     ! Covariance matrix cannot be set to zero therefore set initial value to a
     ! small positive value along to variance access
     ! PI%covariance = 0d0; PI%meanpar = 0d0; PI%cov = .false. ; PI%use_multivariate = .false.
@@ -91,6 +92,7 @@ module model_shared
     subroutine destroy_carbon_model()
     !! deallocate members of model_working_variables struct(s) Mvs
     use CARBON_MODEL_MOD, only: mVs
+    integer:: n_chains_
     if (allocated(mVs)) deallocate(mVs)
     end subroutine
   
