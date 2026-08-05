@@ -61,7 +61,7 @@ run_each_site<-function(n,PROJECT,repair,grid_override) {
       drivers = read_binary_file_format(paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep=""))
 ## HACK to remove CO2 effect
 #drivers$met[,5] = drivers$met[1,5]
-# HACK to create S2 simulations for GCP / Trendy v14
+# HACK to create S2 simulations for GCP / Trendy v15
 #drivers$met[,8] = 0
 # Irrigation of crops experiment, a minimum of at least 10 mm/day
 #drivers$met[,7] = pmax(drivers$met[,7],100/86400)

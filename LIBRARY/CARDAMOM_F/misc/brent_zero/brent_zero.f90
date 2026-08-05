@@ -73,7 +73,7 @@ use carbon_model_memory, only: model_working_variables
 !       - argument t halved on entry to match cardamom zbrent
   implicit none (type, external)
     
-  type(model_working_variables) :: mV
+  type(model_working_variables), optional :: mV
   integer, parameter:: dp = kind(1.d0)
   real ( kind = dp )  :: zbrent
   character(len=*), intent(in):: called_from  ! name of procedure calling (used to pass through for errors)
@@ -104,7 +104,7 @@ use carbon_model_memory, only: model_working_variables
      function f( val, mV )
       use carbon_model_memory, only: model_working_variables
       integer, parameter:: dp = selected_real_kind(15, 9)
-      type(model_working_variables) :: mV
+      type(model_working_variables), optional :: mV
       real ( kind = dp ), intent(in):: val
       
       real ( kind = dp )            :: f
@@ -119,8 +119,13 @@ use carbon_model_memory, only: model_working_variables
 !
   sa = a
   sb = b
-  fa = f( sa, mV)
-  fb = f( sb, mV)
+  if (present(mV)) then
+    fa = f( sa, mV)
+    fb = f( sb, mV)
+  else
+    fa = f( sa )
+    fb = f( sb )
+  end if
 
   c = sa
   fc = fa
@@ -203,7 +208,11 @@ use carbon_model_memory, only: model_working_variables
       sb = sb-tol
     end if
 
-    fb = f(sb, mV)
+    if (present(mV)) then
+      fb = f(sb, mV)
+    else
+      fb = f(sb)
+    end if
 
     if ( ( 0.0D+00 < fb .and. 0.0D+00 < fc ) .or. &
          ( fb <= 0.0D+00 .and. fc <= 0.0D+00 ) ) then

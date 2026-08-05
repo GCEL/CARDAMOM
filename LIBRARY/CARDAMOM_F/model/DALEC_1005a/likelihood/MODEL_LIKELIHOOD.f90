@@ -64,7 +64,8 @@ module model_likelihood_module
   subroutine edc_model_likelihood(PARS, ML_obs_out, ML_prior_out, thread_id)
     use cardamom_structures, only: DATAin
     use model_shared, only: PI
-    use carbon_model_mod, only: carbon_model, mVs
+    use carbon_model_mod, only: carbon_model
+    use carbon_model_memory, only: mVs
 
     ! Model likelihood function specifically intended for the determination of
     ! appropriate initial parameter choices, consistent with EDCs for this DALEC
@@ -136,7 +137,8 @@ module model_likelihood_module
   subroutine model_sanity_check(PARS, thread_id)
     use cardamom_structures, only: DATAin
     use model_shared, only: PI
-    use carbon_model_mod, only: carbon_model, mVs
+    use carbon_model_mod, only: carbon_model
+    use carbon_model_memory, only: mVs
 
     ! Carries out multiple carbon model iterations using the same parameter set
     ! to ensure that model outputs are consistent between iterations, i.e. that
@@ -796,7 +798,8 @@ module model_likelihood_module
   !
   subroutine model_likelihood(PARS,ML_obs_out,ML_prior_out, thread_id)
     use model_shared, only:  PI
-    use carbon_model_mod, only: carbon_model, mVs
+    use carbon_model_mod, only: carbon_model
+    use carbon_model_memory, only: mVs
     use cardamom_structures, only: DATAin
 
     ! this subroutine is responsible, under normal circumstances for the running
@@ -873,7 +876,8 @@ module model_likelihood_module
   !
   subroutine scaled_model_likelihood(PARS,ML_obs_out,ML_prior_out, thread_id)
     use model_shared, only:  PI
-    use carbon_model_mod, only: carbon_model, mVs
+    use carbon_model_mod, only: carbon_model
+    use carbon_model_memory, only: mVs
     use cardamom_structures, only: DATAin
 
     ! this subroutine is responsible, under normal circumstances for the running

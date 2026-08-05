@@ -1,7 +1,7 @@
 
 ###
 ## Process CARDAMOM-DALEC output files into NetCDF files 
-## consistent with the TRENDYv14 / GCP model intercomparison structure
+## consistent with the TRENDYv15 / GCP model intercomparison structure
 ## In constrast to the sibling script which groups variables together into different files,
 ## this script places everything into a single file per document consistent with the latest guidance.
 ### 
@@ -9,13 +9,13 @@
 ###
 ## Job specific information
 
-print("Begin creation of Trendy v14 compatible single variable netcdf files...")
+print("Begin creation of Trendy v15 compatible single variable netcdf files...")
 
 # set working directory
 setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/")
 
 # set input and output directories
-input_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv14_LCA_TWB_GPP_fAPAR"
+input_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB"
 
 # Specify any extra information for the filename
 output_prefix = "CARDAMOM_S3_" # follow with "_"

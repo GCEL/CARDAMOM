@@ -1,4 +1,4 @@
-﻿!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CARbon DAta MOdel fraMework (CARDAMOM) and DALEC terrestrial ecosystem model suite
 ! CARDAMOM is a Bayesian model-data fusion software framework. CARDAMOM is used to 
 ! assimilate observations and ecological theory to retrieve parameters for the 
@@ -36,8 +36,8 @@ subroutine rdalec11(output_dim,MTT_dim,SS_dim &
                    ,nofluxes,nopools,nodiags,nodays,nos_years,deltat &
                    ,nos_iter,soil_frac_clay_in,soil_frac_sand_in)
 
-  use CARBON_MODEL_MOD, only: CARBON_MODEL, model_working_variables, initialize_mv, &
-                              nos_soil_layers
+  use CARBON_MODEL_MOD, only: CARBON_MODEL, initialize_mv
+  use carbon_model_memory, only: model_working_variables, nos_soil_layers
                              
 
   ! subroutine specificially deals with the calling of the fortran code model by

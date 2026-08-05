@@ -514,7 +514,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[22] = OBS$Clit_initial                 ; PARPRIORUNC[22] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial                 ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$frac_Cwood_coarse_root_prior ; PARPRIORUNC[25] = OBS$frac_Cwood_coarse_root_prior_unc # Fraction Cwood coarse root prior
-          PARPRIORS[27] = OBS$MaxRootDepth                 ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
+          PARPRIORS[27] = min(19.9,max(0.36,OBS$MaxRootDepth))  ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
 #          PARPRIORS[27] = 1.0                              ; PARPRIORUNC[27] = 0.5 # Maximum rooting depth prior, 
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114

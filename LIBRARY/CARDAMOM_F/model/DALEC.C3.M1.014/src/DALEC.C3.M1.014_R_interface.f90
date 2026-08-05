@@ -37,8 +37,8 @@ subroutine rdalec14(output_dim,MTT_dim,SS_dim &
                    ,nos_iter,soil_frac_clay_in,soil_frac_sand_in &
                    ,pathlength)
 
-  use CARBON_MODEL_MOD, only: CARBON_MODEL, model_working_variables, initialize_mv, &
-                              nos_soil_layers
+  use CARBON_MODEL_MOD, only: CARBON_MODEL, initialize_mv
+  use carbon_model_memory, only: model_working_variables, nos_soil_layers
   use cardamom_structures, only: crop_development_parameters, CI
 
   ! subroutine specificially deals with the calling of the fortran code model by

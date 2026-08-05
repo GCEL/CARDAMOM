@@ -63,7 +63,8 @@ module model_likelihood_module
   subroutine edc_model_likelihood(PARS, ML_obs_out, ML_prior_out, thread_id)
     use cardamom_structures, only: DATAin
     use model_shared, only: PI
-    use carbon_model_mod, only: carbon_model, mVs
+    use carbon_model_mod, only: carbon_model
+    use carbon_model_memory, only: mVs
 
     ! Model likelihood function specifically intended for the determination of
     ! appropriate initial parameter choices, consistent with EDCs for DALEC2 /
@@ -1125,7 +1126,7 @@ module model_likelihood_module
   !
   double precision function likelihood(npars,pars)
     use cardamom_structures, only: DATAin
-    use carbon_model_mod, only: layer_thickness
+    use carbon_model_memory, only: layer_thickness
 
     ! calculates the likelihood of of the model output compared to the available
     ! observations which have been input to the model
@@ -1555,7 +1556,7 @@ module model_likelihood_module
   !
   double precision function scale_likelihood(npars,pars)
     use cardamom_structures, only: DATAin
-    use carbon_model_mod, only: layer_thickness
+    use carbon_model_memory, only: layer_thickness
 
     ! calculates the likelihood of of the model output compared to the available
     ! observations which have been input to the model
@@ -1989,7 +1990,7 @@ module model_likelihood_module
   !
   double precision function sqrt_scale_likelihood(npars,pars)
     use cardamom_structures, only: DATAin
-    use carbon_model_mod, only: layer_thickness
+    use carbon_model_memory, only: layer_thickness
 
     ! calculates the likelihood of of the model output compared to the available
     ! observations which have been input to the model
@@ -2421,7 +2422,7 @@ module model_likelihood_module
   !
   double precision function log_scale_likelihood(npars,pars)
   use cardamom_structures, only: DATAin
-  use carbon_model_mod, only: layer_thickness
+  use carbon_model_memory, only: layer_thickness
 
   ! calculates the likelihood of of the model output compared to the available
   ! observations which have been input to the model
@@ -2902,7 +2903,7 @@ end function log_scale_likelihood
 !   !
 !   double precision function log_scale_likelihood_dtm(npars,pars)
 !     use cardamom_structures, only: DATAin
-!     use carbon_model_mod, only: layer_thickness
+!     use carbon_model_memory, only: layer_thickness
 
 !     ! calculates the likelihood of of the model output compared to the available
 !     ! observations which have been input to the model

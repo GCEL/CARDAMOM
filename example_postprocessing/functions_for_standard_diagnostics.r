@@ -9425,7 +9425,8 @@ plot_clustering<-function() {
 
     # Extract parameter prior ranges from source code
     prior_ranges = read_src_model_priors(PROJECT)
-
+    if (typeof(prior_ranges) != "list") {return("EARLY RETURN: plot_clustering")}
+    
     # Create ratio array
     posterior_prior = array(NA, dim=c(dim(grid_output$parameters)[1:2],length(prior_ranges$parmin)))
     for (n in seq(1, PROJECT$nosites)) {

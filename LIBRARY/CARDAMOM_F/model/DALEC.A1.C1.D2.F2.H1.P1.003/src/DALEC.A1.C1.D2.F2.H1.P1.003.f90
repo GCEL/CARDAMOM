@@ -1130,7 +1130,7 @@ module CARBON_MODEL_MOD
     ! arguments
     double precision, intent(in) :: gs_in
 
-      type(model_working_variables) :: mV
+      type(model_working_variables), optional :: mV
 
     !!!!!!!!!!
     ! Optimise intrinsic water use efficiency
@@ -3506,7 +3506,7 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-    type(model_working_variables) :: mV
+    type(model_working_variables), optional :: mV
 
     ! arguments..
     double precision, intent(in) :: xin

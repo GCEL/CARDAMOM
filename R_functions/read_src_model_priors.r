@@ -110,6 +110,8 @@ read_src_model_priors<- function(PROJECT) {
        if (mx_done > length(parmax) & mn_done > length(parmin)) {
            # Stop searching
            keep_going = FALSE
+       } else if (n > 10000) {
+           return("read_src_model_priors: failed to find parameters")
        } # Got all my parameters
 
   } # keep_going == TRUE

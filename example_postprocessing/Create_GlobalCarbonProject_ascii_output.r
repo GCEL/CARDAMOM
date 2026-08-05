@@ -18,7 +18,7 @@ print("Begin creation of GCP compatible ascii file for annual NBP / NBE / NEE / 
 setwd("/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/")
 
 # set input and output directories
-input_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv14_LCA_TWB_GPP_fAPAR"
+input_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB"
 
 # Specify any extra information for the filename
 output_prefix = "CARDAMOM_S3_" # follow with "_"
