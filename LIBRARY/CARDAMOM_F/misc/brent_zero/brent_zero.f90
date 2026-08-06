@@ -99,16 +99,15 @@ use carbon_model_memory, only: model_working_variables
   integer            :: iter
   integer, parameter:: ITMAX = 10
 
-
   interface
-     function f( val, mV )
-      use carbon_model_memory, only: model_working_variables
-      integer, parameter:: dp = selected_real_kind(15, 9)
-      type(model_working_variables), optional :: mV
-      real ( kind = dp ), intent(in):: val
+      function f( val, mV )
+         use carbon_model_memory
+         integer, parameter:: dp = selected_real_kind(15, 9)
+         type(model_working_variables), optional :: mV
+         real ( kind = dp ), intent(in):: val
       
-      real ( kind = dp )            :: f
-    end function f
+         real ( kind = dp )            :: f
+       end function f
   end interface
 
   machep = epsilon(0d0)

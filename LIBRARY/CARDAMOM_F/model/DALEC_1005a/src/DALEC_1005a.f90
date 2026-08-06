@@ -49,13 +49,13 @@ module CARBON_MODEL_MOD
   public :: CARBON_MODEL  &
            ,initialize_mv
 
-  use carbon_model_memory
 
   contains
   !
   !--------------------------------------------------------------------
   !
   subroutine initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand, soil_frac_clay, met, lat)
+    use carbon_model_memory
 
     !! For a single chain's model_working_varibles type object mV, allocate arrays
     !! and calculate initial values.
@@ -79,6 +79,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------
   !
   subroutine destroy_mv(mV)
+    use carbon_model_memory
     !! deallocate arrays in mV
     type(model_working_variables):: mV
     ! nothing to do here, but we keep the method because it's 
@@ -89,6 +90,7 @@ module CARBON_MODEL_MOD
   !
   subroutine CARBON_MODEL(start,finish,met,pars,deltat,nodays,lat,FLUXES,POOLS,DIAGS &
                          ,nopars,nomet,nopools,nofluxes,nodiags, mV)
+    use carbon_model_memory
 
     ! The Data Assimilation Linked Ecosystem Carbon - Combined Deciduous
     ! Evergreen Analytical (DALEC_CDEA_BUCKET; 1005a; DALEC2) model.
@@ -774,6 +776,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function acm(drivers,constants, ci)
+    use carbon_model_memory
 
     ! the Aggregated Canopy Model, is a Gross Primary Productivity (i.e.
     ! Photosyntheis) emulator which operates at a daily time step. ACM can be
@@ -866,6 +869,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function ospolynomial(L,w)
+    use carbon_model_memory
 
     ! Function calculates the day offset for Labile release and leaf turnover
     ! functions

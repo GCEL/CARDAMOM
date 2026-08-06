@@ -49,13 +49,12 @@ module CARBON_MODEL_MOD
   public :: CARBON_MODEL  &
            ,initialize_mv
 
-  use carbon_model_memory
-
   contains
   !
   !--------------------------------------------------------------------
   !
   subroutine initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand, soil_frac_clay, met, lat)
+    use carbon_model_memory
 
     !! For a single chain's model_working_varibles type object mV, allocate arrays
     !! and calculate initial values.
@@ -134,6 +133,8 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------
   !
   subroutine destroy_mv(mV)
+    use carbon_model_memory
+
     !! deallocate arrays in mV
     type(model_working_variables):: mV
     integer:: n
@@ -147,6 +148,7 @@ module CARBON_MODEL_MOD
   !
   subroutine CARBON_MODEL(start,finish,met,pars,deltat,nodays,lat,FLUXES,POOLS,DIAGS &
                          ,nopars,nomet,nopools,nofluxes,nodiags, mV)
+    use carbon_model_memory
 
     ! The Data Assimilation Linked Ecosystem Carbon - Combined Deciduous
     ! Evergreen Analytical - ACMv2 - BUCKET (DALEC_CDEA_ACM2_BUCKET) model.
@@ -1011,6 +1013,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine acm_gpp_stage_1(mV)
+    use carbon_model_memory
 
     ! Estimate the light and temperature limited photosynthesis components.
     ! See acm_gpp_stage_2() for estimation of CO2 supply limitation and
@@ -1071,6 +1074,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function acm_gpp_stage_2(gs, mV)
+    use carbon_model_memory
 
     ! Combine the temperature (pn) and light (pl) limited gross primary productivity
     ! estimates with CO2 supply limited via stomatal conductance (gs).
@@ -1078,10 +1082,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! declare input variables
     double precision, intent(in) :: gs
+    type(model_working_variables) :: mV
 
     ! declare local variables
     double precision :: pp, qq, mult, rc, pd
@@ -1141,6 +1144,7 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   double precision function find_gs_iWUE(gs_in, mV)
+    use carbon_model_memory
 
     ! Calculate CO2 limited photosynthesis as a function of metabolic limited
     ! photosynthesis (pn), atmospheric CO2 concentration and stomatal
@@ -1149,8 +1153,7 @@ module CARBON_MODEL_MOD
 
     ! arguments
     double precision, intent(in) :: gs_in
-
-      type(model_working_variables), optional :: mV
+    type(model_working_variables), optional :: mV
 
     !!!!!!!!!!
     ! Optimise intrinsic water use efficiency
@@ -1167,7 +1170,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_stomatal_conductance (mV)
-
+    use carbon_model_memory
     use brent_zero, only: zbrent
 
     ! Determines an approximation of canopy scale stomatal conductance (gc)
@@ -1175,7 +1178,8 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: denom, iWUE_upper!, iWUE_lower
@@ -1265,6 +1269,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine meteorological_constants(input_temperature,input_temperature_K,input_vpd_kPa, mV)
+    use carbon_model_memory
 
     ! Determine some multiple use constants used by a wide range of functions
     ! All variables here are linked to air temperature and thus invarient between
@@ -1272,11 +1277,10 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(in) :: input_temperature, input_temperature_K, &
                                     input_vpd_kPa
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: mult, &
@@ -1329,6 +1333,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_transpiration(transpiration, mV)
+    use carbon_model_memory
 
     ! Models leaf cnaopy transpiration based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1336,10 +1341,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(out) :: transpiration ! kgH2O.m-2.day-1
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: canopy_radiation & ! isothermal net radiation (W/m2)
@@ -1378,6 +1382,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_wetcanopy_evaporation(wetcanopy_evap,storage, mV)
+    use carbon_model_memory
 
     ! Estimates evaporation of canopy intercepted rainfall based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1385,11 +1390,12 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
+
 
     ! arguments
     double precision, intent(inout) :: storage      ! canopy water storage kgH2O/m2
     double precision, intent(out) :: wetcanopy_evap ! kgH2O.m-2.day-1
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: canopy_radiation, & ! isothermal net radiation (W/m2)
@@ -1435,16 +1441,16 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_potential_evaporation(potential_evap, mV)
+    use carbon_model_memory
 
     ! Estimates potential surface evapotransporation based on the Penman-Monteith model
     ! (kgH20.m-2.day-1). FAO Chapter 3 Determination of ETo, see chapter 2 for derivation.
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(out) :: potential_evap ! kgH2O.m-2.day-1
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: canopy_radiation  ! isothermal net radiation (W/m2)
@@ -1475,6 +1481,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_soil_evaporation(soilevap, mV)
+    use carbon_model_memory
 
     ! Estimate soil surface evaporation based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1482,10 +1489,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(out) :: soilevap ! kgH2O.m-2.day-1
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: local_temp &
@@ -1531,6 +1537,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_aerodynamic_conductance (mV)
+    use carbon_model_memory
 
     !
     ! Calculates the aerodynamic or bulk canopy conductance (m.s-1). Here we
@@ -1540,7 +1547,8 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: local_lai, &
@@ -1601,6 +1609,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine average_leaf_conductance(gv_forced, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculates the forced conductance of water vapour for non-cylinder within canopy leaves (i.e. broadleaf)
@@ -1611,10 +1620,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(out) :: gv_forced ! canopy conductance (m/s) for water vapour under forced convection
+    type(model_working_variables) :: mV
 
     ! local parameters
     double precision, parameter :: leaf_width_coef = 25d0, & ! (1/leaf_width) * 0.5,
@@ -1639,6 +1647,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine log_law_decay (mV)
+    use carbon_model_memory
 
     ! Standard log-law above canopy wind speed (m.s-1) decay under neutral
     ! conditions.
@@ -1646,7 +1655,8 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments 
+    type(model_working_variables) :: mV
 
     ! log law decay, NOTE: given canopy height (9 m) the log function reduces
     ! to a constant value down to ~ 7 decimal place (0.3161471806). Therefore
@@ -1658,14 +1668,15 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_field_capacity (mV)
-
+    use carbon_model_memory
     use brent_zero, only: zbrent
 
     ! field capacity calculations for saxton eqns !
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments
+    type(model_working_variables) :: mV
 
     ! local variables..
     integer :: i
@@ -1684,6 +1695,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_daylength(doy,lat, mV)
+    use carbon_model_memory
 
     ! Subroutine uses day of year and latitude (-90 / 90 degrees) as inputs,
     ! combined with trigonomic functions to calculate day length in hours and seconds
@@ -1726,6 +1738,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_longwave_isothermal(canopy_temperature,soil_temperature, mV)
+    use carbon_model_memory
 
     ! Subroutine estimates the isothermal net longwave radiation (W.m-2) for
     ! the canopy and soil surface. SPA uses a complex multi-layer radiative
@@ -1736,10 +1749,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(in) :: canopy_temperature, soil_temperature ! oC
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: lwrad, & ! downward long wave radiation from sky (W.m-2)
@@ -1899,10 +1911,9 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_radiation_balance (mV)
+    use carbon_model_memory
 
     implicit none
-
-      type(model_working_variables) :: mV
 
     ! subroutine call ensures that both shortwave and longwave radiation balance
     ! are calculated at the same time but with the more readable code split
@@ -1911,6 +1922,9 @@ module CARBON_MODEL_MOD
     ! NOTE: that this code provides a daily timescale linear correction on
     ! isothermal longwave balance to net based on soil surface incident shortwave
     ! radiation
+
+    ! Arguments
+    type(model_working_variables) :: mV
 
     ! Estimate shortwave radiation balance
     call calculate_shortwave_balance(mV)
@@ -1923,6 +1937,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_shortwave_balance (mV)
+    use carbon_model_memory
 
     ! Subroutine estimates the canopy and soil absorbed shortwave radiation
     ! (MJ/m2/day).
@@ -1936,7 +1951,8 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: balance                     &
@@ -2081,15 +2097,17 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_Rtot (mV)
+    use carbon_model_memory
 
     ! Purpose of this subroutine is to calculate the minimum soil-root hydraulic
     ! resistance input into ACM. The approach used here is identical to that
     ! found in SPA.
 
+    ! Arguments
+    type(model_working_variables) :: mV
+
     ! local variables
     integer :: i, rooted_layer
-
-      type(model_working_variables) :: mV
     double precision :: transpiration_resistance,root_reach_local, &
                         slpa, mult, prev, exp_func!, root_depth_50, bonus
     double precision, dimension(nos_root_layers) :: Rcond_layer, &
@@ -2276,6 +2294,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine canopy_interception_and_storage(potential_evaporation,storage, mV)
+    use carbon_model_memory
 
     ! Simple daily time step integration of canopy rainfall interception, runoff
     ! and rainfall (kgH2O.m-2.s-1). NOTE: it is possible for intercepted rainfall to be
@@ -2284,13 +2303,13 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(inout) :: storage, & ! canopy water storage (kgH2O/m2)
                          potential_evaporation    ! wet canopy evaporation (kgH2O.m-2.day-1),
                                                   ! enters as potential but leaves as water balance adjusted.
                                                   ! Note that this assumes a completely wet leaf surface
+    type(model_working_variables) :: mV
+
     ! local variables
     double precision :: a, through_fall, max_storage, max_storage_1, daily_addition, wetcanopy_evaporation &
                        ,potential_drainage_rate ,drain_rate, evap_rate, initial_canopy, co_mass_balance, dx, dz, tmp(3)
@@ -2409,6 +2428,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_update_soil_water(Eleaf,Esoil,Esnow,rainfall_in,corrected_ET, mV)
+    use carbon_model_memory
 
     !
     ! Function updates the soil water status and layer thickness
@@ -2420,12 +2440,11 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(in) :: rainfall_in   ! rainfall (kgH2O.m-2.day-1)
     double precision, intent(inout) :: Eleaf, Esoil, Esnow ! evapotranspiration estimate (kgH2O.m-2.day-1)
     double precision, intent(out) :: corrected_ET      ! water balance corrected evapotranspiration (kgH2O/m2/day)
+    type(model_working_variables) :: mV
 
     ! local variables
     integer :: day, a
@@ -2699,6 +2718,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine infiltrate(rainfall_in, mV)
+    use carbon_model_memory
 
     ! Takes surface_watermm and distributes it among top !
     ! layers. Assumes total infilatration in timestep.   !
@@ -2707,10 +2727,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(in) :: rainfall_in ! rainfall (kgH2O.m-2.day-1)
+    type(model_working_variables) :: mV
 
     ! local argumemts
     integer :: i
@@ -2765,126 +2784,8 @@ module CARBON_MODEL_MOD
   !
   !-----------------------------------------------------------------
   !
-!  subroutine gravitational_drainage(time_period_days)
-!
-!    ! Integrator for soil gravitational drainage.
-!    ! Due to the longer time steps undertake by ACM / DALEC and the fact that
-!    ! drainage is a concurrent processes we assume that drainage occurs at
-!    ! the bottom of the column first creating space into which water can drain
-!    ! from the top down. Therefore we draing from the bottom first and then the top.
-!    ! NOTE: Assumes that any previous water movement due to infiltration and evaporation
-!    !       has already been updated in soil mass balance
-!
-!    implicit none
-!
-!    ! arguments
-!    integer, intent(in) :: time_period_days
-!
-!    ! local variables..
-!    integer :: t
-!    double precision, dimension(nos_soil_layers) :: dx, & ! range between the start and end points of the integration
-!                                               halfway, & ! half way point between start and end point of integration
-!                                                liquid, & ! liquid water in local soil layer (m3/m3)
-!                                         avail_to_flow, & ! liquid content above field capacity (m3/m3)
-!                                               iceprop, & ! fraction of soil layer which is ice
-!                                          pot_drainage    ! estimats of time step potential drainage rate (m/s)
-!    double precision  :: tmp1,tmp2,tmp3 &
-!                                 ,unsat & ! unsaturated pore space in soil_layer below the current (m3/m3)
-!                                ,change   ! absolute volume of water drainage in current layer (m3/day)
-!
-!    ! calculate soil ice proportion; at the moment
-!    ! assume everything liquid
-!    iceprop = 0d0
-!
-!    ! except the surface layer in the mean daily temperature is < 0oC
-!    if (meant < 1d0) iceprop(1) = 1d0
-!
-!    ! zero water fluxes
-!    waterchange = 0d0
-!
-!    ! underflow and water_grav_flow are tracked in kgH2O/m2/day but estimated here in MgH2O/m2/day
-!    ! therefore we must convert
-!    underflow = underflow * 1d-3
-!    water_grav_flow = water_grav_flow * 1d-3
-!
-!    ! estimate potential drainage rate for the current time period
-!    liquid = soil_waterfrac(1:nos_soil_layers) * ( 1d0 - iceprop(1:nos_soil_layers) )
-!    ! estimate how much liquid is available to flow
-!    avail_to_flow = liquid - field_capacity(1:nos_soil_layers)
-!    ! trapezium rule scaler and the half-way point between current and field capacity
-!    dx = avail_to_flow*0.5d0 ; halfway = liquid - dx
-!    do t = 1, nos_soil_layers
-!       if (avail_to_flow(t) > 0d0) then
-!           ! Trapezium rule for approximating integral of drainage rate
-!           call calculate_soil_conductivity(t,liquid(t),tmp1)
-!           call calculate_soil_conductivity(t,field_capacity(t),tmp2)
-!           call calculate_soil_conductivity(t,halfway(t),tmp3)
-!           pot_drainage(t) = 0.5d0 * dx(t) * ((tmp1 + tmp2) + 2d0 * tmp3)
-!       else
-!           ! We are at field capacity currently even after rainfall has been infiltrated.
-!           ! Assume that the potential drainage rate is that at field capacity
-!           call calculate_soil_conductivity(t,field_capacity(t),pot_drainage(t))
-!       endif ! water above field capacity to flow?
-!    end do ! soil layers
-!    ! Scale potential drainage from per second to per day
-!    pot_drainage = pot_drainage * seconds_per_day
-!
-!    ! Integrate drainage over each day until time period has been reached or
-!    ! each soil layer has reached field capacity
-!    t = 1
-!    do while (t < (time_period_days+1) .and. maxval(soil_waterfrac - field_capacity) > vsmall)
-!
-!       ! Estimate liquid content and how much is available to flow / drain
-!       avail_to_flow = ( soil_waterfrac(1:nos_soil_layers) * (1d0 - iceprop(1:nos_soil_layers)) ) &
-!                     - field_capacity(1:nos_soil_layers)
-!
-!       ! ...then from the top down
-!       do soil_layer = 1, nos_soil_layers
-!
-!          ! initial conditions; i.e. is there liquid water and more water than
-!          ! layer can hold
-!          if (avail_to_flow(soil_layer) > 0d0 .and. soil_waterfrac(soil_layer+1) < porosity(soil_layer+1)) then
-!
-!              ! Unsaturated volume of layer below (m3 m-2)
-!              unsat = ( porosity(soil_layer+1) - soil_waterfrac(soil_layer+1) ) &
-!                    * layer_thickness(soil_layer+1) / layer_thickness(soil_layer)
-!              ! Restrict potential rate calculate above for the available water
-!              ! and available space in the layer below.
-!              ! NOTE: * layer_thickness(soil_layer) converts units from m3/m2 -> (m3)
-!              change = min(unsat,min(pot_drainage(soil_layer),avail_to_flow(soil_layer))) * layer_thickness(soil_layer)
-!              ! update soil layer below with drained liquid
-!              waterchange( soil_layer + 1 ) = waterchange( soil_layer + 1 ) + change
-!              waterchange( soil_layer     ) = waterchange( soil_layer     ) - change
-!              ! Also track only the positive flows from one layer to another (MgH2O/m2/day)
-!              water_grav_flow(soil_layer) = water_grav_flow(soil_layer) + change
-!
-!          end if ! some liquid water and drainage possible
-!
-!       end do ! soil layers
-!
-!       ! update soil water profile
-!       soil_waterfrac(1:nos_soil_layers) = soil_waterfrac(1:nos_soil_layers) &
-!                                         + (waterchange(1:nos_soil_layers)/layer_thickness(1:nos_soil_layers))
-!       ! estimate drainage from bottom of soil column (MgH2O/m2/day)
-!       ! NOTES: that underflow is reset outside of the daily soil loop
-!       underflow = underflow + waterchange(nos_soil_layers+1)
-!
-!       ! Reset now we have moves that liquid
-!       waterchange = 0d0
-!       ! integerate through time period
-!       t = t + 1
-!
-!    end do ! while condition
-!
-!    ! convert underflow and water_grav_flow from MgH2O/m2/day -> kgH2O/m2/day
-!    underflow = underflow * 1d3
-!    water_grav_flow = water_grav_flow * 1d3
-!
-!  end subroutine gravitational_drainage
-  !
-  !-----------------------------------------------------------------
-  !
   subroutine gravitational_drainage(time_period_days, mV)
+    use carbon_model_memory
 
     ! Integrator for soil gravitational drainage.
     ! Due to the longer time steps undertake by ACM / DALEC and the fact that
@@ -2896,10 +2797,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     integer, intent(in) :: time_period_days
+    type(model_working_variables) :: mV
 
     ! local variables..
     integer :: t, d, s
@@ -3062,44 +2962,45 @@ module CARBON_MODEL_MOD
   !
   subroutine gravitational_drainage_local_update(s,soil_waterfrac_local,pot_drainage,liquid_fraction, &
                                                  layer_thickness_local,field_capacity_local,porosity_local)
+    use carbon_model_memory
 
-     ! Subroutine will update a local copy of the soil water fraction for each soil layer
+    ! Subroutine will update a local copy of the soil water fraction for each soil layer
 
-     ! Arguments
-     integer, intent(in) :: s
-     double precision, intent(in) :: liquid_fraction, & ! Fraction of current layer assumed to be liquid (0-1)
-                                        pot_drainage, & ! Proprosed drainage for current layer (m/step)
-                                field_capacity_local    ! Field capacity of the current layer (m3/m3)
-     double precision, dimension(nos_soil_layers+1), intent(inout) :: soil_waterfrac_local ! Local copy of the soil water fraction (m3/m3)
-     double precision, dimension(nos_soil_layers+1), intent(in) :: layer_thickness_local, & ! Local copy of the soil layer thickness (m)
-                                                                          porosity_local    ! Local copy of the soil layer porosities (m3/m3)
+    ! Arguments
+    integer, intent(in) :: s
+    double precision, intent(in) :: liquid_fraction, & ! Fraction of current layer assumed to be liquid (0-1)
+                                       pot_drainage, & ! Proprosed drainage for current layer (m/step)
+                               field_capacity_local    ! Field capacity of the current layer (m3/m3)
+    double precision, dimension(nos_soil_layers+1), intent(inout) :: soil_waterfrac_local ! Local copy of the soil water fraction (m3/m3)
+    double precision, dimension(nos_soil_layers+1), intent(in) :: layer_thickness_local, & ! Local copy of the soil layer thickness (m)
+                                                                         porosity_local    ! Local copy of the soil layer porosities (m3/m3)
 
-     ! Local variables
-     double precision :: unsat, change, avail_to_flow
-     double precision, dimension(nos_soil_layers+1) :: waterchange_local
+    ! Local variables
+    double precision :: unsat, change, avail_to_flow
+    double precision, dimension(nos_soil_layers+1) :: waterchange_local
 
-     ! Initialise
-     waterchange_local = 0d0 ; change = 0d0 ; unsat = 0d0 ; avail_to_flow = 0d0
+    ! Initialise
+    waterchange_local = 0d0 ; change = 0d0 ; unsat = 0d0 ; avail_to_flow = 0d0
 
-     ! Determine how much liquid water is available to flow in the current profile
-     avail_to_flow = (soil_waterfrac_local(s) * liquid_fraction ) - field_capacity_local
+    ! Determine how much liquid water is available to flow in the current profile
+    avail_to_flow = (soil_waterfrac_local(s) * liquid_fraction ) - field_capacity_local
 
-     ! Determine whethere we have any liquid water in the current layer available to flow and the layer below is 
-     ! able to accept any water (i.e. is less than porosity).
-     if (avail_to_flow > 0d0 .and. soil_waterfrac_local(s+1) < porosity_local(s+1)) then
+    ! Determine whethere we have any liquid water in the current layer available to flow and the layer below is 
+    ! able to accept any water (i.e. is less than porosity).
+    if (avail_to_flow > 0d0 .and. soil_waterfrac_local(s+1) < porosity_local(s+1)) then
 
-          ! Determine the unsaturated volume of layer below (m3 m-2)
-          unsat = ( porosity_local(s+1) - soil_waterfrac_local(s+1) ) &
-                * layer_thickness_local(s+1) / layer_thickness_local(s)
-          ! Restrict potential rate calculate above for the available water
-          ! and available space in the layer below.
-          ! NOTE: * layer_thickness_local(s) converts units from m3/m2 -> (m3)
-          change = min(unsat,min(pot_drainage,avail_to_flow)) * layer_thickness_local(s)
-          ! update soil layer below with drained liquid
-          waterchange_local( s + 1 ) = waterchange_local( s + 1 ) + change
-          waterchange_local( s     ) = waterchange_local( s     ) - change
+        ! Determine the unsaturated volume of layer below (m3 m-2)
+        unsat = ( porosity_local(s+1) - soil_waterfrac_local(s+1) ) &
+              * layer_thickness_local(s+1) / layer_thickness_local(s)
+        ! Restrict potential rate calculate above for the available water
+        ! and available space in the layer below.
+        ! NOTE: * layer_thickness_local(s) converts units from m3/m2 -> (m3)
+        change = min(unsat,min(pot_drainage,avail_to_flow)) * layer_thickness_local(s)
+        ! update soil layer below with drained liquid
+        waterchange_local( s + 1 ) = waterchange_local( s + 1 ) + change
+        waterchange_local( s     ) = waterchange_local( s     ) - change
 
-     end if ! some liquid water and drainage possible
+    end if ! some liquid water and drainage possible
 
     ! Update soil water profile, just for the current layer and below
     soil_waterfrac_local(s:nos_soil_layers) = soil_waterfrac_local(s:nos_soil_layers) &
@@ -3113,16 +3014,17 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine soil_porosity(soil_frac_clay,soil_frac_sand, mV)
+    use carbon_model_memory
 
     ! Porosity is estimated from Saxton equations. !
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, dimension(nos_soil_layers) :: soil_frac_clay &
                                                    ,soil_frac_sand
+    type(model_working_variables) :: mV
+
     ! local variables..
     double precision, parameter :: H = 0.332d0, &
                                  J = -7.251d-4, &
@@ -3139,6 +3041,7 @@ module CARBON_MODEL_MOD
   !---------------------------------------------------------------------
   !
   subroutine initialise_soils(soil_frac_clay,soil_frac_sand, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculate the soil layers field capacities and sets the initial
@@ -3147,11 +3050,10 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, dimension(nos_soil_layers) :: soil_frac_clay &
                                                    ,soil_frac_sand
+    type(model_working_variables) :: mV
 
     ! local variables
     integer :: i
@@ -3179,6 +3081,7 @@ module CARBON_MODEL_MOD
   !---------------------------------------------------------------------
   !
   subroutine update_soil_initial_conditions(input_soilwater_frac, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculate the soil layers field capacities and sets the initial
@@ -3187,10 +3090,9 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(in) :: input_soilwater_frac ! initial soil water status as fraction of field capacity
+    type(model_working_variables) :: mV
 
     ! local variables
     integer :: i
@@ -3220,18 +3122,18 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_soil_conductivity(soil_layer,waterfrac,conductivity, mV)
+    use carbon_model_memory
 
     ! Calculate the soil conductivity (m s-1) of water based on soil
     ! characteristics and current water content
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     integer, intent(in) :: soil_layer
     double precision, intent(in) :: waterfrac
     double precision, intent(out) :: conductivity
+    type(model_working_variables) :: mV    
 
     ! soil conductivity for the dynamic soil layers (i.e. not including core)
     conductivity = mV%cond1(soil_layer) * exp(mV%cond2(soil_layer)+mV%cond3(soil_layer)/waterfrac)
@@ -3244,17 +3146,17 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine saxton_parameters(soil_frac_clay,soil_frac_sand, mV)
-
+    use carbon_model_memory
+    
     ! Calculate the key parameters of the Saxton, that is cond1,2,3 !
     ! and potA,B                                                    !
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, dimension(nos_soil_layers) :: soil_frac_clay &
                                                    ,soil_frac_sand
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision, parameter :: A = -4.396d0,  B = -0.0715d0,   CC = -4.880d-4, D = -4.285d-5, &
@@ -3291,6 +3193,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_soil_conductance(lm,local_lai,canopy_decay, mV)
+    use carbon_model_memory
 
     ! proceedsure to solve for soil surface resistance based on Monin-Obukov
     ! similarity theory stability correction momentum & heat are integrated
@@ -3300,12 +3203,11 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! declare arguments
     double precision, intent(in) :: lm, &
                              local_lai, &
                           canopy_decay    ! & ! canopy decay coefficient for soil exchange
+    type(model_working_variables) :: mV
 
     ! local variables
     double precision :: Kh_canht       ! eddy diffusivity at canopy height (m2.s-1)
@@ -3333,13 +3235,15 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   subroutine soil_water_potential (mV)
+    use carbon_model_memory
 
     ! Find SWP without updating waterfrac yet (we do that in !
     ! waterthermal). Waterfrac is m3 m-3, soilwp is MPa.     !
 
     implicit none
 
-      type(model_working_variables) :: mV
+    ! Arguments
+    type(model_working_variables) :: mV
 
     integer :: i
 
@@ -3357,17 +3261,18 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine z0_displacement(ustar_Uh,local_lai, mV)
+    use carbon_model_memory
 
     ! dynamic calculation of roughness length and zero place displacement (m)
     ! based on canopy height and lai. Raupach (1994)
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     double precision, intent(out) :: ustar_Uh ! ratio of friction velocity over wind speed at canopy top
     double precision, intent(in) :: local_lai
+    type(model_working_variables) :: mV
+
     ! local variables
     double precision  sqrt_cd1_lai
     double precision, parameter :: cd1 = 7.5d0,   & ! Canopy drag parameter; fitted to data
@@ -3380,7 +3285,6 @@ module CARBON_MODEL_MOD
 
     ! describes the departure of the velocity profile from just above the
     ! roughness from the intertial sublayer log law
-
 
     ! Estimate canopy drag coefficient
     sqrt_cd1_lai = sqrt(cd1 * local_lai)
@@ -3419,6 +3323,7 @@ module CARBON_MODEL_MOD
   subroutine plant_soil_flow(root_layer,root_length,root_mass &
                             ,demand,root_reach_in,transpiration_resistance &
                             ,Rtot_layer, mV)
+    use carbon_model_memory
 
     !
     ! Calculate soil layer specific water flow form the soil to canopy (mmolH2O.m-2.s-1)
@@ -3430,8 +3335,6 @@ module CARBON_MODEL_MOD
 
     implicit none
 
-      type(model_working_variables) :: mV
-
     ! arguments
     integer, intent(in) :: root_layer
     double precision, intent(in) :: root_length, &
@@ -3440,6 +3343,7 @@ module CARBON_MODEL_MOD
                                   root_reach_in, &
                        transpiration_resistance
     double precision, intent(out) :: Rtot_layer
+    type(model_working_variables) :: mV
 
     ! local arguments
     double precision :: soilR1, soilR2
@@ -3467,6 +3371,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   pure function arrhenious( a , b , t )
+    use carbon_model_memory  
 
     ! The equation is simply...                        !
     !    a * exp( b * ( t - 25.0 ) / ( t + 273.15 ) )  !
@@ -3519,15 +3424,15 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function water_retention_saxton_eqns( xin , mV)
+    use carbon_model_memory
 
     ! field capacity calculations for saxton eqns !
 
     implicit none
 
-      type(model_working_variables), optional :: mV
-
     ! arguments..
     double precision, intent(in) :: xin
+    type(model_working_variables), optional :: mV
 
     ! local variables..
     double precision :: soil_wp

@@ -49,13 +49,13 @@ module CARBON_MODEL_MOD
   public :: CARBON_MODEL  &
            ,initialize_mv
 
-  use carbon_model_memory
 
   contains
   !
   !--------------------------------------------------------------------
   !
   subroutine initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand, soil_frac_clay, met, lat)
+    use carbon_model_memory
 
     !! For a single chain's model_working_varibles type object mV, allocate arrays
     !! and calculate initial values.
@@ -90,6 +90,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------
   !
   subroutine destroy_mv(mV)
+    use carbon_model_memory
     !! deallocate arrays in mV
     type(model_working_variables):: mV
         deallocate(mV%deltat_1)
@@ -102,6 +103,7 @@ module CARBON_MODEL_MOD
                          ,nopars,nomet,nopools,nofluxes,nodiags &
                          ,stock_seed_labile,DS_shoot,DS_root,fol_frac    &
                          ,stem_frac,root_frac,DS_LRLV,LRLV,DS_LRRT,LRRT, mV)
+    use carbon_model_memory
 
     !
     ! The Data Assimilation Linked Ecosystem Carbon - CROP - BUCKET (DALEC.C3.M1.014) model.
@@ -648,6 +650,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   double precision function acm(acm_forcings, mV)
+    use carbon_model_memory
 
     ! the Aggregated Canopy Model, is a Gross Primary Productivity (i.e.
     ! Photosyntheis) emulator which operates at a daily time step. ACM can be
@@ -715,6 +718,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   subroutine calculate_cosine_solar_zenith_angle (mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -748,6 +752,7 @@ e variable for use in crop development model
   !-----------------------------------------------------------------
   !
   subroutine calculate_daylength (mV)
+    use carbon_model_memory
 
     ! Subroutine uses day of year and latitude (-90 / 90 degrees) as inputs,
     ! combined with trigonomic functions to calculate day length in hours and seconds
@@ -787,6 +792,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   subroutine calc_pools_crops(DS_LRRT,LRRT, mV)
+    use carbon_model_memory
 
     ! Allocated GPP to NPP and various carbon pools. Based  !
     ! this on physiological responses to temperature        !
@@ -986,6 +992,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac, mV)
+    use carbon_model_memory
 
     ! Determines carbon allocation fractions as a function !
     ! of developmental stage (DS).  Allocation fractions   !
@@ -1031,6 +1038,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine development_stage(days_in_step, mV)
+    use carbon_model_memory
 
     ! Based on modified Wang & Engel model (Streck et al., 2003), !
     ! but with only 2 sub-phases, vegetative and reproductive     !
@@ -1097,6 +1105,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine management_dates (stock_seed_labile,days_in_step, mV)
+    use carbon_model_memory
 
     ! This routine should be called at the end of each day of a crops  !
     ! simulation.  It checks whether we should plough/sow/harvest, and !
@@ -1190,6 +1199,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine harvest (mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -1269,6 +1279,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   double precision function photoperiod_impact( PH_crit , PH_sens , mV)
+    use carbon_model_memory
 
     ! Function to determine the coefficient for !
     ! photoperiod impact on developmental rate. !
@@ -1289,6 +1300,7 @@ e variable for use in crop development model
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine plough (mV)
+    use carbon_model_memory
 
     ! this s/r will reset various carbon pools, to mimic the effect of the
     ! farmer ploughing. !
@@ -1335,6 +1347,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   pure function arrhenious( a , b , t )
+    use carbon_model_memory
 
     ! The equation is simply...                        !
     !    a * exp( b * ( t - 25.0 ) / ( t + 273.15 ) )  !
@@ -1355,6 +1368,7 @@ e variable for use in crop development model
   !----------------------------------------------------------------------
   !
   double precision function calculate_declination(doy)
+    use carbon_model_memory
 
     implicit none
 
@@ -1375,6 +1389,7 @@ e variable for use in crop development model
   !----------------------------------------------------------------------
   !
   double precision function opt_max_scaling( max_val, min_val , optimum , kurtosis , current )
+    use carbon_model_memory
 
     ! Estimates a 0-1 scaling based on a skewed guassian distribution with a
     ! given optimum, maximum and kurtosis. Minimum is assumed to be at infinity
@@ -1399,6 +1414,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   double precision function linear_model_gradient(x,y,interval)
+    use carbon_model_memory
 
     ! Function to calculate the gradient of a linear model for a given dependent
     ! variable (y) based on predictive variable (x). The typical use of this
@@ -1451,6 +1467,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   double precision function temperature_impact( doptmin , dmaxmin , dttmin )
+    use carbon_model_memory
 
     ! Function to determine the coefficent for  !
     ! temperature impact on developmental rate. !
@@ -1477,6 +1494,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   double precision function vernalization( doptmin_v , dmaxmin_v , dttmin_v , days_in_step , mV)
+    use carbon_model_memory
 
     ! Function to determine the coefficent for vernalization !
     ! impact on developmental rate. See Streck et al., 2003. !
@@ -1507,6 +1525,7 @@ e variable for use in crop development model
   !------------------------------------------------------------------
   !
   double precision function interpolate( x , reference_x , reference_y , row )
+    use carbon_model_memory
 
     ! Interpolation function.                    !
     ! x is input value, interpol is output value !

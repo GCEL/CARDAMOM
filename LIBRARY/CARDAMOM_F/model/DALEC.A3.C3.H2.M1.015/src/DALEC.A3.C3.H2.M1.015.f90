@@ -65,13 +65,13 @@ module CARBON_MODEL_MOD
   ! explicit publics
   public :: CARBON_MODEL, initialize_mv
 
-  use carbon_model_memory
 
   contains
   !
   !--------------------------------------------------------------------
   !
   subroutine initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand, soil_frac_clay, met, lat)
+    use carbon_model_memory
 
     !! For a single chain's model_working_varibles type object mV, allocate arrays
     !! and calculate initial values.
@@ -106,6 +106,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------
   !
   subroutine destroy_mv(mV)
+    use carbon_model_memory
     !! deallocate arrays in mV
     type(model_working_variables):: mV
         deallocate(mV%deltat_1)
@@ -117,6 +118,7 @@ module CARBON_MODEL_MOD
                          ,FLUXES,POOLS,DIAGS &
                          ,nopars,nomet,nopools,nofluxes,nodiags &
                           ,mV)
+    use carbon_model_memory
 
     !
     ! The Data Assimilation Linked Ecosystem Carbon - CROP - BUCKET (DALEC_CROP_BUCKET) model.
@@ -912,6 +914,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine acm_gpp_stage_1 (mV)
+    use carbon_model_memory
 
     ! Estimate the light and temperature limited photosynthesis components.
     ! See acm_gpp_stage_2() for estimation of CO2 supply limitation and
@@ -970,6 +973,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function acm_gpp_stage_2(gs, mV)
+    use carbon_model_memory
 
     ! Combine the temperature (pn) and light (pl) limited gross primary productivity
     ! estimates with CO2 supply limited via stomatal conductance (gs).
@@ -1038,6 +1042,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function find_gs_iWUE(gs_in, mV)
+    use carbon_model_memory
 
     ! Calculate CO2 limited photosynthesis as a function of metabolic limited
     ! photosynthesis (pn), atmospheric CO2 concentration and stomatal
@@ -1064,6 +1069,7 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   subroutine calculate_stomatal_conductance (mV)
+    use carbon_model_memory
 
     use brent_zero, only: zbrent
 
@@ -1153,6 +1159,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine meteorological_constants(input_temperature,input_temperature_K,input_vpd_kPa, mV)
+    use carbon_model_memory
 
     ! Determine some multiple use constants used by a wide range of functions
     ! All variables here are linked to air temperature and thus invarient between
@@ -1217,6 +1224,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_transpiration(transpiration, mV)
+    use carbon_model_memory
 
     ! Models leaf cnaopy transpiration based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1266,6 +1274,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_wetcanopy_evaporation(wetcanopy_evap,storage, mV)
+    use carbon_model_memory
 
     ! Estimates evaporation of canopy intercepted rainfall based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1323,6 +1332,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_soil_evaporation(soilevap, mV)
+    use carbon_model_memory
 
     ! Estimate soil surface evaporation based on the Penman-Monteith model of
     ! evapotranspiration used to estimate SPA's daily evapotranspiration flux
@@ -1379,6 +1389,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_aerodynamic_conductance (mV)
+    use carbon_model_memory
 
     !
     ! Calculates the aerodynamic or bulk canopy conductance (m.s-1). Here we
@@ -1449,6 +1460,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine average_leaf_conductance(gv_forced, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculates the forced conductance of water vapour for non-cylinder within canopy leaves (i.e. broadleaf)
@@ -1486,6 +1498,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine log_law_decay (mV)
+    use carbon_model_memory
 
     ! Standard log-law above canopy wind speed (m.s-1) decay under neutral
     ! conditions.
@@ -1505,6 +1518,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_field_capacity (mV)
+    use carbon_model_memory
 
     use brent_zero, only: zbrent
 
@@ -1531,6 +1545,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_daylength (mV)
+    use carbon_model_memory
 
     ! Subroutine uses day of year and latitude (-90 / 90 degrees) as inputs,
     ! combined with trigonomic functions to calculate day length in hours and seconds
@@ -1563,6 +1578,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_longwave_isothermal(canopy_temperature,soil_temperature, mV)
+    use carbon_model_memory
 
     ! Subroutine estimates the isothermal net longwave radiation (W.m-2) for
     ! the canopy and soil surface. SPA uses a complex multi-layer radiative
@@ -1608,6 +1624,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_radiation_balance (mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -1671,6 +1688,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_shortwave_balance (mV)
+    use carbon_model_memory
 
     ! Subroutine estimates the canopy and soil absorbed shortwave radiation
     ! (MJ/m2/day). Radiation absorption is paritioned into NIR and PAR for
@@ -1842,6 +1860,7 @@ module CARBON_MODEL_MOD
   !
   !subroutine calculate_radiation_commons(lat,rad_pars)
   subroutine calculate_radiation_commons(lat, mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -1918,6 +1937,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_cosine_solar_zenith_angle (mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -1951,6 +1971,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_diffuse_fraction(diffuse_fraction, mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -2003,6 +2024,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_Rtot (mV)
+    use carbon_model_memory
 
     ! Purpose of this subroutine is to calculate the minimum soil-root hydraulic
     ! resistance input into ACM. The approach used here is identical to that
@@ -2130,6 +2152,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine canopy_interception_and_storage(potential_evaporation,storage, mV)
+    use carbon_model_memory
 
     ! Simple daily time step integration of canopy rainfall interception, runoff
     ! and rainfall (kgH2O.m-2.s-1). NOTE: it is possible for intercepted rainfall to be
@@ -2263,6 +2286,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_update_soil_water(Eleaf,Esoil,Esnow,rainfall_in,corrected_ET, mV)
+    use carbon_model_memory
 
     !
     ! Function updates the soil water status and layer thickness
@@ -2549,6 +2573,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine infiltrate(rainfall_in, mV)
+    use carbon_model_memory
 
     ! Takes surface_watermm and distributes it among top !
     ! layers. Assumes total infilatration in timestep.   !
@@ -2735,6 +2760,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine gravitational_drainage(time_period_days, mV)
+    use carbon_model_memory
 
     ! Integrator for soil gravitational drainage.
     ! Due to the longer time steps undertake by ACM / DALEC and the fact that
@@ -2912,6 +2938,7 @@ module CARBON_MODEL_MOD
   !
   subroutine gravitational_drainage_local_update(s,soil_waterfrac_local,pot_drainage,liquid_fraction, &
                                                  layer_thickness_local,field_capacity_local,porosity_local)
+    use carbon_model_memory
 
      ! Subroutine will update a local copy of the soil water fraction for each soil layer
 
@@ -2963,6 +2990,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine soil_porosity(soil_frac_clay,soil_frac_sand, mV)
+    use carbon_model_memory
 
     ! Porosity is estimated from Saxton equations. !
 
@@ -2989,6 +3017,7 @@ module CARBON_MODEL_MOD
   !---------------------------------------------------------------------
   !
   subroutine initialise_soils(soil_frac_clay,soil_frac_sand, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculate the soil layers field capacities and sets the initial
@@ -3029,6 +3058,7 @@ module CARBON_MODEL_MOD
   !---------------------------------------------------------------------
   !
   subroutine update_soil_initial_conditions(input_soilwater_frac, mV)
+    use carbon_model_memory
 
     !
     ! Subroutine calculate the soil layers field capacities and sets the initial
@@ -3064,6 +3094,7 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine calculate_soil_conductivity(soil_layer,waterfrac,conductivity, mV)
+    use carbon_model_memory
 
     ! Calculate the soil conductivity (m s-1) of water based on soil
     ! characteristics and current water content
@@ -3088,6 +3119,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine saxton_parameters(soil_frac_clay,soil_frac_sand, mV)
+    use carbon_model_memory
 
     ! Calculate the key parameters of the Saxton, that is cond1,2,3 !
     ! and potA,B                                                    !
@@ -3135,6 +3167,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calculate_soil_conductance(lm,local_lai,canopy_decay, mV)
+    use carbon_model_memory
 
     ! proceedsure to solve for soil surface resistance based on Monin-Obukov
     ! similarity theory stability correction momentum & heat are integrated
@@ -3177,6 +3210,7 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   subroutine soil_water_potential (mV)
+    use carbon_model_memory
 
     ! Find SWP without updating waterfrac yet (we do that in !
     ! waterthermal). Waterfrac is m3 m-3, soilwp is MPa.     !
@@ -3201,6 +3235,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine z0_displacement(ustar_Uh,local_lai, mV)
+    use carbon_model_memory
 
     ! dynamic calculation of roughness length and zero place displacement (m)
     ! based on canopy height and lai. Raupach (1994)
@@ -3263,6 +3298,7 @@ module CARBON_MODEL_MOD
   subroutine plant_soil_flow(root_layer,root_length,root_mass &
                             ,demand,root_reach_in,transpiration_resistance &
                             ,Rtot_layer, mV)
+    use carbon_model_memory
 
     !
     ! Calculate soil layer specific water flow form the soil to canopy (mmolH2O.m-2.s-1)
@@ -3311,6 +3347,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine calc_pools_crops(DS_LRRT,LRRT, mV)
+    use carbon_model_memory
 
     ! Allocated GPP to NPP and various carbon pools. Based  !
     ! this on physiological responses to temperature        !
@@ -3510,6 +3547,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine carbon_alloc_fractions(DS_shoot,DS_root,fol_frac,stem_frac,root_frac, mV)
+    use carbon_model_memory
 
     ! Determines carbon allocation fractions as a function !
     ! of developmental stage (DS).  Allocation fractions   !
@@ -3555,6 +3593,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine development_stage(days_in_step, mV)
+    use carbon_model_memory
 
     ! Based on modified Wang & Engel model (Streck et al., 2003), !
     ! but with only 2 sub-phases, vegetative and reproductive     !
@@ -3621,6 +3660,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine management_dates(stock_seed_labile,days_in_step, mV)
+    use carbon_model_memory
 
     ! This routine should be called at the end of each day of a crops  !
     ! simulation.  It checks whether we should plough/sow/harvest, and !
@@ -3714,6 +3754,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine harvest (mV)
+    use carbon_model_memory
 
     implicit none
 
@@ -3793,6 +3834,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   double precision function photoperiod_impact( PH_crit , PH_sens , mV)
+    use carbon_model_memory
 
     ! Function to determine the coefficient for !
     ! photoperiod impact on developmental rate. !
@@ -3813,6 +3855,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------------------------------------------------------------!
   !
   subroutine plough (mV)
+    use carbon_model_memory
 
     ! this s/r will reset various carbon pools, to mimic the effect of the
     ! farmer ploughing. !
@@ -3859,6 +3902,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   pure function arrhenious( a , b , t )
+    use carbon_model_memory
 
     ! The equation is simply...                        !
     !    a * exp( b * ( t - 25.0 ) / ( t + 273.15 ) )  !
@@ -3879,6 +3923,7 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   double precision function calculate_declination(doy)
+    use carbon_model_memory
 
     implicit none
 
@@ -3899,6 +3944,7 @@ module CARBON_MODEL_MOD
   !----------------------------------------------------------------------
   !
   double precision function opt_max_scaling( max_val, min_val , optimum , kurtosis , current )
+    use carbon_model_memory
 
     ! Estimates a 0-1 scaling based on a skewed guassian distribution with a
     ! given optimum, maximum and kurtosis. Minimum is assumed to be at infinity
@@ -3923,6 +3969,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function water_retention_saxton_eqns( xin , mV)
+    use carbon_model_memory
 
     ! field capacity calculations for saxton eqns !
 
@@ -3947,6 +3994,7 @@ module CARBON_MODEL_MOD
   !--------------------------------------------------------------------------
   !
   double precision function linear_model_gradient(x,y,interval)
+    use carbon_model_memory
 
     ! Function to calculate the gradient of a linear model for a given dependent
     ! variable (y) based on predictive variable (x). The typical use of this
@@ -3999,6 +4047,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function temperature_impact( doptmin , dmaxmin , dttmin )
+    use carbon_model_memory
 
     ! Function to determine the coefficent for  !
     ! temperature impact on developmental rate. !
@@ -4025,6 +4074,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function vernalization( doptmin_v , dmaxmin_v , dttmin_v , days_in_step , mV)
+    use carbon_model_memory
 
     ! Function to determine the coefficent for vernalization !
     ! impact on developmental rate. See Streck et al., 2003. !
@@ -4056,6 +4106,7 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   double precision function interpolate( x , reference_x , reference_y , row )
+    use carbon_model_memory
 
     ! Interpolation function.                    !
     ! x is input value, interpol is output value !
