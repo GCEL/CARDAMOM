@@ -46,11 +46,8 @@ module CARBON_MODEL_MOD
   private
 
   ! explicit publics
-  public :: CARBON_MODEL     &
-           ,top_soil_depth   &
-           ,nos_soil_layers  &
-           ,sw_par_fraction  &
-           ,mVs , initialize_mv
+  public :: CARBON_MODEL  &
+           ,initialize_mv
 
 
   contains

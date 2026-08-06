@@ -47,17 +47,13 @@ module CARBON_MODEL_MOD
   private
 
   ! explicit publics
-  public :: CARBON_MODEL     &
-           ,top_soil_depth   &
-           ,nos_soil_layers  &
-           ,sw_par_fraction  &
-           ,mVs , initialize_mv, &
-           model_working_variables
+  public :: CARBON_MODEL  &
+           ,initialize_mv
 
 
   contains
 
-  subroutine initialize_mv(mV, nodays, nomet, nopars, met, deltat, lat, soil_frac_sand, soil_frac_clay)
+  subroutine initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand, soil_frac_clay, met, lat)
     use carbon_model_memory
       !! For a single chain's model_working_varibles type object mV, allocate arrays
         !! and calculate initial values.

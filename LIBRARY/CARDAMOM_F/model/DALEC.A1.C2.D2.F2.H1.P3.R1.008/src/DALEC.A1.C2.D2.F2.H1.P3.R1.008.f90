@@ -3460,18 +3460,18 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine plant_canopy_phenology(nodays, gsi_lag_steps, step, time,                     & ! Timing
-    use carbon_model_memory
                                     avgTmax_C, photoperiod_s, avgVPD_Pa,                   & ! GSI forcings
-                                    leafT_min, leafT_max, leafP_min, leafP_max,            & ! GSI parameters 
+                                    leafT_min, leafT_max, leafP_min, leafP_max,            & ! GSI parameters
                                     leafV_min, leafV_max, leaf_phenology_threshold,        & !
-                                    potential_labile_turnover, potential_foliage_turnover, & ! 
+                                    potential_labile_turnover, potential_foliage_turnover, & !
                                     lca, gpp_return_threshold, available_labile, foliage,  & ! To calculate GPP return
-                                    current_gpp, delta_gpp_gCgC,                           & ! 
+                                    current_gpp, delta_gpp_gCgC,                           & !
                                     alloc_leaf_fraction, alloc_leaf_gCm2day,               & ! Output variables
                                     leaf_litter_fraction, leaf_litter_gCm2day,             &
-                                    leafT_limit, leafP_limit, leafV_limit, gsi_gradient, gsi, mV) 
+                                    leafT_limit, leafP_limit, leafV_limit, gsi_gradient, gsi, mV)
+    use carbon_model_memory
 
-       ! Subroutine deals with the determining of allocated carbon to foliage from 
+       ! Subroutine deals with the determining of allocated carbon to foliage from
        ! the labile / non-structural carbohydrates pool and senescence of foliage 
        ! to fine litter. Growth and loss are determined by a canopy growing season index (GSI)
        ! which is the product of 3-limiting terms represented by linear functions of

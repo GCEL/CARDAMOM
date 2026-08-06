@@ -4025,7 +4025,6 @@ module CARBON_MODEL_MOD
   !
   subroutine plant_allocation(nopools,time,                              &
                               lca,                                       & ! LCA
-    use carbon_model_memory
                               pot_fol,pot_root,pot_wood,                 & ! potential growth rates
                               leafT_coef,woodT_coef,leafT_min,woodT_min, & ! temperature limitations
                               woodW_min,woodW_max,leafW_min,leafW_max,   & ! water limitations
@@ -4036,6 +4035,7 @@ module CARBON_MODEL_MOD
                               LabBio_limit,leafT_limit,rootT_limit,      & ! lab:bio, temperature and water limters
                               woodT_limit,leafW_limit,woodW_limit,       & !
                               foliar_limit,ncce_gCm2day,delta_ncce_gCgC, mV)   ! combined foliar limit, NCCE and dNCCE
+    use carbon_model_memory
 
        ! Subroutine deals with the determining of allocated carbon to plant tissues from
        ! the labile / non-structural carbohydrates pool. Applies a modified Arrhenius curve
@@ -4283,10 +4283,10 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine update_ncce_gradient(nodays,step,time, & ! time related
-    use carbon_model_memory
                                      ncce_lag_history, & ! ncce tracking over lag period
                                      ncce_lag_step,    & ! ncce lag period
                                      ncce_gCgCday,ncce_gradient, mV) 
+    use carbon_model_memory
        implicit none
 
       type(model_working_variables) :: mV
@@ -4325,7 +4325,6 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine plant_natural_turnover(nodays,step,time,                       & ! time related
-    use carbon_model_memory
                                     available_labile,                       & ! Available labile
                                     biomass, foliage, wood, root,           & ! C pools
                                     lca, ncce_gCgCday,                      & ! LCA / net canopy carbon export per gC leaf
@@ -4334,6 +4333,7 @@ module CARBON_MODEL_MOD
                                     wood_turn, root_turn,                   & ! wood and fine root turnovers
                                     foliage_litter,root_litter,wood_litter, & ! Natural litter fluxes (fol, root, wood)
                                     cmi,ncce_gradient, mV)                        ! CMI, NCCE change for canopy loss, NCCE gradient
+    use carbon_model_memory
 
        ! Subroutine deals with the determining litter generates from foliage, fine roots and wood.
        ! Specifically litter due to non-disturbance related forcings, i.e. age or climate

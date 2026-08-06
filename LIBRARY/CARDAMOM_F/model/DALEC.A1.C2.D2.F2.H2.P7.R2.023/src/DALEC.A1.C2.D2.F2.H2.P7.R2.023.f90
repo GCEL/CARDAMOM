@@ -3521,7 +3521,6 @@ module CARBON_MODEL_MOD
   !------------------------------------------------------------------
   !
   subroutine plant_canopy_phenology(nodays, step, time,                                    & ! Timing
-    use carbon_model_memory
                                     cgi_temperature_coef_1, cgi_temperature_coef_2,        & ! CGI parameters
                                     cgi_temperature_coef_3, cgi_temperature_coef_4,        & !
                                     cgi_temperature_coef_5, cgi_temperature_coef_6,        & !
@@ -3536,6 +3535,7 @@ module CARBON_MODEL_MOD
                                     leaf_litter_fraction, leaf_litter_gCm2day,             & !
                                     leafT_limit, leafW_limit, ncce_gradient, cgi_gradient, & !
                                     cgi, cmi, mV) 
+    use carbon_model_memory
 
        ! Subroutine deals with the determining of allocated carbon to foliage from 
        ! the labile / non-structural carbohydrates pool and senescence of foliage 

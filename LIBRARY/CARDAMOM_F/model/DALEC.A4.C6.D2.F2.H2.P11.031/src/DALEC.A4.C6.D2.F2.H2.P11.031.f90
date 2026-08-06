@@ -3764,7 +3764,6 @@ module CARBON_MODEL_MOD
   !
   subroutine plant_allocation(nopools,time, &
                               pot_fol,pot_root,pot_fol_cdea,pot_wood,    &  ! potential growth rates 
-    use carbon_model_memory
                               leafT_coef,woodT_coef,leafT_min,woodT_min, &  ! temperature limitations
                               woodW_min,woodW_max,leafW_min,leafW_max,   &  ! water limitations
                               LabBio_coef,                               &  ! labile:biomass limitation
@@ -3773,6 +3772,7 @@ module CARBON_MODEL_MOD
                               alloc_cdea_leaf,                           &  
                               LabBio_limit,leafT_limit,rootT_limit,      & ! lab:bio, temperature and water limters
                               woodT_limit,leafW_limit,woodW_limit, mV)
+    use carbon_model_memory
 
        ! Subroutine deals with the determining of allocated carbon to plant tissues from 
        ! the labile / non-structural carbohydrates pool. Applies a modified Arrhenius curve

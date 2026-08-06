@@ -85,6 +85,13 @@ module carbon_model_memory
                         vonkarman_1 = 2.439024d0,   & ! 1 / von Karman's constant
                               cpair = 1004.6d0        ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
 
+  ! photosynthesis / respiration parameters
+  double precision, parameter :: &
+                        Rg_fraction = 0.21875d0,    & ! fraction of C allocation towards each pool
+                                                      ! lost as growth respiration
+                                                      ! (i.e. 0.28 .eq. xNPP)
+                    one_Rg_fraction = 1d0 - Rg_fraction
+
   ! hydraulic parameters
   double precision, parameter :: &
                          tortuosity = 2.5d0,        & ! tortuosity
@@ -192,6 +199,11 @@ module carbon_model_memory
                                                            xbestsplit, & ! for forest
                                                              nodepred, & ! prediction value for each tree
                                                               bestvar    ! for randomForests
+    ! Canopy phenology model
+    integer :: cgi_ncce_lag_step ! Number of model time steps over which CGI / NCCE  is lagged for gradient calculation
+    double precision, allocatable, dimension(:) :: cgi_ncce_lag_days, & ! Number of days equivelent over which CGI / NCCE is lagged
+                                                     cgi_lag_history, & ! Local storage of the CGI values to be worked on.
+                                                    ncce_lag_history    ! Local storage of the NCCE values to be worked on.
 
     ! hydraulic model variables
     integer :: water_retention_pass, soil_layer
@@ -267,10 +279,10 @@ module carbon_model_memory
     ! Module level variables for ACM_GPP_ET variables
     double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                               ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
-  !                             avN, & ! average foliar N (gN/m2)
+                               avN, & ! average foliar N (gN/m2)
                          iWUE_step, & ! Intrinsic water use efficiency for that day (gC/m2leaf/dayl/mmolH2Ogs)
-  !                             NUE, & ! Photosynthetic nitrogen use efficiency at optimum temperature (oC)
-  !                                    ! ,unlimited by CO2, light and photoperiod (umolC/gN/m2leaf)
+                               NUE, & ! Photosynthetic nitrogen use efficiency at optimum temperature (oC)
+                                    ! ,unlimited by CO2, light and photoperiod (umolC/gN/m2leaf)
   metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limiterd photosynthesis (gC/m2/day)
       light_limited_photosynthesis, & ! light limited photosynthesis (gC/m2/day)
                                 ci, & ! Internal CO2 concentration (ppm)

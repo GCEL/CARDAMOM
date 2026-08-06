@@ -3556,7 +3556,6 @@ module CARBON_MODEL_MOD
   !-----------------------------------------------------------------
   !
   subroutine plant_canopy_phenology(nodays, gsi_lag_steps, step, time,                     & ! Timing
-    use carbon_model_memory
                                     avgTmax_C, photoperiod_s, avgVPD_Pa,                   & ! GSI forcings
                                     leafT_min, leafT_max, leafP_min, leafP_max,            & ! GSI parameters 
                                     leafV_min, leafV_max, leaf_phenology_threshold,        & !
@@ -3566,6 +3565,7 @@ module CARBON_MODEL_MOD
                                     alloc_leaf_fraction, alloc_leaf_gCm2day,               & ! Output variables
                                     leaf_litter_fraction, leaf_litter_gCm2day,             &
                                     leafT_limit, leafP_limit, leafV_limit, gsi_gradient, gsi, mV) 
+    use carbon_model_memory
 
        ! Subroutine deals with the determining of allocated carbon to foliage from 
        ! the labile / non-structural carbohydrates pool and senescence of foliage 

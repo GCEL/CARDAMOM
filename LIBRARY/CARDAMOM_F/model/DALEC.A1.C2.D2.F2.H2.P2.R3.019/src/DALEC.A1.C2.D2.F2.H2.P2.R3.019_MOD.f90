@@ -85,6 +85,13 @@ module carbon_model_memory
                         vonkarman_1 = 2.439024d0,   & ! 1 / von Karman's constant
                               cpair = 1004.6d0        ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
 
+  ! photosynthesis / respiration parameters
+  double precision, parameter :: &
+                        Rg_fraction = 0.21875d0,    & ! fraction of C allocation towards each pool
+                                                      ! lost as growth respiration
+                                                      ! (i.e. 0.28 .eq. xNPP)
+                    one_Rg_fraction = 1d0 - Rg_fraction
+
   ! hydraulic parameters
   double precision, parameter :: &
                          tortuosity = 2.5d0,        & ! tortuosity
@@ -221,6 +228,7 @@ module carbon_model_memory
                                             wSWP, & ! soil water potential weighted by canopy supply (MPa)
                                             rSWP, & ! soil water potential weighted by root presence (MPa)
                                             Reff, & ! Effective total hydraulic resistance (MPa.m2.s.mmolH2O-1)
+                                   Rm_leaf_const, & ! Baseline leaf maintenance respiration per gC
                                        max_depth, & ! maximum possible root depth (m)
                                           root_k, & ! biomass to reach half max_depth
                                           runoff, & ! surface water runoff (kgH2O.m-2.day-1)
@@ -278,6 +286,8 @@ module carbon_model_memory
                        o2_half_sat, & ! O2 at which photorespiration is 50 % of maximum
                       co2_half_sat, & ! CO2 at which photosynthesis is 50 % of maximum (ppm)
                     co2_comp_point    ! CO2 at which photosynthesis > 0 (ppm)
+
+    double precision :: cold_shutdown  ! Cold shutdown scalar (0-1) applied to Vcmax and Rm at low temperature
 
     ! Module level variables for step specific met drivers
     double precision :: mint, & ! minimum temperature (oC)

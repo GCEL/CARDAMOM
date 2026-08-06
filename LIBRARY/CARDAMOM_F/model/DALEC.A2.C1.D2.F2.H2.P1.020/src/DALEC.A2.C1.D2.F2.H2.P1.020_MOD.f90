@@ -126,6 +126,11 @@ module carbon_model_memory
   double precision, parameter :: &
                        Vc_minT = -6.991d0,     & ! Temperature at which all photosynthetic activity is shutdown
                        Vc_coef = 0.1408d0,     & ! Temperature above Vc_minT that 50% limitation of cold shutdown occurs
+                      Ha_Vcmax = 64287.5d0,    & ! Activation energy for Vcmax (J mol-1)
+                      dS_Vcmax = 646.875d0,    & ! Entropy term for Vcmax (J mol-1)
+                       Ha_Jmax = 50075.0d0,    & ! Activation energy for Jmax (J mol-1)
+                       dS_Jmax = 649.250d0,    & ! Entropy term for Jmax (J mol-1)
+                 Hd_Vcmax_Jmax = 200000d0,     & ! Deactivation energy for Vcmax and Jmax (J mol-1)
 !! ACM cal
 !                   pn_max_temp = 6.842942d+01,  & ! Maximum daily max temperature for photosynthesis (oC)
 !                   pn_min_temp = -1d+06      ,  & ! Minimum daily max temperature for photosynthesis (oC)
@@ -267,12 +272,14 @@ module carbon_model_memory
     ! Module level variables for ACM_GPP_ET variables
     double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
                               ceff, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
+                         Vcmax_ref, & ! Maximum rate of carboxylation (umolC/m2/s), Vcmax_ref = avN*NUE
   !                             avN, & ! average foliar N (gN/m2)
                          iWUE_step, & ! Intrinsic water use efficiency for that day (gC/m2leaf/dayl/mmolH2Ogs)
   !                             NUE, & ! Photosynthetic nitrogen use efficiency at optimum temperature (oC)
   !                                    ! ,unlimited by CO2, light and photoperiod (umolC/gN/m2leaf)
-  metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limiterd photosynthesis (gC/m2/day)
-      light_limited_photosynthesis, & ! light limited photosynthesis (gC/m2/day)
+  metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limited photosynthesis (umolC/m2/s)
+      light_limited_photosynthesis, & ! light limited photosynthesis (umolC/m2/s)
+                  dark_respiration, & ! leaf dark respiration (umolC/m2/s)
                                 ci, & ! Internal CO2 concentration (ppm)
                           rb_mol_1, & ! Canopy boundary layer resistance (day/m2/molCO2)
                        o2_half_sat, & ! O2 at which photorespiration is 50 % of maximum

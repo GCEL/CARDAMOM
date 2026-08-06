@@ -85,6 +85,13 @@ module carbon_model_memory
                         vonkarman_1 = 2.439024d0,   & ! 1 / von Karman's constant
                               cpair = 1004.6d0        ! Specific heat capacity of air; used in energy balance J.kg-1.K-1
 
+  ! photosynthesis / respiration parameters
+  double precision, parameter :: &
+                        Rg_fraction = 0.21875d0,    & ! fraction of C allocation towards each pool
+                                                      ! lost as growth respiration
+                                                      ! (i.e. 0.28 .eq. xNPP)
+                    one_Rg_fraction = 1d0 - Rg_fraction
+
   ! hydraulic parameters
   double precision, parameter :: &
                          tortuosity = 2.5d0,        & ! tortuosity
@@ -192,6 +199,10 @@ module carbon_model_memory
                                                            xbestsplit, & ! for forest
                                                              nodepred, & ! prediction value for each tree
                                                               bestvar    ! for randomForests
+    ! Growing season index canopy phenology model
+    integer :: gsi_lag_steps ! Number of model time steps over which GSI is lagged
+    double precision, allocatable, dimension(:) :: gsi_lag_days, & ! Number of days equivelent over which GSI is lagged
+                                                gsi_lag_history    ! Local storage of the GSI values to be worked on.
 
     ! hydraulic model variables
     integer :: water_retention_pass, soil_layer
