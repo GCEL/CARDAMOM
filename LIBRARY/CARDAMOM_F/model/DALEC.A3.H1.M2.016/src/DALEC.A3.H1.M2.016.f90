@@ -1051,7 +1051,8 @@ module CARBON_MODEL_MOD
             else
                 ! In all other cases iterate
                 mV%stomatal_conductance = zbrent('calculate_gs:find_gs_iWUE', &
-                                              find_gs_iWUE,mV,mV%minimum_conductance,mV%potential_conductance,tol_gs*mV%lai,mV%iWUE_step*0.10d0)
+                                                 find_gs_iWUE,mV,mV%minimum_conductance,mV%potential_conductance,
+                                                 tol_gs*mV%lai,mV%iWUE_step*0.10d0)
 
             end if
 
@@ -1470,7 +1471,6 @@ module CARBON_MODEL_MOD
   !
   subroutine calculate_field_capacity (mV)
     use carbon_model_memory
-
     use brent_zero, only: zbrent
     
     ! field capacity calculations for saxton eqns !
@@ -1488,7 +1488,7 @@ module CARBON_MODEL_MOD
        mV%water_retention_pass = i
        ! field capacity is water content at which SWP = -10 kPa
        mV%field_capacity(i) = zbrent('water_retention:water_retention_saxton_eqns', &
-                                   water_retention_saxton_eqns, mV, x1 , x2 , 0.001d0, 0d0 )
+                                      water_retention_saxton_eqns, mV, x1 , x2 , 0.001d0, 0d0 )
     enddo
 
   end subroutine calculate_field_capacity  

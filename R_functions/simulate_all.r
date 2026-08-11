@@ -7796,7 +7796,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       states_all$NPP_wood_fraction = NPP_fraction[,3]
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
-  } else if (model_name == "DALEC.M2.016") { 
+  } else if (model_name == "DALEC.A3.H1.M2.016") { 
     output_dim = 49 ; MTT_dim = 5 ; SS_dim = 5
     # Load the required dalec shared object
     dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))

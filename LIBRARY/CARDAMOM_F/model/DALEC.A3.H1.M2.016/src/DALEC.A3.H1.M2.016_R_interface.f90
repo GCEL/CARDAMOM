@@ -74,18 +74,13 @@ subroutine rdalec16(output_dim,MTT_dim,SS_dim &
   double precision, intent(out), dimension(nos_iter,nos_years,output_dim) :: out_var5 ! Mean annual of out_var1
 
   ! local variables
-  ! vector of ecosystem pools
-  integer :: a, e, i, s, v, steps_per_year!, nos_years
+  integer :: a, e, i, s, v, steps_per_year!, nos_years     ! vector of ecosystem pools
   integer, dimension(nodays) :: pool_hak
-  ! array of ecosystem pools
-  double precision, dimension((nodays+1),nopools) :: POOLS
-  ! array of ecosystem fluxes
-  double precision, dimension(nodays,nofluxes) :: FLUXES
-  ! array of ecosystem diagnositcs
-  double precision, dimension(nodays,nodiags) :: DIAGS
+  double precision, dimension((nodays+1),nopools) :: POOLS ! array of ecosystem pools
+  double precision, dimension(nodays,nofluxes) :: FLUXES   ! array of ecosystem fluxes
+  double precision, dimension(nodays,nodiags) :: DIAGS     ! array of ecosystem diagnositcs
   double precision, dimension(nodays) :: tmp, tmp1
-
-  type(model_working_variables) :: mv
+  type(model_working_variables) :: mv ! Internal model memory variables
 
   ! zero initial conditions
   POOLS = 0d0 ; FLUXES = 0d0 ; DIAGS = 0d0
@@ -101,7 +96,8 @@ subroutine rdalec16(output_dim,MTT_dim,SS_dim &
   steps_per_year = nint(dble(nodays)/dble(nos_years))
 
   ! Initialise any shared memory objects for thread-safe activity
-  call initialize_mv(mV, nodays, nomet, nopars, deltat, soil_frac_sand_in, soil_frac_clay_in, met, lat)
+  call initialize_mv(mV, nodays, nomet, nopars, deltat, & 
+                     soil_frac_sand_in, soil_frac_clay_in, met, lat)
 
   ! begin iterations
   do i = 1, nos_iter
