@@ -809,7 +809,15 @@ module CARBON_MODEL_MOD
        call update_microbial_activity_and_death(pars(40),pars(46),pars(45),mV%days_per_step, &
                                                 FLUXES(n,2),POOLS(n,8),microbial_activity,microbial_death)
        DIAGS(n,16) = microbial_death ; DIAGS(n,17) = microbial_activity
-
+!if (DIAGS(n,16) /= DIAGS(n,16)) then
+!print*,"D16 ",DIAGS(n,16), DIAGS(n,17), FLUXES(n,2),POOLS(n,8)
+!stop
+!end if
+!if (DIAGS(n,17) /= DIAGS(n,17)) then
+!print*,"D17 ",DIAGS(n,16), DIAGS(n,17), FLUXES(n,2),POOLS(n,8)
+! !D17          0.00E+000    NaN          1.036       Infinity
+!stop
+!end if
        ! 
        ! Allocate photosynthate
        ! 
@@ -866,20 +874,20 @@ module CARBON_MODEL_MOD
        ! interest approach.
 
        ! Respiration heterotrophic slow som
-       FLUXES(n,14) = min(1d0,(POOLS(n,10)*(1d0-pars(48))*microbial_activity*pars(49)) / max(POOLS(n,9),vsmall))
+       FLUXES(n,14) = max(0d0,min(1d0,(POOLS(n,10)*(1d0-pars(48))*microbial_activity*pars(49)) / max(POOLS(n,9),vsmall)))
        FLUXES(n,14) = POOLS(n,9) * (1d0-(1d0-FLUXES(n,14))**mV%days_per_step)*mV%days_per_step_1
        ! Respiration heterotrophic fast som
-       FLUXES(n,58) = min(1d0,(POOLS(n,10)*(1d0-pars(44))*pars(50)*microbial_activity))
+       FLUXES(n,58) = max(0d0,min(1d0,(POOLS(n,10)*(1d0-pars(44))*pars(50)*microbial_activity)))
        FLUXES(n,58) = POOLS(n,8) * (1d0-(1d0-FLUXES(n,58))**mV%days_per_step)*mV%days_per_step_1
        ! Respiration heterotrophic microbial
        FLUXES(n,59) = POOLS(n,10) * (1d0-(1d0-(pars(47)*microbial_activity))**mV%days_per_step)*mV%days_per_step_1
        ! Microbial death allocation to slow som
-       FLUXES(n,60) = min(1d0,(FLUXES(n,2)*microbial_death*microbial_activity))
+       FLUXES(n,60) = max(0d0,min(1d0,(FLUXES(n,2)*microbial_death*microbial_activity)))
        FLUXES(n,60) = POOLS(n,10) * (1d0-(1d0-FLUXES(n,60))**mV%days_per_step)*mV%days_per_step_1
        ! Microbial mediated transfer of carbon from slow to fast
        FLUXES(n,61) = POOLS(n,10) * (1d0-(1d0-(pars(48)*microbial_activity*pars(49)))**mV%days_per_step)*mV%days_per_step_1
        ! Accumulation of fast som into microbial carbon
-       FLUXES(n,62) = min(1d0,(POOLS(n,10)*(pars(44)*pars(50)*microbial_activity)))
+       FLUXES(n,62) = max(0d0,min(1d0,(POOLS(n,10)*(pars(44)*pars(50)*microbial_activity))))
        FLUXES(n,62) = POOLS(n,8) *  (1d0-(1d0-FLUXES(n,62))**mV%days_per_step)*mV%days_per_step_1
 !if (FLUXES(n,62) < 0d0) print*,"62 ", FLUXES(n,62), POOLS(n,8),POOLS(n,10),microbial_activity,pars(44),pars(50),mV%days_per_step,mV%days_per_step_1
 
@@ -918,13 +926,10 @@ module CARBON_MODEL_MOD
        ! wood litter
        POOLS(n+1,7)  = POOLS(n,7)  + (FLUXES(n,11)-FLUXES(n,30)-FLUXES(n,31))*mV%days_per_step
        ! fast som pool
-       POOLS(n+1,8)  = POOLS(n,8)  + ( (FLUXES(n,15)*(1d0-pars(41)))+ &
-                                       (FLUXES(n,31)*(1d0-pars(43)))+ &
-                                       (FLUXES(n,57)*(1d0-pars(42)))+ &
+       POOLS(n+1,8)  = POOLS(n,8)  + ( (FLUXES(n,15)*(1d0-pars(41)))+ & ! Foliage litter
+                                       (FLUXES(n,31)*(1d0-pars(43)))+ & ! Wood litter 
+                                       (FLUXES(n,57)*(1d0-pars(42)))+ & ! Fine root litter
                                        FLUXES(n,61)-FLUXES(n,58)-FLUXES(n,62))*mV%days_per_step
-!if (POOLS(n+1,8) /= POOLS(n+1,8)) then 
-!print*,"8 ",POOLS(n+1,8),FLUXES(n,15),FLUXES(n,31),FLUXES(n,57),FLUXES(n,61),FLUXES(n,58),FLUXES(n,62),mV%days_per_step 
-!endif 
        ! slow som pool
        POOLS(n+1,9)  = POOLS(n,9)  + ( (FLUXES(n,15)*pars(41))+ &
                                        (FLUXES(n,31)*pars(43))+ &
@@ -933,12 +938,28 @@ module CARBON_MODEL_MOD
        ! microbial pool
        POOLS(n+1,10) = POOLS(n,10) + (FLUXES(n,62)-FLUXES(n,59)-FLUXES(n,60))*mV%days_per_step
 
-!if (POOLS(n+1,10) /= POOLS(n+1,10) .or. POOLS(n+1,10) < 0d0) then 
-!print*,"10 ",POOLS(n+1,10),POOLS(n,10),FLUXES(n,62),FLUXES(n,59),FLUXES(n,60),mV%days_per_step 
-!endif        
+!if (POOLS(n+1,8) /= POOLS(n+1,8) .or. POOLS(n+1,8) > 1d6) then
+!print*,"P8  ",POOLS(n+1,8),POOLS(n,8),POOLS(n+1,9),POOLS(n,9),POOLS(n+1,10),POOLS(n,10) 
+!print*,"    ",FLUXES(n,15),FLUXES(n,31),FLUXES(n,57),FLUXES(n,61)
+!print*,"    ",FLUXES(n,58),FLUXES(n,62),FLUXES(n,60),FLUXES(n,14),FLUXES(n,61),FLUXES(n,59)
+!stop
+!end if
+!if (POOLS(n+1,9) /= POOLS(n+1,9)) then
+!print*,"P9  ",POOLS(n+1,8),POOLS(n,8),POOLS(n+1,9),POOLS(n,9),POOLS(n+1,10),POOLS(n,10)
+!print*,"    ",FLUXES(n,15),FLUXES(n,31),FLUXES(n,57),FLUXES(n,61)
+!print*,"    ",FLUXES(n,58),FLUXES(n,62),FLUXES(n,60),FLUXES(n,14),FLUXES(n,61),FLUXES(n,59)
+!stop
+!end if
+!if (POOLS(n+1,10) /= POOLS(n+1,10)) then
+!print*,"P10 ",POOLS(n+1,8),POOLS(n,8),POOLS(n+1,9),POOLS(n,9),POOLS(n+1,10),POOLS(n,10) 
+!print*,"    ",FLUXES(n,15),FLUXES(n,31),FLUXES(n,57),FLUXES(n,61)
+!print*,"    ",FLUXES(n,58),FLUXES(n,62),FLUXES(n,60),FLUXES(n,14),FLUXES(n,61),FLUXES(n,59)
+!stop
+!end if
+
        ! Enforce mass reality - note this breaks mass balance as fluxes are not proportionally updated
-       POOLS(n+1,8) = max(0d0,POOLS(n+1,8))
-       POOLS(n+1,9) = max(0d0,POOLS(n+1,9))
+       POOLS(n+1,8)  = max(vsmall,POOLS(n+1,8))
+       POOLS(n+1,9)  = max(vsmall,POOLS(n+1,9))
        POOLS(n+1,10) = max(vsmall,POOLS(n+1,10))
 
        !!!!!!!!!!

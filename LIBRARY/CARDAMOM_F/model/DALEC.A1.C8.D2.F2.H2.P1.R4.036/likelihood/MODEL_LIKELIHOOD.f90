@@ -217,6 +217,14 @@ module model_likelihood_module
         print*,local_fluxes(1,:)
         print*,"First time step for all fluxes in run 2"
         print*,M_FLUXES(1,:)
+        print*,"First time step for all pools in run 1"
+        print*,local_pools(1,:)
+        print*,"First time step for all pools in run 2"
+        print*,M_POOLS(1,:)
+        print*,"First time step for all diags in run 1"
+        print*,local_diags(1,:)
+        print*,"First time step for all diags in run 2"
+        print*,M_DIAGS(1,:)
         stop
     end if
 
@@ -279,11 +287,11 @@ module model_likelihood_module
     ! begin checking EDCs
     !
 
-    ! Turnover of wood litter should be slower than foliage 
+    ! Turnover of wood litter should be slower than foliage litter
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(35) > pars(8))) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(1) = 0
     endif
-    ! Turnover of wood litter should be slower than fine root 
+    ! Turnover of wood litter should be slower than fine root litter
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(35) > pars(9))) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
     endif
@@ -495,21 +503,21 @@ module model_likelihood_module
     ! NOTE: yes, I know this does not actually calculate the turnover fraction 
     !       to the temporal mismatch in these variables, but they provide appropriate 
     !       scaling for their relative comparison to be true.
-    if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(8)/mean_pools(8) > Fout(5)/mean_pools(5) ) then
+    if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(9)/mean_pools(9) > Fout(5)/mean_pools(5) ) then
        EDC2 = 0d0 ; EDCD%PASSFAIL(11) = 0
     endif    
     ! Turnover rate of fine root litter should be greater than slow som
     ! NOTE: yes, I know this does not actually calculate the turnover fraction 
     !       to the temporal mismatch in these variables, but they provide appropriate 
     !       scaling for their relative comparison to be true.    
-    if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(8)/mean_pools(8) > Fout(7)/mean_pools(7) ) then
+    if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(9)/mean_pools(9) > Fout(6)/mean_pools(6) ) then
        EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
     endif    
     ! Turnover of foliar litter (pars(8)) should be faster than fine root litter (pars(9))
     ! Guo et al., (2021). Global Ecology and Biogeography, 30, 2286–2296. https://doi.org/10.1111/geb.13384
-    if ((EDC2 == 1 .or. DIAG == 1) .and. pars(9) > pars(8)) then
-       EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
-    endif    
+    !if ((EDC2 == 1 .or. DIAG == 1) .and. pars(9) > pars(8)) then
+    !   EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
+    !endif    
 
     if (DATAin%nos_years > 1) then
         ! Determine the mean and standard deviation of January LAIs 
