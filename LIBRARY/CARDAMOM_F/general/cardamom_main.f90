@@ -35,14 +35,16 @@
 ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
 ! J. F. Exbrayat (University of Edinburgh)
 ! D. T. Milodowski (d.t.milodowski@ed.ac.uk, University of Edinburgh)
+! J. Klebes (jason.klebes@ed.ac.uk, University of Edinburgh)
 ! See function/subroutine specific comments for exceptions and contributors
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 program cardamom_framework
-   use cardamom_MHMCMC, only: MCMC_OUTPUT, MCMC_OPTIONS, run_mcmc, run_parallel_mcmc
+   use APMCMC, only: MCMC_OUTPUT, MCMC_OPTIONS, run_mcmc, run_parallel_mcmc
+   use DEMCZ, only: run_demcz, DEMCzopt ! problem different options object   
    use model_shared, only: PI, initialize_carbon_model
-   use samplers_shared, only: init_infinity ! should be in Utils ?
+   use samplers_shared, only: init_infinity, sampler_options, mcmc_options ! should be in Utils ?   
    use cardamom_structures, only: DATAin
    use cardamom_io, only: initialize, &
                           read_options, &
@@ -57,19 +59,6 @@ program cardamom_framework
    use model_likelihood_wrapper, only: model_likelihood_fct, edc_model_likelihood_fct, scaled_model_likelihood_fct
    use cardamom_main_utils
 
- !!!!!!!!!!!
-   ! Authorship contributions
-   !
-   ! This code is based on the original C verion of the University of Edinburgh
-   ! CARDAMOM framework created by A. A. Bloom (now at the Jet Propulsion Laboratory).
-   ! All code translation into Fortran, integration into the University of
-   ! Edinburgh CARDAMOM code and subsequent modifications by:
-   ! T. L. Smallman (t.l.smallman@ed.ac.uk, University of Edinburgh)
-   ! J. F. Exbrayat (University of Edinburgh)
-   ! D. T. Milodowski (d.t.milodowski@ed.ac.uk, University of Edinburgh)
-   ! See function/subroutine specific comments for exceptions and contributors
- !!!!!!!!!!!
-
    ! Created: Anthony A. Bloom
    ! Major modification history:
    ! Version 1.0: C language MHMCMC and io created by Anthony A. Bloom
@@ -80,6 +69,7 @@ program cardamom_framework
    ! Version 1.4: Pre-APMCMC phase using normalised likelihoods added by T. L. Smallman
    !            : Pre-APMCMC allows for rapidly moving towards observations from very bad starting points.
    ! Version 1.5: Added options for varied scaling approaches for the cost function (e.g. division by sample size (i.e. n), sqrt(n), 1+log(n))
+   ! Version 1.6: Refactoring to include Differential MCMC with snooker update (J. Klebes)
    ! Specific citations for developments included in the code.
 
    ! This is the main subroutine for the CARDAMOM framework. The specific model
@@ -88,31 +78,29 @@ program cardamom_framework
    ! combinations
 
    ! Command line inputs are:
-   ! 1) file in
-   ! 2) file out
-   ! 3) integer number of solutions requested
-   ! 4) print-to-screen frequency
-   ! 5) write-to-file frequency
-   ! 6) 0/1 flag to use normalised log-likelihood pre-mcmc
-   ! 7) Flag to select the cost function normalisation approach
-   ! 8) integer number of chains (optional; defaults to 3 if absent)
+   ! 1) Sampler choice sampler="APMCMC", "DEMCz"
+   ! 2) file in
+   ! 3) file out
+   ! 4) integer number of solutions requested
+   ! 5) print-to-screen frequency
+   ! 6) write-to-file frequency
+   ! 7) 0/1 flag to use normalised log-likelihood pre-mcmc
+   ! 8) Flag to select the cost function normalisation approach
+   ! 9) integer number of chains (optional; defaults to 3 if absent)
 
    implicit none(type, external)
 
    ! declare local variables
    character(350) :: infile, outfile, solution_wanted_char, freq_print_char, &
-                    freq_write_char, do_inflate_char, cost_func_scaling_char, &
-                    nchains_char
+                     freq_write_char, do_inflate_char, cost_func_scaling_char, &
+                     nchains_char, arg1, arg2, arg3                    
    integer :: solution_wanted, freq_print, freq_write, time1, time2, time3, &
-              do_inflate_dble, cost_func_scaling_dble, idum
-   logical :: do_inflate = .false.
-   logical :: sub_sample_complete = .false.
-   double precision :: nOUT_save = 0d0, sub_fraction = 0.2d0
-    !! run this percentage of simulation with variant function
-   type(MCMC_OUTPUT), dimension(:), allocatable :: MCOUT_list
-    !! array of output objects from each thread
-   type(MCMC_OPTIONS) :: MCO
-     !! options for sampler
+              do_inflate_dble, cost_func_scaling_dble, idum, args_start, sampler
+   logical :: do_inflate = .false., sub_sample_complete = .false.
+   double precision :: nOUT_save = 0d0, sub_fraction = 0.2d0  ! run this percentage of simulation with variant function
+
+   type(mcmc_output), dimension(:), allocatable :: MCOUT_list ! array of output objects from each thread
+   class(SAMPLER_OPTIONS), allocatable :: MCO  ! options for sampler 
    logical :: restart
 
    ! Number of chains. Default value, may be overridden by command line argument 8.
@@ -124,17 +112,24 @@ program cardamom_framework
    ! user update
    write (*,*) "Beginning read of the command line"
 
+   ! check command line for a potential first arg sampler=...
+   ! effects : set this program's `sampler` variable  and args_start to offset following command line args
+   call get_command_argument(1, arg1)
+   call get_command_argument(2, arg2)
+   call get_command_argument(3, arg3)
+   call parse_sampler_choice(arg1, arg2, arg3, sampler, args_start)
+
    ! read user options from the command line
-   call get_command_argument(1, infile)
-   call get_command_argument(2, outfile)
-   call get_command_argument(3, solution_wanted_char)
-   call get_command_argument(4, freq_print_char)
-   call get_command_argument(5, freq_write_char)
-   call get_command_argument(6, do_inflate_char)
-   call get_command_argument(7, cost_func_scaling_char)
+   call get_command_argument(args_start+1, infile)
+   call get_command_argument(args_start+2, outfile)
+   call get_command_argument(args_start+3, solution_wanted_char)
+   call get_command_argument(args_start+4, freq_print_char)
+   call get_command_argument(args_start+5, freq_write_char)
+   call get_command_argument(args_start+6, do_inflate_char)
+   call get_command_argument(args_start+7, cost_func_scaling_char)
    ! argument 8 (number of chains) is optional; default retained if absent
-   if (command_argument_count() >= 8) then
-      call get_command_argument(8, nchains_char)
+   if (command_argument_count() >= args_start+8) then
+      call get_command_argument(args_start+8, nchains_char)
       read (nchains_char, '(I10)') nchains
    end if
 
@@ -155,8 +150,9 @@ program cardamom_framework
    else
       ! All is not well-complain
       print*, "ERROR: Command line argument to specify the cost function or write to file frequency is incorrect."
-      print*, "Command line should have 7 arguments (in addition to the cardamom.exe)."
+      print*, "Command line should have 9 arguments (in addition to the cardamom.exe)."
       print*, "These are: "
+      print*, "(optional) sampler=<SAMPLER> choose from APMCMC, DEMCz "      
       print*, "1) input file path."
       print*, "2) output file path-note that PARS, STEP, COV, COVINFO will be appended to this name path outfile."
       print*, "3) No. of parameter proposals to make."
@@ -174,18 +170,32 @@ program cardamom_framework
       stop
    end if
 
+   ! decide on the exact type of the sampler_options struct
+   if (sampler==sampler_APMCMC) then
+       allocate(MCMC_OPTIONS::MCO)
+   else if (sampler==sampler_DEMCZ) then
+       allocate(DEMCzopt::MCO)
+   endif
+
    ! Sanity check the number of chains.
    if (nchains < 1) then
       print*, "ERROR: number of chains (command line argument 8) must be >= 1."
       print*, "Value supplied = ", nchains
       stop
    end if
+   MCO%nchains = nchains !note it in the settings object
 
-   ! Now the number of chains is known, allocate the per-chain output array
-   allocate (MCOUT_list(nchains))
+   ! Update user
+   if (sampler==sampler_DEMCZ .and. do_inflate) then
+       write(*,*) "WARNING: Value of 6th command line argument do_inflate=1 will be ignored, there will be no &
+                &  log-scaled sampling phase when the chosen sampler is DEMCZ"
+   endif
 
    ! user update
    write (*,*) "Command line options read, moving on now"
+
+   ! Now the number of chains is known, allocate the per-chain output array
+   allocate (MCOUT_list(nchains))
 
    ! determine unique (sort of) seed value; based on system time
    call system_clock(time1, time2, time3)
@@ -197,6 +207,8 @@ program cardamom_framework
    if (trim(infile) == "StressTest") then
       !call run_stresstest()
       ! call prepare_for_stress_test(infile, outfile)  ! sets cardamom_structures :: DATAin
+      write(*,*) "StressTest is now located in test/ and called via `ctest`, not by running the main &
+                & cardamom program with the StressTest keyword"      
       stop
    end if
 
@@ -209,8 +221,6 @@ program cardamom_framework
       call initialize_stats(MCOUT_list(i), PI%npars)
    end do
 
-   ! having filled PI%npars from model file, we can allocate stats array in MCOUT
-
    ! load module variables needed for restart check
    ! NOTE: THIS MUST HAPPEN BEFORE CHECKING FOR RESTART
    call read_options(solution_wanted, freq_print, freq_write, outfile, MCO)
@@ -220,11 +230,13 @@ program cardamom_framework
    do i = 1, nchains
       call check_for_existing_output_files(PI%npars, MCO, sub_fraction, i, restart)
       MCO%restart = MCO%restart .and. restart
-      !if all nchains files were found, read them to get a starting point
-      if (MCO%restart) then
-         call update_for_restart_simulation(MCO, MCOUT_list(i), PI%npars)
-      end if
    end do
+   ! if all nchains files were found, read them
+   if (MCO%restart) then
+       do i = 1, nchains
+          call update_for_restart_simulation(MCO, MCOUT_list(i), PI%npars, i)
+       end do
+   end if
 
    ! Report which model ID we are using
    write (*,*) "Running model version ", DATAin%ID
@@ -233,7 +245,7 @@ program cardamom_framework
       ! Begin search for initial conditions
       write (*,*) "Beginning search for initial parameter conditions"
       ! Determine initial values, this requires using the AP-MCMC
-      call find_edc_initial_values(MCO, MCOUT_list, nchains, idum)
+      call find_edc_initial_values(MCOUT_list, nchains, idum)
       ! Having done EDC search phase, flag to start the next phase from this state
       MCO%fixedpars = .true.
       do i = 1, nchains
@@ -249,7 +261,8 @@ program cardamom_framework
    end do
 
    ! sub-sampling phase, first sub_fraction% of the simulation with variant loglikelihood
-   if (DATAin%total_obs > 0 .and. MCOUT_list(1)%nos_iterations < (MCO%nOUT*sub_fraction) .and. do_inflate) then
+   if (sampler /= sampler_DEMCZ .and. DATAin%total_obs > 0 .and. &
+       & MCOUT_list(1)%nos_iterations < (MCO%nOUT*sub_fraction) .and. do_inflate) then
 
       ! Having found an EDC compliant parameter vector, we want to do a MCMC
       ! search on inflated uncertainties. This inflation search allows us to
@@ -275,7 +288,12 @@ program cardamom_framework
       write (*,*) "Nos iterations to be proposed = ", MCO%nOUT
       ! Second phase, run MCMC with sub scaling
       call update_obs_scaling_nsamples
-      call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
+      select type(MCO)
+         type is(MCMC_OPTIONS)      
+         call run_parallel_mcmc(scaled_model_likelihood_fct, &
+                                PI, MCO, MCOUT_list, model_likelihood_fct, &
+                                nchains=nchains, seed = idum)
+      end select
       MCO%fixedpars = .true.
       do i = 1, nchains
          ! Use the best parameter set as the starting point for the next stage
@@ -284,18 +302,45 @@ program cardamom_framework
          ! Leave parameter and covariance structures as they come out form the
          ! sub-sample-but reset the number of samples used in the update
          ! weighting
-         if (MCOUT_list(i)%cov .and. MCOUT_list(i)%use_multivariate) then
-            ! TODO check this branch is happening
-            write (*,*) "in this branch"
-            MCOUT_list(i)%Nparvar = MCO%N_before_mv*PI%npars + 1
-            write (*,*) "Set Nparvar to ", MCOUT_list(i)%Nparvar
-         else
-            ! reset the parameter step size at the beginning of each attempt
-            call reset_stats(MCOUT_list(i), PI%npars)
+         if (sampler == sampler_APMCMC) then
+             select type(MCO)
+             type is(MCMC_OPTIONS)
+               if (MCOUT_list(i)%cov .and. MCOUT_list(i)%use_multivariate) then
+                   MCOUT_list(i)%Nparvar = MCO%N_before_mv*PI%npars + 1
+               else
+  
+               endif
+             end select
+
+             ! reset the parameter step size at the beginning of each attempt
+             call reset_stats(MCOUT_list(i), PI%npars)
+
          end if  ! do we need a new covariance matrix or can we use the existing one?
+
+         ! At this point, should be nOUT_save == MCout_list(i)%nos_iterations
+         ! (desired number of steps in this phase == number of steps actually done)
+         ! TODO this phase should NOT be able to exit early due to convergence condition !
+         ! tmp : check
+         if (.not. (nOUT_save == MCOUT_list(i)%nos_iterations) ) then
+           write(*,*) "WARNING sampling first phase completed an unexpected number of steps, &
+             & ", MCOUT_list(i)%nos_iterations, " on thread " , i, " where ", nOUT_save,  "were expected."
+         endif
+
          ! reset iterations counter.
          MCOUT_list(i)%nos_iterations = 0
       end do
+
+   elseif (restart) then
+
+     ! Assume the initial phase was done , and not recorded in the output files before restart
+     ! Continue as if this number of steps has been done
+     ! NOTE always assuming that the number of steps requested (command line argument) is the same
+     ! on original run and restart run
+     nOUT_save = nint(dble(MCO%nOUT)*sub_fraction)
+
+   else ! no first phase was done
+
+     nOUT_save = 0 ! number of steps done in first phase
 
    end if
 
@@ -304,6 +349,13 @@ program cardamom_framework
    ! components.
    call read_options(solution_wanted, freq_print, freq_write, outfile, MCO)
    MCO%nOUT = MCO%nOUT - nOUT_save  ! number of steps in final phase
+
+   if ( MCO%restart ) then
+     ! Restart : subtract what's already present in files
+     MCO%nOUT = MCO%nOUT - MCOUT_list(1)%nos_iterations
+   endif
+
+   ! Start last set of saved parameters
    MCO%fixedpars = .true.
 
    ! Update the user
@@ -324,23 +376,32 @@ program cardamom_framework
    else if (cost_func_scaling_dble == 3) then
       call update_obs_scaling_log_nsamples
    end if  ! cost_func_scaling_dble ==
+
    !  Finally run the mcmc
-   call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, nchains=nchains, seed = idum)
+   if (sampler==sampler_APMCMC) then
+       select type(MCO)
+       type is (MCMC_options)
+       call run_parallel_mcmc(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, &
+                              nchains=nchains, seed = idum)
+       end select
+   else if (sampler==sampler_DEMCZ) then
+         select type(MCO)
+         type is(DEMCzopt)
+           call run_demcz(scaled_model_likelihood_fct, PI, MCO, MCOUT_list, model_likelihood_fct, &
+                          nchains=nchains, seed = idum)
+         end select
+   endif
 
    ! Let the user know we are done
-   write (*, *) "AP-MCMC done now, moving on ..."
-
-   ! tidy up by closing all files
-   do i = 1, nchains
-      call close_output_files(i)
-   end do
+   write (*,*) "MCMC done now, moving on ..."
 
    ! Final message to the user
-   write (*, *) "==========================================================="
-   write (*, *) "==== CARDAMOM analysis for the current site completed ====="
-   write (*, *) "==========================================================="
-   write (*, *) "=========================Honestly=========================="
-   write (*, *) "==========================================================="
+   write (*,*) "==========================================================="
+   write (*,*) "==== CARDAMOM analysis for the current site completed ====="
+   write (*,*) "==========================================================="
+   write (*,*) "=========================Honestly=========================="
+   write (*,*) "==========================================================="
+
 contains
 
 end program cardamom_framework

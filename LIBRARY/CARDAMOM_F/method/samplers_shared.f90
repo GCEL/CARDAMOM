@@ -37,6 +37,7 @@
 module samplers_shared
    
    implicit none(type, external)
+
    public
 
    private filename_insert_threadid_single
@@ -57,13 +58,13 @@ module samplers_shared
 
    !> A collection of input options to the MCMC sampler run
    !> contains default values
-   type MCMC_options
+   type SAMPLER_options
       integer:: MAXITER = 10000, & ! overall steps, if convergence not reached
                  nadapt = 1000,  & ! steps per "local" sampling period, between adaptation steps
                 Nchains = 1,     & ! consider setting OMP env to something compatible
                  nwrite = 1000,  & ! Frequency (steps) of writing current parameters to file
                  nprint = 1000     ! Frequency (steps) of prining current solver information to screen
-      integer:: nout ! 
+      integer:: nout !
       double precision:: P_target = 0d0 ! termination criterion-a loglikelihood to stop at (optional)
 
       !> file names for outputs, note output format is a raw binary format.
@@ -72,23 +73,27 @@ module samplers_shared
                         covfile = "covout.bin", &
                    covifile = "covinfoout.bin"
       real:: fadapt  ! TODO fraction adapt-move to outside
-      logical:: append, & ! 
-            randparini, & ! 
+      logical:: append, & !
+            randparini, & !
             returnpars    ! a variable that is never used and has no effect, needs deleting in all model likelihood files
       logical:: restart = .false., & ! is it a restart ?
               fixedpars = .false.    ! Continue from last state in MCOUT (don't initialize to random points) ?
+   end type SAMPLER_OPTIONS
+
+   type , extends (SAMPLER_OPTIONS) :: MCMC_OPTIONS ! Additional settings for adaptive-MCMC family samplers
       !> setting for adaptive AP-MCMC step size
       double precision:: par_minstepsize = 0.001d0 & ! 0.0005 -> 0.001 -> 0.01 -> 0.1 -> 0.005
-                        ,par_maxstepsize = 0.01d0  & ! 
-                       ,par_initstepsize = 0.005d0 & ! 
+                        ,par_maxstepsize = 0.01d0  & !
+                       ,par_initstepsize = 0.005d0 & !
                                    ,beta = 0.05d0    ! weighting for gaussian step in multivariate proposals
       !> Optimal scaling variable for parameter searching
       double precision:: opt_scaling_const = 2.381204**2 ! scd = 2.381204 the optimal scaling parameter
                                                          ! for MCMC search, when applied to  multivariate proposal.
                                                          ! NOTE 1: 2.38/sqrt(npars) sometimes used when applied to the Cholesky factor.
                                                          ! NOTE 2: 2.381204**2 = 5.670132
-      double precision:: N_before_mv = 10d0 ! Number of accepted proposals before attempting to build multi-variate sampler
+      integer :: N_before_mv = 10 ! Number of accepted proposals before attempting to build multi-variate sampler
    end type MCMC_OPTIONS
+
 
    !> Collection of info for output of the sampling run
    !> , can also be passed to next run to continue from the last state

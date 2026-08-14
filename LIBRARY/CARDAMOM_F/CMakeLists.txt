@@ -1,6 +1,6 @@
 set(FILES1 misc/math_functions.f90
-                  misc/brent_zero/brent_zero.f90
-                  general/cardamom_structures.f90
+           misc/brent_zero/brent_zero.f90
+           general/cardamom_structures.f90
                 )
 # Model to compile. Overridable from the command line with -DMODEL=<modelname>;
 # the three model source files are derived from it by the fixed directory layout.
@@ -30,8 +30,8 @@ set(MODELFILE
                 )
 
 set(ALLMODELNAMES
-#DALEC_1005 
-#DALEC_1005a
+DALEC_1005 
+DALEC_1005a
 DALEC.A1.C1.D2.F2.H1.P1.003
 DALEC.A1.C1.D2.F2.H2.P1.004
 DALEC.A1.C1.D2.F2.H2.P1.R1.005
@@ -46,22 +46,22 @@ DALEC.A1.C2.D2.F2.H2.P1.R1.006
 DALEC.A1.C2.D2.F2.H2.P2.R1.007
 DALEC.A1.C2.D2.F2.H2.P2.R3.019
 DALEC.A1.C2.D2.F2.H2.P3.R1.009
-#DALEC.A1.C2.D2.F2.H2.P4.R2.011
-#DALEC.A1.C2.D2.F2.H2.P7.R2.023
+DALEC.A1.C2.D2.F2.H2.P4.R2.011
+DALEC.A1.C2.D2.F2.H2.P7.R2.023
 #DALEC.A1.C2.D2.F2.H2.P8.R2.024
 #DALEC.A1.C2.D2.F2.H2.P9.R2.025
-#DALEC.A2.C1.D2.F2.H2.P1.020
-#DALEC.A3.C1.D2.F2.H2.P1.030
-#DALEC.A3.C3.H2.M1.015
-#DALEC.A3.H2.M2.017
-#DALEC.A4.C6.D2.F2.H2.P11.031
-#DALEC.A4.C6.D2.F2.H2.P12.033
-#DALEC.C1.D1.F2.P1.002
-#DALEC.C3.M1.014
-#DALEC.C4.D1.F2.012
-#DALEC.C5.D1.F2.P1.013
-#DALEC.D1.F2.001
-#DALEC.M2.016
+DALEC.A2.C1.D2.F2.H2.P1.020
+DALEC.A3.C1.D2.F2.H2.P1.030
+DALEC.A3.C3.H2.M1.015
+DALEC.A3.H2.M2.017
+DALEC.A4.C6.D2.F2.H2.P11.031
+DALEC.A4.C6.D2.F2.H2.P12.033
+DALEC.C1.D1.F2.P1.002
+DALEC.C3.M1.014
+DALEC.C4.D1.F2.012
+DALEC.C5.D1.F2.P1.013
+DALEC.D1.F2.001
+DALEC.M2.016
 )
 
 add_library(cardamom-samplers-lib
@@ -69,7 +69,7 @@ add_library(cardamom-samplers-lib
               method/random_uniform.f90
               method/samplers_io/samplers_io.f90
               method/samplers_shared.f90
-              method/MHMCMC/APMCMC.f90
+              method/APMCMC/APMCMC.f90
               method/DEMCMC/DEMCz.f90
 )
 
@@ -90,13 +90,14 @@ if(NOT EXISTS "${PROJECT_BINARY_DIR}/include")
   make_directory("${PROJECT_BINARY_DIR}/include")
 endif()
 
-
-find_package(OpenMP)
-if(OpenMP_Fortran_FOUND)
-  target_link_libraries(cardamom-samplers-lib PUBLIC OpenMP::OpenMP_Fortran)
+if(USE_OMP)
+  find_package(OpenMP)
+  if(OpenMP_Fortran_FOUND)
+    target_link_libraries(cardamom-samplers-lib PUBLIC OpenMP::OpenMP_Fortran)
+  endif()
 endif()
 
-if(TEST_COMPILE_ALL)
+if(COMPILE_ALL_MODELS)
   #  loop through compiling with each model in list above, to check that they compile
   foreach(n IN LISTS ALLMODELNAMES)
     set(FILES ${FILES1})
@@ -114,13 +115,20 @@ if(TEST_COMPILE_ALL)
 endif()
 
 # now with the model we chose to run with
+#add_library(cardamom-lib ${FILES1} ${MODELMEM} ${MODELPARS} ${FILES2} ${MODELLIKELIHOODFILE} ${MODELFILE})
+#add_dependencies(cardamom-lib cardamom-samplers-lib) 
+#target_link_libraries(cardamom-lib PUBLIC cardamom-samplers-lib)
+#add_executable(cardamom general/cardamom_main_apmcmc.f90)
+#target_link_libraries(cardamom PUBLIC cardamom-lib)
+#add_executable(cardamom-diffev general/cardamom_main_diffev.f90)
+#target_link_libraries(cardamom-diffev PUBLIC cardamom-lib)
+
+# now with the model we chose to run with
 add_library(cardamom-lib ${FILES1} ${MODELMEM} ${MODELPARS} ${FILES2} ${MODELLIKELIHOODFILE} ${MODELFILE})
 add_dependencies(cardamom-lib cardamom-samplers-lib) 
 target_link_libraries(cardamom-lib PUBLIC cardamom-samplers-lib)
-add_executable(cardamom general/cardamom_main_apmcmc.f90)
+add_executable(cardamom general/cardamom_main.f90)
 target_link_libraries(cardamom PUBLIC cardamom-lib)
-add_executable(cardamom-diffev general/cardamom_main_diffev.f90)
-target_link_libraries(cardamom-diffev PUBLIC cardamom-lib)
 
 #target_link_options(cardamom        PRIVATE -Wl,-z,execstack)
 #target_link_options(cardamom-diffev PRIVATE -Wl,-z,execstack)
@@ -128,10 +136,10 @@ target_link_libraries(cardamom-diffev PUBLIC cardamom-lib)
 # Place the runnable executables in the legacy LIBRARY/CARDAMOM_F/executable
 # directory and give them the legacy .exe file names so downstream tooling
 # (cardamom_project_setup.r) can copy them from a fixed, known location.
-set_target_properties(cardamom cardamom-diffev
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/executable")
+#set_target_properties(cardamom cardamom-diffev
+#  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/executable")
 set_target_properties(cardamom        PROPERTIES OUTPUT_NAME "cardamom.exe")
-set_target_properties(cardamom-diffev PROPERTIES OUTPUT_NAME "cardamom-diffev.exe")
+#set_target_properties(cardamom-diffev PROPERTIES OUTPUT_NAME "cardamom-diffev.exe")
 
 # Shared library used by the R post-processing for forward DALEC runs. Emitted
 # as dalec.so (no lib prefix) into the executable directory, with the same MODEL

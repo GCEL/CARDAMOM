@@ -59,16 +59,17 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    
-module cardamom_MHMCMC
+module APMCMC
 
    use samplers_shared, only: PARINFO, MCMC_output, MCMC_options, filenames_insert_threadid, neg_inf
-   use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files
+   use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files, close_output_files
    use OMP_LIB
 
    implicit none(type, external)
 
    public
-contains
+
+   contains
    !
    !--------------------------------------------------------------------
    !
@@ -106,20 +107,16 @@ contains
 
       implicit none(type, external)
 
-      !! input and output structs
+      ! Arguments
       ! read-only, shared beteen chains:
-      type(PARINFO), intent(in):: PI
-      !!PARINFO struct from model giving number, bounds of parameters
-      type(MCMC_OPTIONS), intent(inout):: MCO
-      !! struct of options for the run, shared between all threads
+      type(PARINFO), intent(in):: PI ! PARINFO struct from model giving number, bounds of parameters
+      type(MCMC_OPTIONS), intent(inout):: MCO ! struct of options for the run, shared between all threads
       type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout):: MCOUT_list  ! array of MCOUT objects
-      !! Array of MCMC_OUTPUT structs for each thread's results
       integer, optional, intent(in):: nchains
       integer, intent(in) :: seed
 
-      !! number chains optional, default 1
-      integer:: i
-      !! internal loop index
+      ! Local variables
+      integer:: i ! internal loop index
 
       !> the function to maximize.
       !> Completely agnostic, samples any functions vector -> double
@@ -176,7 +173,9 @@ contains
       !$OMP end parallel do
 
    end subroutine run_parallel_mcmc
-
+  !
+  !--------------------------------------------------------------------
+  !
    subroutine run_mcmc(model_likelihood, PI, MCO, MCOUT, model_likelihood_write_in, chainid, seed)
    !! Main function for a single-thread adaptive MCMC simulation
       use samplers_math, only: log_par2nor, log_nor2par, par2nor, nor2par
@@ -214,13 +213,11 @@ contains
                                             beta, &
                                  par_minstepsize, &
                                         P_target
-      type(UNIF_VECTOR):: uniform_random_vector
-      !! object holding array of pre-generated random values - (supposedly faster to pregenerate) - local to this
-      !! chain
+      type(UNIF_VECTOR):: uniform_random_vector ! object holding array of pre-generated random values - (supposedly faster to pregenerate) - local to this chain
       logical:: multivariate
-      integer:: MAXITER, nchains, npars
-      !> counters-local to this chain's run
+      integer:: MAXITER, nchains, npars !> counters-local to this chain's run
       integer:: ITER, ACC, ACC_FIRST, ACCLOC, N_before_mv_target
+      integer :: pfileunit, sfileunit, cfileunit, cifileunit ! file unit numbers
       double precision:: ACCRATE, ACCRATE_GLOBAL
 
       ! declare interface for the model likelihood function.
@@ -282,17 +279,17 @@ contains
       covfile = MCO%covfile
       covifile = MCO%covifile
       if (MCO%nchains > 1 .and. present(chainid)) then
-         call filenames_insert_threadid(outfile, stepfile, covfile, covifile, chainid_)
+          call filenames_insert_threadid(outfile, stepfile, covfile, covifile, chainid_)
       end if
 
-    !!! prepare file writing
+      !!! prepare file writing
       if (MCO%nwrite > 0) then
-         ! allocate buffers (different one for each chain)
-         call initialize_buffers(npars, MAXITER/MCO%nwrite, io_space)
-         call open_output_files(outfile, stepfile, covfile, covifile, chainid_)
+          ! allocate buffers (different one for each chain)
+          call initialize_buffers(npars, MAXITER/MCO%nwrite, io_space)
+          call open_output_files(outfile, stepfile, covfile, covifile, chainid_, pfileunit, sfileunit, cfileunit, cifileunit)
       end if
 
-    !! Calculate derived  settings of the run...
+      !! Calculate derived  settings of the run...
       ! Determine how long we will continue to adapt our proposal covariance
       ! matrix and use of Delayed Rejection
       burn_in_period = MCO%fADAPT*dble(MAXITER)  ! TODO used?
@@ -304,73 +301,73 @@ contains
       opt_scaling = sqrt(MCO%opt_scaling_const/dble(PI%npars))
 
       if (MCO%restart) then
-         ! For aborted simulations
-         ! keep MCOUT, starting point, counters statistics collection
-         ! implies start from last state
+          ! For aborted simulations
+          ! keep MCOUT, starting point, counters statistics collection
+          ! implies start from last state
       else
-         ! Not a restart from aborted simulation
-         ! start new counters
+          ! Not a restart from aborted simulation
+          ! start new counters
 
-         ! init MCOUT
-         MCOUT%complete = .false.
-         MCOUT%nos_iterations = 0
-         ! Initialize basic MCMC counters
-         ITER = 0
-         ! Initialize further counters for adaptive
-         ACC = 0
-         ACC_first = 0
-         ACCLOC = 0
-         ACCRATE = 0d0
-         ACCRATE_GLOBAL = 0d0
+          ! init MCOUT
+          MCOUT%complete = .false.
+          MCOUT%nos_iterations = 0
+          ! Initialize basic MCMC counters
+          ITER = 0
+          ! Initialize further counters for adaptive
+          ACC = 0
+          ACC_first = 0
+          ACCLOC = 0
+          ACCRATE = 0d0
+          ACCRATE_GLOBAL = 0d0
+ 
+          if (.not. MCO%fixedpars) then
+              ! completely new simulation from new starting point
 
-         if (.not. MCO%fixedpars) then
-            ! completely new simulation from new starting point
+              if (.not. allocated(MCOUT%pars)) allocate (MCOUT%pars(npars))
+              if (.not. allocated(MCOUT%bestpars)) allocate (MCOUT%bestpars(npars))
 
-            if (.not. allocated(MCOUT%pars)) allocate (MCOUT%pars(npars))
-            if (.not. allocated(MCOUT%bestpars)) allocate (MCOUT%bestpars(npars))
+              ! initialize statistics collection output fields
+              if (.not. allocated(MCOUT%parvar)) then
+                 ! we recieved blank new MCOUT, start new stats collection
+                 allocate (MCOUT%parvar(npars))
+                 allocate (MCOUT%meanpar(npars))
+                 allocate (MCOUT%covariance(npars, npars))
+              end if
 
-            ! initialize statistics collection output fields
-            if (.not. allocated(MCOUT%parvar)) then
-               ! we recieved blank new MCOUT, start new stats collection
-               allocate (MCOUT%parvar(npars))
-               allocate (MCOUT%meanpar(npars))
-               allocate (MCOUT%covariance(npars, npars))
-            end if
-
-         else
-            ! ((.not. restart) .and. fixedpars) : keep MCOUT%pars and statistics from previous phase
-            ! write "initial" covariance matrix that we inherited from previous phase to file
-            if (MCO%nwrite > 0) then
-               call write_covariance_matrix(MCOUT%covariance, npars, .true., chainid_)
-            end if
-         end if
+          else
+              ! ((.not. restart) .and. fixedpars) : keep MCOUT%pars and statistics from previous phase
+              ! write "initial" covariance matrix that we inherited from previous phase to file
+              if (MCO%nwrite > 0) then
+                  call write_covariance_matrix(MCOUT%covariance, npars, .true., chainid_)
+              end if
+           end if
 
       end if
 
       !!!! init params
       ! initalize bestpars to current pars
       if (.not. MCO%restart .and. .not. MCO%fixedpars) then
-         call init_pars_random(PI, PARS_previous, PI%fix_pars, uniform_random_vector)
-         ! Inform the user
-         write (*, *) "Have loaded/randomly assigned PI%parini-now begin the AP-MCMC"
+          call init_pars_random(PI, PARS_previous, PI%fix_pars, uniform_random_vector)
+          ! Inform the user
+          write (*, *) "Have loaded/randomly assigned PI%parini-now begin the AP-MCMC"
       else  ! restart or fixedpars case-from aborted simulation or from previous phase-use pars in MCOUT as stating point
-         PARS_previous = MCOUT%PARS
-         ! start statistics from previous statistics in MCOUT
+          PARS_previous = MCOUT%PARS
+          ! start statistics from previous statistics in MCOUT
       end if
 
       if (.not. MCO%restart) then  ! if new simulation, from fixedpars or random pars
-         ! calculate initial ll
-         call model_likelihood(PARS_previous, npars, loglikelihood_previous, chainid_)
-         BESTPARS = PARS_previous
-         llmax = loglikelihood_previous
+          ! calculate initial ll
+          call model_likelihood(PARS_previous, npars, loglikelihood_previous, chainid_)
+          BESTPARS = PARS_previous
+          llmax = loglikelihood_previous
       else
-         loglikelihood_previous = MCOUT%ll
+          loglikelihood_previous = MCOUT%ll
       end if
 
       if (loglikelihood_previous < -999999) then
-         write (*, *) "WARNING  ! loglikelihood = ", loglikelihood_previous, " - &
-         & AP-MCMC will get stuck, if so please check initial conditions"
-         error stop 1
+          write (*,*) "WARNING  ! loglikelihood = ", loglikelihood_previous, " - &
+                     & MCMC will get stuck, if so please check initial conditions"
+          error stop 1
       end if
 
       ! Begin the main AP-MCMC loop
@@ -386,123 +383,123 @@ contains
 
          ! if parameter proposal in bounds check the model
          if (bounds_check(PI, PARS_proposed)) then
-            ! calculate the model likelihood
-            call model_likelihood(PARS_proposed, npars, loglikelihood_proposed, chainid_)
-            accept = metropolis_choice(loglikelihood_proposed, loglikelihood_previous)
+             ! calculate the model likelihood
+             call model_likelihood(PARS_proposed, npars, loglikelihood_proposed, chainid_)
+             accept = metropolis_choice(loglikelihood_proposed, loglikelihood_previous)
          else
-            accept = .false.
+             accept = .false.
          end if  ! in bound
 
          if (accept) then
-            ! Store accepted parameter proposals (unnormalized values)
-            ! keep record of all parameters accepted since step adaption
-            ! (this chain)
-            ! Because this history matrix is used for (normalized) statistics for adaptiveness,
-            ! store normalized version of pars
-            PARSALL(1:npars, ACCLOC + 1) = log_par2nor(PARS_proposed, PI%parmin, PI%parmax, PI%paradj)  ! add row in history matrix
-            ! Keep count of the number of accepted proposals in this local period
-            ACCLOC = ACCLOC + 1
-            ! Accepted first proposal from multivariate
-            if (multivariate) ACC_first = ACC_first + 1
-
-            ! Save accepted pars as previous pars, save previous log-likelihood
-            PARS_previous(1:npars) = PARS_proposed(1:npars)  
-            loglikelihood_previous = loglikelihood_proposed  
-            ! store the best parameter set
-            if (loglikelihood_previous >= llmax) then
-               BESTPARS = PARS_previous
-                llmax = loglikelihood_previous
-            end if
-            !else
-            ! here we would write the same state to history again, in a standard MCMC
-            ! Cardamom quirk :  not done in CARDAMOM-MHMCMC version to match original
-            ! Likely the samplers lose ergodicity.  Helps samplers not get stuck, from experience.
+             ! Store accepted parameter proposals (unnormalized values)
+             ! keep record of all parameters accepted since step adaption
+             ! (this chain)
+             ! Because this history matrix is used for (normalized) statistics for adaptiveness,
+             ! store normalized version of pars
+             PARSALL(1:npars, ACCLOC + 1) = log_par2nor(PARS_proposed, PI%parmin, PI%parmax, PI%paradj)  ! add row in history matrix
+             ! Keep count of the number of accepted proposals in this local period
+             ACCLOC = ACCLOC + 1
+             ! Accepted first proposal from multivariate
+             if (multivariate) ACC_first = ACC_first + 1
+ 
+             ! Save accepted pars as previous pars, save previous log-likelihood
+             PARS_previous(1:npars) = PARS_proposed(1:npars)  
+             loglikelihood_previous = loglikelihood_proposed  
+             ! store the best parameter set
+             if (loglikelihood_previous >= llmax) then
+                 BESTPARS = PARS_previous
+                 llmax = loglikelihood_previous
+             end if
+             !else
+             ! here we would write the same state to history again, in a standard MCMC
+             ! Cardamom quirk :  not done in CARDAMOM-MHMCMC version to match original
+             ! Likely the samplers lose ergodicity.  Helps samplers not get stuck, from experience.
          end if  ! accept or reject proposed pars
 
          ! count iteration
          ITER = ITER + 1
 
          if (MCO%nwrite > 0) then
-            if (mod(ITER, MCO%nwrite) == 0) then
-               ! calculate the likelihood for the actual uncertainties-this avoid
-               ! issues with different phases of the MCMC which may use sub-samples
-               ! of observations or inflated uncertainties to aid parameter
-               ! searching
-               call model_likelihood_write(PARS_previous, npars, output_loglikelihood, chainid_)
-               ! Now write out to files
-               call write_mcmc_output(MCOUT%parvar, ACCRATE, &
-                                      MCOUT%covariance, &
-                                      MCOUT%meanpar, MCOUT%Nparvar, &
-                                      PARS_previous, output_loglikelihood, npars, ITER == MAXITER, &
-                                      io_space, chainid_)
-            end if
+             if (mod(ITER, MCO%nwrite) == 0) then
+                 ! calculate the likelihood for the actual uncertainties-this avoid
+                 ! issues with different phases of the MCMC which may use sub-samples
+                 ! of observations or inflated uncertainties to aid parameter
+                 ! searching
+                 call model_likelihood_write(PARS_previous, npars, output_loglikelihood, chainid_)
+                 ! Now write out to files
+                 call write_mcmc_output(MCOUT%parvar, ACCRATE, &
+                                        MCOUT%covariance, &
+                                        MCOUT%meanpar, MCOUT%Nparvar, &
+                                        PARS_previous, output_loglikelihood, npars, ITER == MAXITER, &
+                                        io_space, chainid_)
+             end if
          end if  ! write or not to write
 
          ! time to adapt?
          if (mod(ITER, MCO%nadapt) == 0) then
 
-           !! update the acceptance counters and acceptance ratios
-            ! Total accepted values
-            ACC = ACC + ACCLOC
-            ! Calculate global acceptance rate
-            ACCRATE_GLOBAL = ACC/ITER
-            ! Calculate local acceptance rate (i.e. since last adapt)
-            ACCRATE = ACCLOC/dble(MCO%nadapt)
+             !! update the acceptance counters and acceptance ratios
+             ! Total accepted values
+             ACC = ACC + ACCLOC
+             ! Calculate global acceptance rate
+             ACCRATE_GLOBAL = ACC/ITER
+             ! Calculate local acceptance rate (i.e. since last adapt)
+             ACCRATE = ACCLOC/dble(MCO%nadapt)
 
-            ! Second, are we still in the adaption phase?
-            if (burn_in_period > ITER .or. .not. MCOUT%use_multivariate) then
+             ! Second, are we still in the adaption phase?
+             if (burn_in_period > ITER .or. .not. MCOUT%use_multivariate) then
 
-               ! Cardamom quirk : initial estimate comes from first, middle, and last 3 states out of the last
-               ! period of nadapt steps only.
-               ! then (new 2025) continue with all accepted samples from last period.
-               if (.not. MCOUT%cov .and. ACCLOC > 3) then
-                  PARSALL(1:npars, 2) = PARSALL(1:npars, ceiling(ACCLOC*0.5d0))
-                  PARSALL(1:npars, 3) = PARSALL(1:npars, ACCLOC)
-                  ACCLOC = 3
-                  ! leads to attempting to make new covariance matrix from the first, middle, and last rows of local history
-               end if
+                 ! Cardamom quirk : initial estimate comes from first, middle, and last 3 states out of the last
+                 ! period of nadapt steps only.
+                 ! then (new 2025) continue with all accepted samples from last period.
+                 if (.not. MCOUT%cov .and. ACCLOC > 3) then
+                     PARSALL(1:npars, 2) = PARSALL(1:npars, ceiling(ACCLOC*0.5d0))
+                     PARSALL(1:npars, 3) = PARSALL(1:npars, ACCLOC)
+                     ACCLOC = 3
+                     ! leads to attempting to make new covariance matrix from the first, middle, and last rows of local history
+                 end if
 
-               ! update the covariance matrix for multivariate proposal
-               ! TODO rename "parsall" to reflect that it's really a small subsample of period's history
-               call update_statistics(PARSALL, npars, MCOUT, MCOUT%use_multivariate, ACCLOC, N_before_mv_target)
+                 ! update the covariance matrix for multivariate proposal
+                 ! TODO rename "parsall" to reflect that it's really a small subsample of period's history
+                 call update_statistics(PARSALL, npars, MCOUT, MCOUT%use_multivariate, ACCLOC, N_before_mv_target)
+  
+                 if (MCO%nwrite > 0 .and. ACCLOC == 3 .and. MCOUT%cov) then
+                     ! we just switched from not having a covraiance matrix to having an initial covariance matrix
+                     ! write the first covariance matrix to file
+                     call write_covariance_matrix(MCOUT%covariance, npars, .true., chainid_)
+                 end if
 
-               if (MCO%nwrite > 0 .and. ACCLOC == 3 .and. MCOUT%cov) then
-                  ! we just switched from not having a covraiance matrix to having an initial covariance matrix
-                  ! write the first covariance matrix to file
-                  call write_covariance_matrix(MCOUT%covariance, npars, .true., chainid_)
-               end if
+             end if !  have enough parameter been accepted
 
-            end if !  have enough parameter been accepted
-
-            ! resets the local acceptance counter
-            ACCLOC = 0
+             ! resets the local acceptance counter
+             ACCLOC = 0
 
          end if  ! time to adapt?
 
          ! Should I be write(*,*)ing to screen or not?
          if (MCO%nPRINT > 0) then
-            if (mod(ITER, MCO%nPRINT) == 0) then
-               write (*, *) "Chain ", chainid, "of", mco%nchains
-               write (*, *) "Using multivariate sampling = ", MCOUT%use_multivariate
-               write (*, *) "Total proposal = ", ITER, " out of ", MAXITER
-               write (*, *) "Total accepted = ", ACC
-               write (*, *) "Overall acceptance rate    = ", dble(ACC)/dble(ITER)
-               write (*, *) "Local   acceptance rate    = ", ACCRATE
-               write (*, *) "Current obs   = ", loglikelihood_previous, "proposed = ", loglikelihood_proposed, " log-likelihood"
-               write (*, *) "Maximum likelihood = ", llmax
-               ! NOTE: that-infinity in current obs only indicates failure of EDCs
-               ! but-infinity in both obs and parameter likelihood scores indicates
-               ! that proposed parameters are out of bounds
-            end if
+             if (mod(ITER, MCO%nPRINT) == 0) then
+                 write (*,*) "Chain ", chainid, "of", mco%nchains
+                 write (*,*) "Using multivariate sampling = ", MCOUT%use_multivariate
+                 write (*,*) "Total proposal = ", ITER, " out of ", MAXITER
+                 write (*,*) "Total accepted = ", ACC
+                 write (*,*) "Overall acceptance rate    = ", dble(ACC)/dble(ITER)
+                 write (*,*) "Local   acceptance rate    = ", ACCRATE
+                 write (*,*) "Current obs   = ", loglikelihood_previous, "proposed = ", loglikelihood_proposed, " log-likelihood"
+                 write (*,*) "Maximum likelihood = ", llmax
+                 ! NOTE: that-infinity in current obs only indicates failure of EDCs
+                 ! but-infinity in both obs and parameter likelihood scores indicates
+                 ! that proposed parameters are out of bounds
+             end if
          end if  ! write(*,*) to screen or not
 
       end do  ! end MHMCMC sampling loop conditions
 
-    !!!  Finalize
+      !!!  Finalize
 
       ! write out final covariance matrix for the analysis
       if (MCO%nwrite > 0) call write_covariance_matrix(MCOUT%covariance, npars, .false., chainid_)
-
+      
       ! record the best single set of parameters
       MCOUT%bestpars = BESTPARS
       MCOUT%bestll = llmax
@@ -522,6 +519,10 @@ contains
       write (*, *) "Final local acceptance rate = ", ACCRATE
       write (*, *) "Best log-likelihood = ", llmax
       !write (*, *) "Best parameters = ", MCOUT%bestpars
+
+      if (MCO%nwrite > 0) then
+         call close_output_files(pfileunit, sfileunit, cfileunit, cifileunit)
+      endif
 
    end subroutine run_mcmc
    !
@@ -748,4 +749,4 @@ contains
    !
    !------------------------------------------------------------------
    !
-end module cardamom_MHMCMC
+end module APMCMC

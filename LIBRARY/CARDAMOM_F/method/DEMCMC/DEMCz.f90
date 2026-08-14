@@ -24,7 +24,7 @@ module DEMCz
    !-
    use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, MCMC_options, filenames_insert_threadid
    use random_uniform, only: UNIF_VECTOR
-   use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files
+   use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files, close_output_files
    use OMP_LIB
 
    implicit none(type, external)
@@ -97,6 +97,7 @@ contains
       type(io_buffer_space), dimension(:), allocatable:: io_space
       !! collection of io_space objects holding file writing buffers, one for each chain
       character(350):: outfile, stepfile, covfile, covifile
+      integer :: pfileunit, sfileunit, cfileunit, cifileunit ! file unit numbers reported on opening      
       !! file names tagges with chainid, private to each chain
 
       !> the function to maximize.
@@ -165,7 +166,8 @@ contains
 
       !!! Initial state
 
-!$OMP PARALLEL DO private(MCOUT, norpars, outfile, stepfile, covfile, covifile)
+!$OMP PARALLEL DO default(shared) private(MCOUT, norpars, outfile, stepfile, covfile, covifile, &
+!$OMP  pfileunit, sfileunit, cfileunit, cifileunit )
       do j = 1, mco%nchains
 
          MCOUT = MCOUT_list(j)
@@ -191,15 +193,16 @@ contains
 
             ! allocate buffers io_space (different one for each chain)
             call initialize_buffers(npars, MAXITER/MCO%nwrite, io_space(j))
-            call open_output_files(outfile, stepfile, covfile, covifile, j)
+            call open_output_files(outfile, stepfile, covfile, covifile, j, pfileunit, sfileunit, cfileunit, cifileunit)
          end if
 
          ! Initialize pregenerated random numbers, if using-local to this chain
          call random_uniform_vectors(j)%initialize_random(seed+j)
          ! choose initial values
          ! TODO better function for initial state : latin square
-         if (.not. MCO%restart) then
+         if (.not. MCO%fixedpars) then
             call init_pars_random(PI, pars_current(:, j), PI%fix_pars, random_uniform_vectors(j))
+            write(*,*) "Initialized to random pars"
          else
             pars_current(:, j) = mcout_list(j)%pars
          end if
@@ -322,68 +325,88 @@ contains
       end do
       !$OMP END PARALLEL DO
 
-   end subroutine run_DEMCz
+      ! Close out the files
+      call close_output_files(pfileunit, sfileunit, cfileunit, cifileunit)
 
-   !> Initialize the chain's state with random values from
-   !> parameter ranges.
-   !> Works with normalized values : returns a number between 0 and 1
-   !> For each parameter
-   subroutine init_random(npars, norpars)
-      integer, intent(in):: npars
-      double precision, dimension(:), intent(out):: norpars
-      integer:: i
-      do i = 1, npars
-         call random_number(norpars(i))
-      end do
-      ! also output the loglikelihood of the state generated
+  end subroutine run_DEMCz
+  !
+  !--------------------------------------------------------------------
+  !
+  subroutine init_random(npars, norpars)
 
-   end subroutine init_random
+     !> Initialize the chain's state with random values from
+     !> parameter ranges.
+     !> Works with normalized values : returns a number between 0 and 1
+     !> For each parameter
 
-   !> Thin wrapper on "step" which takes three vectors in the space of raw parameter values;
-   !> they are converted to lognormalized parameters (0, 1) before being lineraly combined in
-   !> the core "step" function.  After cardamom-MHMCMC and
-   !> sampling is observed to be better when this is done on lognormalized parameters.
-   subroutine step_real(vout, v1, v2, v3, differential_weight, random_uniform_vector, PI)
-      use samplers_math, only: log_nor2par, log_par2nor
-      type(PARINFO), intent(in):: PI
-      double precision, dimension(PI%npars), intent(out):: vout
-      !! proposed step on raw parameter space
-      double precision, dimension(PI%npars):: vout_lognorm
-      !! proposed step on lognormed parameter space
-      double precision, dimension(PI%npars), intent(in):: v1, v2, v3
-      !! input: current and two random states from history on parameter space
-      type(UNIF_VECTOR), intent(inout):: random_uniform_vector
-      double precision, intent(in):: differential_weight
-      call step(vout_lognorm, log_par2nor(v1, PI%parmin, PI%parmax, PI%paradj), &
-                log_par2nor(v2, PI%parmin, PI%parmax, PI%paradj), &
-                log_par2nor(v3, PI%parmin, PI%parmax, PI%paradj), &
-                differential_weight, random_uniform_vector, PI%npars)
-      vout = log_nor2par(vout_lognorm, PI%parmin, PI%parmax, PI%paradj)
-   end subroutine step_real
+     integer, intent(in):: npars
+     double precision, dimension(:), intent(out):: norpars
+     integer:: i
+     do i = 1, npars
+        call random_number(norpars(i))
+     end do
+     ! also output the loglikelihood of the state generated
 
-   !> Generate new proposed state from currect state and history
-   !> ter Braak & Vrugt eq 2
-   subroutine step(vout, v1, v2, v3, differential_weight, random_uniform_vector, npars)
-      use samplers_math, only: random_normal
-      integer, intent(in):: npars
-      double precision, dimension(:), intent(out):: vout
-      double precision, dimension(:), intent(in):: v1, v2, v3
-      type(UNIF_VECTOR), intent(inout):: random_uniform_vector
-      double precision, intent(in):: differential_weight
-      double precision:: rn(npars)
-      integer:: p
-      ! get differential_weight, corssover_probability from module data
-      do p = 1, npars
-         call random_normal(random_uniform_vector, rn(p))
-      end do
-      vout = v1 + differential_weight*(v2 - v3) + .000001*rn
-   end subroutine step
+  end subroutine init_random
+  !
+  !--------------------------------------------------------------------
+  !
+  subroutine step_real(vout, v1, v2, v3, differential_weight, random_uniform_vector, PI)
+     use samplers_math, only: log_nor2par, log_par2nor
 
-   integer function random_int(N)
-      integer, intent(in):: N
-      double precision:: r
-      call random_number(r)
-      random_int = floor(N*r) + 1
-   end function random_int
+     !> Thin wrapper on "step" which takes three vectors in the space of raw parameter values;
+     !> they are converted to lognormalized parameters (0, 1) before being lineraly combined in
+     !> the core "step" function.  After cardamom-MHMCMC and
+     !> sampling is observed to be better when this is done on lognormalized parameters.
 
+     type(PARINFO), intent(in):: PI
+     double precision, dimension(PI%npars), intent(out):: vout ! proposed step on raw parameter space
+     double precision, dimension(PI%npars):: vout_lognorm      ! proposed step on lognormed parameter space
+     double precision, dimension(PI%npars), intent(in):: v1, v2, v3 ! input: current and two random states from history on parameter space
+     type(UNIF_VECTOR), intent(inout):: random_uniform_vector
+     double precision, intent(in):: differential_weight
+     call step(vout_lognorm, log_par2nor(v1, PI%parmin, PI%parmax, PI%paradj), &
+               log_par2nor(v2, PI%parmin, PI%parmax, PI%paradj), &
+               log_par2nor(v3, PI%parmin, PI%parmax, PI%paradj), &
+               differential_weight, random_uniform_vector, PI%npars)
+     vout = log_nor2par(vout_lognorm, PI%parmin, PI%parmax, PI%paradj)
+
+  end subroutine step_real
+  !
+  !--------------------------------------------------------------------
+  !
+  subroutine step(vout, v1, v2, v3, differential_weight, random_uniform_vector, npars)
+     use samplers_math, only: random_normal
+
+     !> Generate new proposed state from currect state and history
+     !> ter Braak & Vrugt eq 2
+
+     integer, intent(in):: npars
+     double precision, dimension(:), intent(out):: vout
+     double precision, dimension(:), intent(in):: v1, v2, v3
+     type(UNIF_VECTOR), intent(inout):: random_uniform_vector
+     double precision, intent(in):: differential_weight
+     double precision:: rn(npars)
+     integer:: p
+     ! get differential_weight, corssover_probability from module data
+     do p = 1, npars
+        call random_normal(random_uniform_vector, rn(p))
+     end do
+     vout = v1 + differential_weight*(v2 - v3) + .000001*rn
+
+  end subroutine step
+  !
+  !--------------------------------------------------------------------
+  !
+  integer function random_int(N)
+
+     integer, intent(in):: N
+     double precision:: r
+     call random_number(r)
+     random_int = floor(N*r) + 1
+
+  end function random_int
+  !
+  !--------------------------------------------------------------------
+  !
 end module DEMCz

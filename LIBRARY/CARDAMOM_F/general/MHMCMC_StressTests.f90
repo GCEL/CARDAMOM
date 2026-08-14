@@ -32,28 +32,28 @@ module MHMCMC_StressTests
    ! Parameter 1 = pi, parameter 2:10 = radi
    ! DO NOT USE SOME REFINEMENT NEEDED
    double precision, parameter:: circle_par_1 = 3.141d0, &
-      circle_par_2 = 1.2d0, &
-      circle_par_3 = 3d0, &
-      circle_par_4 = 8d0, &
-      circle_par_5 = 10d0, &
-      circle_par_6 = 15d0, &
-      circle_par_7 = 200d0, &
-      circle_par_8 = 193d0, &
-      circle_par_9 = 88d0, &
-      circle_par_10 = 291d0, &
-      circle_obs_unc = 1d0
+                                 circle_par_2 = 1.2d0, &
+                                 circle_par_3 = 3d0, &
+                                 circle_par_4 = 8d0, &
+                                 circle_par_5 = 10d0, &
+                                 circle_par_6 = 15d0, &
+                                 circle_par_7 = 200d0, &
+                                 circle_par_8 = 193d0, &
+                                 circle_par_9 = 88d0, &
+                                circle_par_10 = 291d0, &
+                               circle_obs_unc = 1d0
    double precision, dimension(9):: circle_obs
 
    ! Stress Test 2-estimate known PDF for single parameter
    double precision, parameter:: single_obs_mean = 0d0, &
-      single_obs_unc = 1d0
+                                  single_obs_unc = 1d0
 
    ! Stress Test 3-estimate parameters for a single circle
    ! Parameter 1 = pi, parameter 2 = radius
    double precision, parameter:: single_circle_par_1 = 3.141d0, &
-      single_circle_par_2 = 88d0, &
-      single_circle_obs_unc = single_circle_par_2*0.2d0, &
-      single_circle_par_unc = single_circle_par_1*0.5d0
+                                 single_circle_par_2 = 88d0, &
+                               single_circle_obs_unc = single_circle_par_2*0.2d0, &
+                               single_circle_par_unc = single_circle_par_1*0.5d0
    double precision, dimension(29):: single_circle_obs
 
 contains
@@ -241,9 +241,10 @@ contains
    !--------------------------------------------------------------------
    !
    subroutine prepare_for_stress_test(infile, outfile)
-      use cardamom_MHMCMC, only: MCMC_OUTPUT, MCMC_OPTIONS
+      use apmcmc, only: MCMC_OUTPUT, MCMC_OPTIONS
       use cardamom_structures, only: DATA_type, set_datain
       use cardamom_main_utils, only: initialize_stats
+
       ! Function by-passes the main CARDAMOM i/o code to allow
       ! for a non-standard operation of the model stress test
 
@@ -262,35 +263,35 @@ contains
       ! allocate the default run information
 
       if (outfile == "Circle") then
-         ! ID = -1 StressTest-Circle
-         DATAin%ID = -1
-         DATAin%nodays = 1
-         DATAin%nomet = 1
-         DATAin%noobs = 9
-         DATAin%nopools = 1
-         DATAin%nopars = 10
-         DATAin%nofluxes = 1
+          ! ID = -1 StressTest-Circle
+          DATAin%ID = -1
+          DATAin%nodays = 1
+          DATAin%nomet = 1
+          DATAin%noobs = 9
+          DATAin%nopools = 1
+          DATAin%nopars = 10
+          DATAin%nofluxes = 1
       else if (outfile == "Single") then
-         ! ID = -2 StressTest-Single parameter
-         DATAin%ID = -2
-         DATAin%nodays = 1
-         DATAin%nomet = 1
-         DATAin%noobs = 1
-         DATAin%nopools = 1
-         DATAin%nopars = 1  ! 2
-         DATAin%nofluxes = 1
+          ! ID = -2 StressTest-Single parameter
+          DATAin%ID = -2
+          DATAin%nodays = 1
+          DATAin%nomet = 1
+          DATAin%noobs = 1
+          DATAin%nopools = 1
+          DATAin%nopars = 1  ! 2
+          DATAin%nofluxes = 1
       else if (outfile == "SingleCircle") then
-         ! ID = -3 StressTest-Single Circle
-         DATAin%ID = -3
-         DATAin%nodays = 1
-         DATAin%nomet = 1
-         DATAin%noobs = 29
-         DATAin%nopools = 1
-         DATAin%nopars = 2
-         DATAin%nofluxes = 1
+          ! ID = -3 StressTest-Single Circle
+          DATAin%ID = -3
+          DATAin%nodays = 1
+          DATAin%nomet = 1
+          DATAin%noobs = 29
+          DATAin%nopools = 1
+          DATAin%nopars = 2
+          DATAin%nofluxes = 1
       else
-         print *, "Valid Stress Test has not been specified"
-         stop 1
+          print *, "Valid Stress Test has not been specified"
+          stop 1
       end if
 
       ! Now we have used the infile to determine that this is going to be stress test,
@@ -322,11 +323,11 @@ contains
 
       ! load parameter max/min information
       if (DATAin%ID == -1) then
-         call circle_parameter_prior_ranges
+          call circle_parameter_prior_ranges
       else if (DATAin%ID == -2) then
-         call single_parameter_prior_ranges
+          call single_parameter_prior_ranges
       else if (DATAin%ID == -3) then
-         call single_circle_parameter_prior_ranges
+          call single_circle_parameter_prior_ranges
       end if
 
       ! For log-normalisation procedure, no parameter can be <= 0.
@@ -337,7 +338,9 @@ contains
       call set_datain(DATAin)
 
    end subroutine prepare_for_stress_test
-
+   !
+   !------------------------------------------------------------------
+   !
    subroutine stresstest_likelihood_fct(params, npars, loglikelihood, id) bind(c, name="C_stresstest_likelihood")
     !! wrapper to make stresstest_likelihood function compatible with cardamom-samplers lib, C, R
       use iso_c_binding
@@ -394,7 +397,9 @@ contains
       end if
 
    end subroutine StressTest_likelihood
-
+   !
+   !------------------------------------------------------------------
+   !
    subroutine stresstest_sublikelihood_fct(params, npars, loglikelihood, id)
     !! wrapper to make stresstest_likelihood function compatible with cardamom-samplers lib, C, R
       use iso_c_binding
@@ -411,7 +416,6 @@ contains
       loglikelihood = ML_obs_out + ML_prior_out
 
    end subroutine stresstest_sublikelihood_fct
-
    !
    !------------------------------------------------------------------
    !

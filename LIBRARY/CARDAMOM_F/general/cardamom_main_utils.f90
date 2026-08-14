@@ -37,14 +37,143 @@ module cardamom_main_utils
 
   implicit none(type, external)
 
+  ! Numeric code for available samplers
+  integer, parameter :: sampler_APMCMC = 1, sampler_DEMCZ = 2
+
   public
 
   contains
   !
   !--------------------------------------------------------------------
   !
+  pure function to_lower(str) result(str_lower)
+    
+    ! Description needed
+
+    ! Argument
+    character(len=*), intent(in) :: str
+    ! Output
+    character(len=len_trim(str)) :: str_lower
+    ! Local variable
+    integer :: i, j
+
+    str_lower = str
+    ! Loop characters
+    do i=1, LEN_TRIM(str)
+       j = iachar(str(i:i))
+       if (j>=65 .and. j<97) then
+           j = j+32
+       endif
+       str_lower(i:i) = achar(j)
+    end do
+
+  end function to_lower
+  !
+  !--------------------------------------------------------------------
+  !
+  pure logical function str_equal(str1, str2)
+
+    ! check string match, case insensitive
+
+    ! Arguments
+    character(len=*), intent(in)  :: str1, str2
+
+    ! Local variables
+    character(len=LEN_TRIM(str1)) :: str1_lower
+    character(len=LEN_TRIM(str2)) :: str2_lower
+
+    ! Make lower case?
+    str1_lower = to_lower(trim(str1))
+    str2_lower = to_lower(trim(str2))
+
+    ! Are strongs same?
+    str_equal = str1_lower == str2_lower
+
+    Return
+
+  end function str_equal
+  !
+  !--------------------------------------------------------------------
+  !
+  subroutine parse_sampler_choice( arg1, arg2, arg3, sampler, args_start)
+
+     ! Arguments
+     character(len=*), intent(in):: arg1, arg2, arg3
+     integer, intent(out):: sampler
+     integer, intent(out):: args_start
+
+     ! Local variables
+     character(len=350):: arg, arg_next
+     integer :: pos_in_word
+     logical :: found_equals
+     character(350) :: sampler_name
+
+     args_start = 0
+     sampler = sampler_APMCMC ! default when the optional command line argument is not present
+     arg = trim(arg1)
+     arg_next = arg2
+     if (len_trim(arg) >= 7) then
+         if (str_equal("sampler",arg1(1:7))) then
+             args_start = 1
+             pos_in_word = 8
+
+             ! does it continue with = ?
+             found_equals = .false.
+             if (len_trim(arg) >= pos_in_word) then
+                 if (str_equal("=",arg(pos_in_word:pos_in_word))) then
+                     found_equals = .true.
+                     pos_in_word = pos_in_word + 1
+                 endif
+             endif
+
+            ! or is = in the next argument ?
+            if (.not. found_equals) then
+                args_start = 2
+                arg = arg2
+                arg_next = arg3
+                pos_in_word = 1
+                if (len_trim(arg2) >= pos_in_word) then
+                    if (str_equal("=",arg2(pos_in_word:pos_in_word))) then
+                        found_equals = .true.
+                        pos_in_word = pos_in_word + 1
+                    endif
+                endif
+            endif
+
+            ! else parse error, `sampler` but no `=`
+            if (.not. found_equals) then
+                write(*,*) "Could not parse command line, found keyword `sampler` but no `=`"
+                STOP 1
+            endif
+
+            ! does it continue with a sampler name in the same word?
+            if (len_trim(arg) >= pos_in_word + 4) then
+                sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
+            else
+                args_start = args_start + 1
+                pos_in_word = 1
+                arg = trim(arg_next) !arg2 or arg3
+                sampler_name = arg(pos_in_word:pos_in_word+4) !really only checking first 5 chars
+            endif
+            if (str_equal("demcz", sampler_name) ) then
+                sampler = sampler_DEMCZ
+            elseif (str_equal("APMCM", sampler_name) ) then
+                sampler = sampler_APMCMC
+            else
+                write(*,*) "Could not parse command line, found keyword `sampler=` ", sampler_name
+                write(*,*) "Choose from sampler=DEMCZ, APMCMC"
+                STOP 1
+            endif
+         endif
+     endif
+     ! else : `sampler` keyword not found, continue with default
+
+  end subroutine parse_sampler_choice  
+  !
+  !--------------------------------------------------------------------
+  !
   subroutine initialize_stats(MCOUT, npars)
-    use cardamom_MHMCMC, only: MCMC_OUTPUT
+    use apmcmc, only: MCMC_OUTPUT
 
     integer, intent(in) :: npars
     type(MCMC_OUTPUT), intent(inout) :: MCOUT
@@ -57,7 +186,7 @@ module cardamom_main_utils
   !--------------------------------------------------------------------
   !
   subroutine reset_stats(MCOUT, npars)
-    use cardamom_MHMCMC, only: MCMC_OUTPUT
+    use apmcmc, only: MCMC_OUTPUT
 
     type(MCMC_OUTPUT), intent(inout) :: MCOUT
     integer, intent(in) :: npars
@@ -76,12 +205,12 @@ module cardamom_main_utils
   !
   !------------------------------------------------------------------
   !
-  subroutine find_edc_initial_values(MCO, MCOUT_list, nchains, seed)
+  subroutine find_edc_initial_values(MCOUT_list, nchains, seed)
     !! subroutine deals with the determination of initial parameter and initial
     !! conditions which are consistent with EDCs
     !! pre-loop, Run MCMC sampler with modified likelihood fct
     use model_shared, only: PI
-    use cardamom_MHMCMC, only: MCMC_OUTPUT, run_mcmc, run_parallel_mcmc, MCMC_options
+    use apmcmc, only: MCMC_OUTPUT, run_mcmc, run_parallel_mcmc, MCMC_options
     use model_likelihood_wrapper  ! TODO next refactoring step
     use cardamom_structures, only: DATAin
 
@@ -91,11 +220,10 @@ module cardamom_main_utils
     integer, intent(in) :: nchains, seed
     type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout) :: MCOUT_list
     type(MCMC_OUTPUT), dimension(:), allocatable :: MCOUT_list_tmp
-    type(mcmc_OPTIONS), intent(out) :: MCO
+    type(mcmc_OPTIONS) :: MCO ! options settings will be on defaults
     integer :: i, counter_local(nchains), nOUT_save, nWRITE_save, nADAPT_save
     integer :: success_count
     logical :: append_save
-    logical :: restart(nchains)
     double precision :: ll
     double precision :: PEDC(nchains), PEDC_prev(nchains), P_target
     double precision, dimension(PI%npars) :: parini  ! local variable, or array
@@ -207,7 +335,7 @@ module cardamom_main_utils
      ! PI%parfix(1:PI%npars) = 0  ! TODO
      !MCOUT%bestpars = 0d0
 
-   end subroutine find_edc_initial_values
+  end subroutine find_edc_initial_values
   !
   !--------------------------------------------------------------------
   !

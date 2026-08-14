@@ -7,6 +7,9 @@ enable_language(Fortran)
 
 include(CTest)
 
+option(USE_OMP "Use openmp" ON)
+option(COMPILE_ALL_MODELS "Compile all models, resulting in an executable for each.  For checking that all compile." OFF)
+option(ENABLE_TESTING "Compile tests" OFF)
 
 # Build-type flags, per compiler. Selected via -DCMAKE_Fortran_COMPILER
 # (gfortran -> GNU, ifx -> IntelLLVM). The GNU flags are not valid for ifx, so
@@ -56,7 +59,6 @@ set_target_properties(
   Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/include"
 )
 
-
 target_include_directories(
   "cardamom-lib"
   PUBLIC
@@ -73,10 +75,10 @@ endif()
 if(ENABLE_TESTING)
   # add the testsuite
   # Code coverage analysis # TODO improve
-target_compile_options(cardamom-samplers-lib PRIVATE --coverage -fprofile-arcs -ftest-coverage) 
-target_link_options(cardamom-samplers-lib PRIVATE -lgcov --coverage) 
-target_compile_options(cardamom-lib PRIVATE --coverage -fprofile-arcs -ftest-coverage) 
-target_link_options(cardamom-lib PRIVATE -lgcov --coverage) 
+  target_compile_options(cardamom-samplers-lib PRIVATE --coverage -fprofile-arcs -ftest-coverage) 
+  target_link_options(cardamom-samplers-lib PRIVATE -lgcov --coverage) 
+  target_compile_options(cardamom-lib PRIVATE --coverage -fprofile-arcs -ftest-coverage) 
+  target_link_options(cardamom-lib PRIVATE -lgcov --coverage) 
   enable_testing()
   add_subdirectory("test")
 endif()

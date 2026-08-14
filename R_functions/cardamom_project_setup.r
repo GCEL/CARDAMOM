@@ -212,12 +212,8 @@ cardamom_project_setup <- function (paths,PROJECT) {
           } else if (project_src == "Fortran") {
               # Map the debug / timing switches onto the CMake build type
               build_type = "RELEASE" ; if (timing | debug) {build_type = "DEBUG"}
-              # Select the sampler executable to build (see local branch for detail)
-              if (exists("request_sampler") && request_sampler == "DEMCz") {
-                  target = "cardamom-diffev" ; built_exe = "cardamom-diffev.exe"
-              } else {
-                  target = "cardamom"        ; built_exe = "cardamom.exe"
-              }
+              # Select the target and executable name
+              target = "cardamom"        ; built_exe = "cardamom.exe"
               # Remote build via CMake, mirroring the local branch. The build tree
               # is LIBRARY/CARDAMOM_F/build; executables land in
               # LIBRARY/CARDAMOM_F/executable. 'module load cmake' may be required
@@ -284,13 +280,7 @@ cardamom_project_setup <- function (paths,PROJECT) {
           build_type = "RELEASE" ; if (timing | debug) {build_type = "DEBUG"}
 
           # Select the sampler executable to build:
-          #  MHMCMC -> target 'cardamom'        -> cardamom.exe
-          #  DEMCz  -> target 'cardamom-diffev' -> cardamom-diffev.exe
-          if (exists("method") && method == "DEMCz") {
-              target = "cardamom-diffev" ; built_exe = "cardamom-diffev.exe"
-          } else {
-              target = "cardamom"        ; built_exe = "cardamom.exe"
-          }
+          target = "cardamom"        ; built_exe = "cardamom.exe"
 
           if (request_compile_server == FALSE | request_compile_local == TRUE) {
               # The compiler, model and build type are baked into the CMake cache
