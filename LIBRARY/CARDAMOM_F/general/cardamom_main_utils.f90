@@ -107,7 +107,7 @@ module cardamom_main_utils
      integer :: pos_in_word
      logical :: found_equals
      character(350) :: sampler_name
-
+print*,arg1,arg2,arg3
      args_start = 0
      sampler = sampler_APMCMC ! default when the optional command line argument is not present
      arg = trim(arg1)
@@ -157,7 +157,7 @@ module cardamom_main_utils
             endif
             if (str_equal("demcz", sampler_name) ) then
                 sampler = sampler_DEMCZ
-            elseif (str_equal("APMCM", sampler_name) ) then
+            elseif (str_equal("apmcm", sampler_name) ) then
                 sampler = sampler_APMCMC
             else
                 write(*,*) "Could not parse command line, found keyword `sampler=` ", sampler_name
@@ -167,7 +167,7 @@ module cardamom_main_utils
          endif
      endif
      ! else : `sampler` keyword not found, continue with default
-
+print*,"f"
   end subroutine parse_sampler_choice  
   !
   !--------------------------------------------------------------------

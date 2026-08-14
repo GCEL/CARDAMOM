@@ -88,7 +88,7 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
          output = paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],sep="")
          if (first_pass) {
              write(paste(PROJECT_in$exepath,PROJECT_in$exe," ",
-                         "sampler=",request_sampler,
+                         "sampler=",method," ",
                          infile," ",
                          output," ",
                          as.integer(nsamples),
@@ -100,7 +100,7 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
              first_pass=FALSE
          } else {
              write(paste(PROJECT_in$exepath,PROJECT_in$exe," ",
-                         "sampler=",request_sampler,
+                         "sampler=",method," ",
                          infile," ",
                          output," ",
                          as.integer(nsamples),

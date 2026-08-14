@@ -110,7 +110,7 @@ program cardamom_framework
    call init_infinity()
 
    ! user update
-   write (*,*) "Beginning read of the command line"
+   write (*,*)"Beginning read of the command line"
 
    ! check command line for a potential first arg sampler=...
    ! effects : set this program's `sampler` variable  and args_start to offset following command line args
@@ -169,6 +169,8 @@ program cardamom_framework
       print*, "8) Number of chains (optional, integer >= 1; defaults to 3)."
       stop
    end if
+
+   print*,"Finished reading command line options"
 
    ! decide on the exact type of the sampler_options struct
    if (sampler==sampler_APMCMC) then

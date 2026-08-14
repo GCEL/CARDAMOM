@@ -136,9 +136,8 @@ target_link_libraries(cardamom PUBLIC cardamom-lib)
 # Place the runnable executables in the legacy LIBRARY/CARDAMOM_F/executable
 # directory and give them the legacy .exe file names so downstream tooling
 # (cardamom_project_setup.r) can copy them from a fixed, known location.
-#set_target_properties(cardamom cardamom-diffev
-#  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/executable")
-set_target_properties(cardamom        PROPERTIES OUTPUT_NAME "cardamom.exe")
+set_target_properties(cardamom   PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/executable")
+set_target_properties(cardamom   PROPERTIES OUTPUT_NAME "cardamom.exe")
 #set_target_properties(cardamom-diffev PROPERTIES OUTPUT_NAME "cardamom-diffev.exe")
 
 # Shared library used by the R post-processing for forward DALEC runs. Emitted

@@ -121,7 +121,7 @@ check_control_file_defaults<-function(paths) {
   if (exists("request_use_EDCs") == FALSE)              {request_use_EDCs <<- TRUE}
   if (exists("request_extended_mcmc") == FALSE)         {request_extended_mcmc <<- 10e6}
   if (exists("request_cost_function_scaling") == FALSE) {request_cost_function_scaling <<- 0}
-  if (exists("request_sampler") == FALSE)               {request_sampler <<- "MHMCMC"} # "MHMCMC" (cardamom) or "DEMCz" (cardamom-diffev)
+  if (exists("method") == FALSE)                        {method <<- "APMCMC"} # "APMCMC" or "DEMCz" 
   # Computer running / compiler locations
   if (exists("request_use_server") == FALSE)            {request_use_server <<- FALSE}
   if (exists("request_use_local_slurm") == FALSE)       {request_use_local_slurm <<- FALSE} 
