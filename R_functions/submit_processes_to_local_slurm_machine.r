@@ -168,7 +168,6 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
          write(    c("export OMP_PLACES=cores"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c("export OMP_DYNAMIC=false"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c("export OMP_STACKSIZE=1G"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-         write(    c("unlimit -s unlimited"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c("command ${task}"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 
          # Record directory to change back in a moment

@@ -571,6 +571,14 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
   # Estimate total ecosystem mean transit times for the analysis mean and the mean annual estimate (years)
   site_output$MTT_Ctotal_years = quantile(apply(states_all$Ctotal_gCm2/((states_all$reco_gCm2day + states_all$harvest_gCm2day + states_all$fire_gCm2day)*365.25), 1, mean), prob=num_quantiles, na.rm = na_flag)
   site_output$MTT_annual_Ctotal_years = apply((states_all$mean_annual_Ctotal_gCm2 / ((states_all$mean_annual_reco_gCm2day + states_all$mean_annual_harvest_gCm2day + states_all$mean_annual_fire_gCm2day)*365.25)),2,quantile, prob=num_quantiles, na.rm=na_flag)
+  
+  if (any(check_list == "grazing_gCm2day")) {
+      site_output$grazing_gCm2day             = apply(states_all$grazing_gCm2day,2,quantile,prob=num_quantiles,na.rm = na_flag)
+      site_output$mean_grazing_gCm2day        = quantile(states_all$mean_grazing_gCm2day,prob=num_quantiles, na.rm = na_flag)
+      site_output$mean_annual_grazing_gCm2day = apply(states_all$mean_annual_grazing_gCm2day,2,quantile,prob=num_quantiles,na.rm = na_flag)
+      dvar = states_all$mean_annual_grazing_gCm2day - states_all$mean_annual_grazing_gCm2day[,1] # difference from initial
+      site_output$mean_annual_dgrazing_gCm2day    = apply(dvar,2,quantile,prob=num_quantiles,na.rm = na_flag)  
+  }
 
   ###
   # Track net pool change over time

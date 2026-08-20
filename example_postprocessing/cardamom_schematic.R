@@ -26,6 +26,9 @@ prepare_cardamom_values<-function(PROJECT, site_nos) {
    # Create empty output list object
    output = list()
 
+   # Set number decimal places
+   dp = 1
+
    # Do something different depending on whether it is a grid or site
    if (PROJECT$spatial_type == "grid") {
    
@@ -215,7 +218,7 @@ cardamom_schematic <- function(list_in, out_file = "cardamom_schematic.png") {
    Mort_lab_fire_med  = list_in$FIRElitter_labile_gCm2yr[2]  ; Mort_lab_fire_lo  = list_in$FIRElitter_labile_gCm2yr[1]  ; Mort_lab_fire_hi  = list_in$FIRElitter_labile_gCm2yr[3]
    Mort_fol_fire_med  = list_in$FIRElitter_foliage_gCm2yr[2] ; Mort_fol_fire_lo  = list_in$FIRElitter_foliage_gCm2yr[1] ; Mort_fol_fire_hi  = list_in$FIRElitter_foliage_gCm2yr[3]
    Mort_root_fire_med = list_in$FIRElitter_roots_gCm2yr[2]   ; Mort_root_fire_lo = list_in$FIRElitter_roots_gCm2yr[1]   ; Mort_root_fire_hi = list_in$FIRElitter_roots_gCm2yr[3]
-   Mort_wood_fire_med = list_in$$FIRElitter_wood_gCm2yr[2]   ; Mort_wood_fire_lo = list_in$FIRElitter_wood_gCm2yr[1]    ; Mort_wood_fire_hi = list_in$FIRElitter_wood_gCm2yr[3]
+   Mort_wood_fire_med = list_in$FIRElitter_wood_gCm2yr[2]   ; Mort_wood_fire_lo = list_in$FIRElitter_wood_gCm2yr[1]    ; Mort_wood_fire_hi = list_in$FIRElitter_wood_gCm2yr[3]
 
    # ── Decomposition: litter → SOM ──────────────────────────────────────────────
    decomp_med      = list_in$litter_to_som_gCm2yr[2]     ; decomp_lo      = list_in$litter_to_som_gCm2yr[1]     ; decomp_hi      = list_in$litter_to_som_gCm2yr[3]
@@ -559,7 +562,7 @@ cardamom_schematic <- function(list_in, out_file = "cardamom_schematic.png") {
 # =============================================================================
 
 # Load project file
-load("~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv14_LCA_TWB_GPP_fAPAR/infofile.RData")
+load("~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB/infofile.RData")
 
 # If a site run with multiple sites, which site number to use?
 # Load from the output object and prepare the wanted values

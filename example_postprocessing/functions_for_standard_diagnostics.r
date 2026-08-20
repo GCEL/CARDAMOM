@@ -2451,8 +2451,8 @@ key_variables_parameters_spatial_correlation<-function(mask_area,mask_name) {
                 ext = ext(cardamom_ext), crs = crs(cardamom_ext), res=res(cardamom_ext))
     var8 = rast(vals = t(abs(tmp_mask*grid_output$MTT_som_years_to_dCwood_gCm2_correlation[,dim(PROJECT$area_m2)[2]:1])),
                 ext = ext(cardamom_ext), crs = crs(cardamom_ext), res=res(cardamom_ext))
-    var9 = rast(vals = t(abs(tmp_mask*grid_output$dCwood_gCm2_to_som_gCm2_correlation[,dim(PROJECT$area_m2)[2]:1])), 
-                ext = ext(cardamom_ext), crs = crs(cardamom_ext), res=res(cardamom_ext))     
+    var9 = rast(vals = t(abs(tmp_mask*grid_output$dCwood_gCm2_to_dCsom_gCm2_correlation[,dim(PROJECT$area_m2)[2]:1])), 
+                ext = ext(cardamom_ext), crs = crs(cardamom_ext), res=res(cardamom_ext))                  
     # Correct spatial area
     var1 = crop(var1, landmask) ; var2 = crop(var2, landmask) ; var3 = crop(var3, landmask) ; var4 = crop(var4, landmask)
     var5 = crop(var5, landmask) ; var6 = crop(var6, landmask) ; var7 = crop(var7, landmask) ; var8 = crop(var8, landmask) ; var9 = crop(var9, landmask)
@@ -2525,7 +2525,7 @@ key_variables_parameters_spatial_correlation<-function(mask_area,mask_name) {
     plot(landmask, add=TRUE, lwd=0.5)
     plot(var9, main="",col = (colour_choices_gain), range=zrange9, xaxt = "n", yaxt = "n",  mar=NA, bty = "n",
          cex.lab=2.6, cex.main=2.6, cex.axis = 2, axes = FALSE, pax=list(cex.axis=2.0,hadj=0.1), plg = list(ext=e, cex=legend_cex))
-    ylab.text = eval(bquote(expression(Delta*"Wood ~ Soil C (r = "*.(round(mean(values(var9),na.rm=TRUE),digits=2))*")")))    
+    ylab.text = eval(bquote(expression(Delta*"Wood ~ "*Delta*"Soil C (r = "*.(round(mean(values(var9),na.rm=TRUE),digits=2))*")")))    
     mtext(ylab.text, side = 3, cex = main_lab_cex, padj = main_lab_padj, adj = main_lab_adj)
     plot(landmask, add=TRUE, lwd=0.5)
     dev.off()
@@ -10374,8 +10374,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCbiomass_gCm2[,,ci68[2]]-grid_output$final_dCbiomass_gCm2[,,ci68[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCdom_gCm2[,,ci68[2]]-grid_output$final_dCdom_gCm2[,,ci68[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci68[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci68[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] < 0)
@@ -10385,15 +10383,24 @@ summary_plots<-function() {
     dom_sinkC = which(var3 > 0 & grid_output$final_dCdom_gCm2[,,ci68[1]] > 0)
     dom_sourceC = which(var3 < 0 & grid_output$final_dCdom_gCm2[,,ci68[2]] < 0)
     dom_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,ci68[2]] > 0 & grid_output$final_dCdom_gCm2[,,ci68[1]] < 0)
-    total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] > 0)
-    total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci68[2]] < 0)
-    total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci68[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] < 0)
-    biomass_sinkC = which(var2 > 0 & grid_output$final_dCbiomass_gCm2[,,ci68[1]] > 0)
-    biomass_sourceC = which(var2 < 0 & grid_output$final_dCbiomass_gCm2[,,ci68[2]] < 0)
-    biomass_neutralC = which(abs(var2) < 0.1 & grid_output$final_dCbiomass_gCm2[,,ci68[2]] > 0 & grid_output$final_dCbiomass_gCm2[,,ci68[1]] < 0)
-    dom_sinkC = which(var3 > 0 & grid_output$final_dCdom_gCm2[,,ci68[1]] > 0)
-    dom_sourceC = which(var3 < 0 & grid_output$final_dCdom_gCm2[,,ci68[2]] < 0)
-    dom_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,ci68[2]] > 0 & grid_output$final_dCdom_gCm2[,,ci68[1]] < 0)
+    # the below needs to be changed to take numbers above
+    print("=== Percentage of pixels > 68 % confident in source or sink ===")
+    print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 68 % CI spanning zero")
+    sinkC = 100*(length(total_sinkC) / PROJECT$nosites)
+    sourceC = 100*(length(total_sourceC) / PROJECT$nosites)
+    neutralC = 100*(length(total_neutralC) / PROJECT$nosites) 
+    sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
+    print(paste("...Total C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
+    sinkC = 100*(length(biomass_sinkC) / PROJECT$nosites)
+    sourceC = 100*(length(biomass_sourceC) / PROJECT$nosites)
+    neutralC = 100*(length(biomass_neutralC) / PROJECT$nosites) 
+    sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
+    print(paste("...Wood C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
+    sinkC = 100*(length(dom_sinkC) / PROJECT$nosites)
+    sourceC = 100*(length(dom_sourceC) / PROJECT$nosites)
+    neutralC = 100*(length(dom_sourceC) / PROJECT$nosites) 
+    sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
+    print(paste("...DOM C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
     # Create a filter for keeping these, this involves finding the locations which are not in the current filter
     possible_points = c(1:prod(dim(grid_output$final_dCtotal_gCm2)[1:2]))
     total_filter = unique(c(total_sinkC,total_sourceC,total_neutralC)) ; total_filter = possible_points[-total_filter]

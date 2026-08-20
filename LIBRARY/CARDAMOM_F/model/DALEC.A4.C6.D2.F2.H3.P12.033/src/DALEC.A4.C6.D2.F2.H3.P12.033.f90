@@ -830,6 +830,26 @@ module CARBON_MODEL_MOD
        ! temprate (i.e. temperature modified rate of metabolic activity))
        FLUXES(n,2) = exp(pars(10)*mV%meant)
 
+       !
+       ! Biomass turnovers (gC/m2/day)
+       !
+
+       ! Do plant natural turnovers
+       call plant_natural_turnover(nodays, n, mV%days_per_step,              & ! time related
+                                   sum(POOLS(n,2:4)), POOLS(n,2),         & ! C pools
+                                   POOLS(n,4), POOLS(n,3),                & !
+                                   pars(17), DIAGS(:,22),                 & ! LCA / foliar net carbon export
+                                   pars(45), pars(44), pars(14), pars(13),& ! potential foliar loss for NCCE and environmental 
+                                   pars(15),                              & ! NCCE gCgCday return threshold for loss
+                                   pars(6),pars(7),                       & ! wood and fine root turnovers
+                                   FLUXES(n,10),FLUXES(n,12),FLUXES(n,11),& ! Natural litter fluxes (fol, root, wood)
+                                   DIAGS(n,26),DIAGS(n,30),DIAGS(n,27), mV)     ! combined index of NCCE and gradient, dNCCE_loss, NCCE_gradient
+
+
+       !
+       ! Biomass growth / allocation (gC/m2/day)
+       !
+
        ! Determine whether we have enough GPP to cover maintenance respiration or 
        ! whether we must draw from the labile reserves
        if (FLUXES(n,1) > FLUXES(n,3)) then
@@ -854,28 +874,14 @@ module CARBON_MODEL_MOD
                              pars(34),pars(35),pars(36),pars(37),   & ! temperature limitations
                              pars(39),pars(40),pars(41),pars(42),   & ! water limitations
                              pars(33),pars(16),                     & ! labile:biomass limitations
-                             available_labile,sum(POOLS(n,2:4)),    & ! C pools
+                             DIAGS(n,7),                            &
+                             FLUXES(n,1),FLUXES(n,5),DIAGS(n,27),   & ! C supply
+                             available_labile, sum(POOLS(n,2:4)),   & ! C pools
                              FLUXES(n,4),FLUXES(n,6),FLUXES(n,7),   & ! tissue specific allocated C 
                              DIAGS(n,15),DIAGS(n,16),DIAGS(n,17),   & ! lab:bio, temperature and water limiters
                              DIAGS(n,18),DIAGS(n,19),DIAGS(n,21),   & ! 
                              DIAGS(n,25),DIAGS(n,22),DIAGS(n,29), mV)     ! current foliar growth limitation, current NCCE and delta NCCE
     
-
-       !
-       ! Biomass turnovers (gC/m2/day)
-       !
-
-       ! Do plant natural turnovers
-       call plant_natural_turnover(nodays, n, mV%days_per_step,              & ! time related
-                                   sum(POOLS(n,2:4)), POOLS(n,2),         & ! C pools
-                                   POOLS(n,4), POOLS(n,3),                & !
-                                   pars(17), DIAGS(:,22),                 & ! LCA / foliar net carbon export
-                                   pars(45), pars(44), pars(14), pars(13),& ! potential foliar loss for NCCE and environmental 
-                                   pars(15),                              & ! NCCE gCgCday return threshold for loss
-                                   pars(6),pars(7),                       & ! wood and fine root turnovers
-                                   FLUXES(n,10),FLUXES(n,12),FLUXES(n,11),& ! Natural litter fluxes (fol, root, wood)
-                                   DIAGS(n,26),DIAGS(n,30),DIAGS(n,27), mV)     ! combined index of NCCE and gradient, dNCCE_loss, NCCE_gradient
-
        !
        ! Balance between canopy growth and mortality fluxes
        ! NOTE: this is not applied to wood and root allocation 
@@ -3931,7 +3937,9 @@ module CARBON_MODEL_MOD
                               leafT_coef,woodT_coef,leafT_min,woodT_min, & ! temperature limitations
                               woodW_min,woodW_max,leafW_min,leafW_max,   & ! water limitations
                               LabBio_coef,ncce_crit_foliar,              & ! labile:biomass limitation
-                              available_labile,biomass,                  & ! C pools
+                              gs_demand_supply,                          &
+                              gpp,alloc_labile,available_labile,         & ! C supply
+                              ncce_gradient, biomass,                    & ! C pools
                               alloc_leaf,alloc_root,alloc_wood,          & ! tissue specific allocated C 
                               LabBio_limit,leafT_limit,rootT_limit,      & ! lab:bio, temperature and water limters
                               woodT_limit,leafW_limit,woodW_limit,       & !
@@ -3948,7 +3956,7 @@ module CARBON_MODEL_MOD
 
        implicit none
 
-      type(model_working_variables) :: mV
+       type(model_working_variables) :: mV
 
        ! Arguments
        integer, intent(in) :: nopools
@@ -3967,8 +3975,12 @@ module CARBON_MODEL_MOD
                                   leafW_max, & ! wSWP at which leaf growth suppression begins (MPa)
                                 LabBio_coef, & ! labile:biomass at which 50 % suppression applied (0-1)
                            ncce_crit_foliar, & ! NCCE return for growth to go ahead (gC/gC/m2/day)
+                           gs_demand_supply, & ! demand:supply (0-1)
+                                        gpp, & ! GPP (gC/m2/day)
+                               alloc_labile, & ! GPP remaining after Rm, allocated to labile (gC/m2/day)
                            available_labile, & ! labile C available to spend this time step (gC/m2)
                                     biomass, & ! foliage, fine root and wood pool (gC/m2)
+                              ncce_gradient, & ! NCCE gradient over the lag period (gC/gCleaf/day / day)                                                                                              
                                ncce_gCm2day    ! Net Canopy Carbon export (gC/m2/day)
        double precision, intent(out) :: &
                             delta_ncce_gCgC, & ! change in net canopy carbon export (gC/gCinvested)
@@ -3991,57 +4003,57 @@ module CARBON_MODEL_MOD
        LabBio_limit = 0d0 ; leafT_limit = 0d0 ; rootT_limit = 0d0 ; woodT_limit = 0d0 
        leafW_limit = 0d0  ; woodW_limit = 0d0 ; foliar_limit = 0d0
 
-       ! We can only allocate if we have labile to spend
-       if (available_labile > 0d0) then
+       ! Estimate the labile:biomass ratio.
+       ! Limits / restricts labile use when supply is low
+       LabBio_limit = (available_labile / (available_labile + biomass)) 
+       LabBio_limit = LabBio_limit / (LabBio_limit + LabBio_coef)
 
-           ! Estimate the labile:biomass ratio.
-           ! Limits / restricts labile use when supply is low
-           LabBio_limit = (available_labile / (available_labile + biomass)) 
-           LabBio_limit = LabBio_limit / (LabBio_limit + LabBio_coef)
-
-           ! Estimate the temperature limitation on foliage, fine root and wood growth
-           if (mV%leafT > leafT_min) then
-               ! Calculate the baseline temperature response function
-               ! NOTE: these are based on rice, maize, Arabidopsis (below) only. 
-               ! No more recent mechanistic estimates could be found
-               ! Modified Arrhenious function for temperature effect on tissue growth
-               ! Cabon et al., (2020), doi: 10.1111/nph.16456
-               ! NOTE: that the equation and parameters from Cabon et al., (2020) have been
-               ! modified to provide equivalent values for the existing modified_arrhenious()
-               ! but with an adjustable reference temperature
-               leafT_adj = modified_arrhenious(303.15d0,Ha_growth,Hd_growth,dS_growth,mV%leafT+freeze)
-               ! Now calculate the minimum temperature threshold coefficient,
-               ! combine with the modified arrhenious function
-               leafT_limit = ((mV%leafT-leafT_min) / ((mV%leafT-leafT_min) + leafT_coef)) * leafT_adj
-               rootT_limit = leafT_limit
-               ! Specific limitation of temperature on wood.
-               ! NOTE: p37 is assumed to be larger than p36
-               if (mV%leafT > woodT_min) then
-                   ! Estimate the minimum temperature threshold value (typically ~5oC)
-                   ! Faatchi et al., (2014), plus various referenes
-                   woodT_limit = (mV%leafT-woodT_min) / ((mV%leafT-woodT_min) + woodT_coef)
-                   ! Combine with the modified arrhenious function for temperature impacts
-                   woodT_limit = woodT_limit * leafT_adj
-               end if
-           end if ! leafT > leafT_min
-           ! Specific limitation of hydraulic limitation on leaf growth,
-           ! wSWP as proxy.
-           if (mV%wSWP > leafW_min) then  
-               leafW_limit = min(1d0,max(0d0,(mV%wSWP - leafW_min) / (leafW_max-leafW_min)))
-           end if
-           ! Specific limitation of wSWP on wood.
+       ! Estimate the temperature limitation on foliage, fine root and wood growth
+       if (mV%leafT > leafT_min) then
+           ! Calculate the baseline temperature response function
+           ! NOTE: these are based on rice, maize, Arabidopsis (below) only. 
+           ! No more recent mechanistic estimates could be found
+           ! Modified Arrhenious function for temperature effect on tissue growth
+           ! Cabon et al., (2020), doi: 10.1111/nph.16456
+           ! NOTE: that the equation and parameters from Cabon et al., (2020) have been
+           ! modified to provide equivalent values for the existing modified_arrhenious()
+           ! but with an adjustable reference temperature
+           leafT_adj = modified_arrhenious(303.15d0,Ha_growth,Hd_growth,dS_growth,mV%leafT+freeze)
+           ! Now calculate the minimum temperature threshold coefficient,
+           ! combine with the modified arrhenious function
+           leafT_limit = ((mV%leafT-leafT_min) / ((mV%leafT-leafT_min) + leafT_coef)) * leafT_adj
+           rootT_limit = leafT_limit
+           ! Specific limitation of temperature on wood.
            ! NOTE: p37 is assumed to be larger than p36
-           if (mV%wSWP > woodW_min) then
-               ! Specific limitation of hydraulic limitation on wood growth,
-               ! wSWP as proxy.
-               woodW_limit = min(1d0,max(0d0,(mV%wSWP - woodW_min) / (woodW_max-woodW_min)))
+           if (mV%leafT > woodT_min) then
+               ! Estimate the minimum temperature threshold value (typically ~5oC)
+               ! Faatchi et al., (2014), plus various referenes
+               woodT_limit = (mV%leafT-woodT_min) / ((mV%leafT-woodT_min) + woodT_coef)
+               ! Combine with the modified arrhenious function for temperature impacts
+               woodT_limit = woodT_limit * leafT_adj
            end if
-           ! Calculate combined scalar on growth for foliage
-           foliar_limit = LabBio_limit*leafT_limit*leafW_limit
+       end if ! leafT > leafT_min
+       ! Specific limitation of hydraulic limitation on leaf growth,
+       ! wSWP as proxy.
+       if (mV%wSWP > leafW_min) then  
+           leafW_limit = min(1d0,max(0d0,(mV%wSWP - leafW_min) / (leafW_max-leafW_min)))
+       end if
+       ! Specific limitation of wSWP on wood.
+       ! NOTE: p37 is assumed to be larger than p36
+       if (mV%wSWP > woodW_min) then
+           ! Specific limitation of hydraulic limitation on wood growth,
+           ! wSWP as proxy.
+           woodW_limit = min(1d0,max(0d0,(mV%wSWP - woodW_min) / (woodW_max-woodW_min)))
+       end if
+       ! Calculate combined scalar on growth for foliage
+       foliar_limit = LabBio_limit*leafT_limit*leafW_limit
 
-           !
-           ! Labile allocation to plant tissues (gC/m2/day)
-           !
+       !
+       ! Labile allocation to plant tissues (gC/m2/day)
+       !
+
+       ! We can only allocate if we have labile to spend and the environment is not declining
+       if (available_labile > 0d0 .and. ncce_gradient > 0d0) then
 
            ! Labile to foliage rate (gC.m-2.day-1)
            alloc_leaf = pot_fol*foliar_limit ! f(lab:bio,leafT,wSWP)
@@ -4061,6 +4073,7 @@ module CARBON_MODEL_MOD
            !
 
            ! Finally quantify the impact of increasing LAI on GPP, less Rd(24)
+
            if (alloc_leaf > 0d0) then
                ! Store the existing LAI and canopy_scaling
                lai_orig = mV%lai ; scaling_orig = mV%leaf_canopy_light_scaling ; gs_orig = mV%stomatal_conductance
@@ -4081,7 +4094,9 @@ module CARBON_MODEL_MOD
                ! rescale NCCE to per gC investment but including the C gone to growth respiration
                delta_ncce_gCgC = delta_ncce_gCgC / leaf_investment
                ! If non-economical do not grow                               
-               if (delta_ncce_gCgC < ncce_crit_foliar) alloc_leaf = 0d0
+               if (delta_ncce_gCgC < ncce_crit_foliar) then
+                   alloc_leaf = 0d0 
+               end if 
                ! Return initial values
                mV%lai = lai_orig ; mV%stomatal_conductance = gs_orig
                ! Update the shortwave radiation
@@ -4106,6 +4121,18 @@ module CARBON_MODEL_MOD
            alloc_leaf = available_labile * (1d0-(1d0-alloc_leaf)**time)/time
            alloc_root = available_labile * (1d0-(1d0-alloc_root)**time)/time
            alloc_wood = available_labile * (1d0-(1d0-alloc_wood)**time)/time
+
+           ! Assume fine root growth only if GPP > 0 and water supply is limiting
+           !, this should maybe be if fine root is below target or supply is limiting
+           if (alloc_leaf > 0d0 .or. gs_demand_supply > 0.99d0) then
+               ! Grow if:
+               ! 1) Leaves are growing
+               ! 2) We we are water supply limited
+           else 
+               alloc_root = 0d0 
+           end if
+           ! Restrict wood to supply from the daily GPP, assuming wood is not a priority spend.
+           alloc_wood = max(0d0,min(alloc_wood, alloc_labile-alloc_leaf-alloc_root))
 
        end if ! available_labile > 0
 

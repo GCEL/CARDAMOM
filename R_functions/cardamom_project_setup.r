@@ -234,7 +234,9 @@ cardamom_project_setup <- function (paths,PROJECT) {
                                                " -DCMAKE_Fortran_COMPILER=",compiler,sep="")
                                         ,paste("cmake --build ",ecdf_source,"CARDAMOM_F/build --clean-first",sep="")                                        
                                         ,paste("cmake --build ",ecdf_source,"CARDAMOM_F/build --target ",target," -j",sep="")
-                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/executable/",built_exe," ",eexepath,"/",exe,sep="")))
+                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/executable/",built_exe," ",eexepath,"/",exe,sep="")
+                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/build","/LIBRARY/CARDAMOM_F/libCARDAMOM.so* ",eexepath,"/",sep="")
+                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/build","/LIBRARY/CARDAMOM_F/libcardamom-samplers-lib.so* ",eexepath,"/",sep="")))
               # If a crop model the copy the crop development files into place too
               if (modelname == "DALEC.A3.C3.H2.M1.015" | modelname == "DALEC.C3.M1.014") {
                   commands=append(commands,paste("cp ",ecdf_source,"CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",eexepath,"/",sep=""))
@@ -289,6 +291,7 @@ cardamom_project_setup <- function (paths,PROJECT) {
               if (dir.exists(buildpath)) {system(paste("rm -rf ",buildpath,sep=""))}
               # Remove any stale executable in the project folder
               if (file.exists(paste(exepath,"/",exe,sep=""))) {system(paste("rm ",exepath,"/",exe,sep=""))}
+              if (file.exists(paste(exepath,"/libCARDAMOM.so",sep=""))) {system(paste("rm ",exepath,"/libCARDAMOM.so*",sep=""))}              
               # Configure (compiler / model / build type set here)
               system(paste("cmake -S ",srcroot," -B ",buildpath,
                            " -DCMAKE_BUILD_TYPE=",build_type,
@@ -300,6 +303,9 @@ cardamom_project_setup <- function (paths,PROJECT) {
               # Copy the built executable (source name = CMake OUTPUT_NAME) to the
               # project executable directory, renamed to the project executable name
               system(paste("cp ",exedir,"/",built_exe," ",exepath,"/",exe,sep=""))
+              # Copy the shared library the executable is linked against
+              system(paste("cp ",buildpath,"/LIBRARY/CARDAMOM_F/libCARDAMOM.so* ",exepath,"/",sep=""))    
+              system(paste("cp ",buildpath,"/LIBRARY/CARDAMOM_F/libcardamom-samplers-lib.so** ",exepath,"/",sep=""))    
               # Build the shared library needed later by R for forward DALEC runs
               system(paste("cmake --build ",buildpath," --target dalec -j",sep=""))
               system(paste("cp ",exedir,"/dalec.so ",exepath,"/dalec.so",sep=""))
