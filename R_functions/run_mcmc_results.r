@@ -1160,7 +1160,7 @@ run_mcmc_results <- function (PROJECT,repair,grid_override) {
           if (n == length(site_output_all) & class(site_output_all[[n]]) != "character") {
               # Difficult to say what will come out of here, so dump it all!
               print(unlist(site_output_all))
-              print("Above error from run_mcmc_results.r L1018, problem with site_output_all")
+              print("Above error from run_mcmc_results.r L1163, problem with site_output_all")
               return(c(-1))
           }
           # Now assuming this has worked correctly, we can create the grid_output

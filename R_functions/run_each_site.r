@@ -95,11 +95,11 @@ run_each_site<-function(n,PROJECT,repair,grid_override) {
           ###
 
           # Post-process the DALEC model output for both site and gridded analyses
-          states_all = post_process_dalec(states_all,parameters,drivers,PROJECT,n)
+          states_all = post_process_dalec(states_all,parameters,drivers,PROJECT,n)   
           # Determine how many ensemble members are within the observational uncertainties
           # of the calibration datasets
           states_all = assess_ensemble_fit_to_calibration_data(states_all,parameters,drivers,PROJECT)
-
+      
       } # DALEC model or not?
 
       check_list = names(states_all)
@@ -149,9 +149,10 @@ run_each_site<-function(n,PROJECT,repair,grid_override) {
           #num_quantiles = c(0.025,0.05,0.16,0.5,0.84,0.95,0.975) #; num_quantiles_agg = seq(0.0,1, length = 100)
           num_quantiles = c(0.025,0.1607143,0.2964286,0.4321429,0.5,0.5678571,0.7035714,0.8392857,0.975)
           na_flag = TRUE
-
+     
           # Run post-processing for gridded analysis
           dummy = post_process_for_grid(outfile_stock_fluxes,PROJECT,drivers,parameters,num_quantiles,na_flag,converged,states_all)
+         
           # Optionally update the user
           if (use_parallel == FALSE) {print("Postprocessing for grid done, return completed filename to run_each_site")}
           # Tidy local environment

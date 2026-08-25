@@ -835,7 +835,7 @@ module CARBON_MODEL_MOD
        !
 
        ! Do plant natural turnovers
-       call plant_natural_turnover(nodays, n, mV%days_per_step,              & ! time related
+       call plant_natural_turnover(nodays, n, mV%days_per_step,           & ! time related
                                    sum(POOLS(n,2:4)), POOLS(n,2),         & ! C pools
                                    POOLS(n,4), POOLS(n,3),                & !
                                    pars(17), DIAGS(:,22),                 & ! LCA / foliar net carbon export
@@ -3938,8 +3938,8 @@ module CARBON_MODEL_MOD
                               woodW_min,woodW_max,leafW_min,leafW_max,   & ! water limitations
                               LabBio_coef,ncce_crit_foliar,              & ! labile:biomass limitation
                               gs_demand_supply,                          &
-                              gpp,alloc_labile,available_labile,         & ! C supply
-                              ncce_gradient, biomass,                    & ! C pools
+                              gpp,alloc_labile,ncce_gradient,            & ! C supply
+                              available_labile, biomass,                 & ! C pools
                               alloc_leaf,alloc_root,alloc_wood,          & ! tissue specific allocated C 
                               LabBio_limit,leafT_limit,rootT_limit,      & ! lab:bio, temperature and water limters
                               woodT_limit,leafW_limit,woodW_limit,       & !
@@ -4005,7 +4005,7 @@ module CARBON_MODEL_MOD
 
        ! Estimate the labile:biomass ratio.
        ! Limits / restricts labile use when supply is low
-       LabBio_limit = (available_labile / (available_labile + biomass)) 
+       LabBio_limit = max(0d0,(available_labile / (available_labile + biomass)))
        LabBio_limit = LabBio_limit / (LabBio_limit + LabBio_coef)
 
        ! Estimate the temperature limitation on foliage, fine root and wood growth
@@ -4053,14 +4053,14 @@ module CARBON_MODEL_MOD
        !
 
        ! We can only allocate if we have labile to spend and the environment is not declining
-       if (available_labile > 0d0 .and. ncce_gradient > 0d0) then
+       if (available_labile > 0d0) then
 
            ! Labile to foliage rate (gC.m-2.day-1)
            alloc_leaf = pot_fol*foliar_limit ! f(lab:bio,leafT,wSWP)
            ! Labile to root rate (gC.m-2.day-1)
            alloc_root = pot_root*LabBio_limit*rootT_limit  ! f(lab:bio,leafT)
-           ! Labile to wood rate
-           alloc_wood = pot_wood*LabBio_limit*woodT_limit*woodW_limit  ! f(lab:bio,leafT,wSWP) 
+           ! Labile to wood rate, restrict to less than the total allocation to labile in step
+           alloc_wood = min(alloc_labile, pot_wood*LabBio_limit*woodT_limit*woodW_limit)  ! f(lab:bio,leafT,wSWP) 
 
            ! Convert into fractional daily draws equivalents
            available_labile_1 = 1d0 / available_labile
@@ -4068,13 +4068,34 @@ module CARBON_MODEL_MOD
            alloc_root      = alloc_root * available_labile_1
            alloc_wood      = alloc_wood * available_labile_1
 
+           !
+           ! Scale allocations to plant tissues based on available labile (gC/m2/day)
+           !
+
+           ! Check their combined daily fractionsl draw is not greater than available stocks
+           if (alloc_leaf + alloc_root + alloc_wood > 1d0) then
+               ! Is there enough labile for proposed leaf and root allocation
+               if (alloc_leaf + alloc_root > 1d0) then
+                   ! Set wood allocation to zero
+                   alloc_wood = 0d0
+                   ! Rescale foliage and root allocation to be within the limits of available labile
+                   rescale = 1d0 / (alloc_leaf + alloc_root) 
+                   alloc_leaf      = alloc_leaf*rescale
+                   alloc_root      = alloc_root*rescale
+               else 
+                   ! Leave foliage and root allocation as normal, 
+                   ! reduce wood allocation to balance the books
+                   alloc_wood = 1d0 - alloc_leaf - alloc_root
+               end if
+           end if 
+
            ! 
            ! Apply optimality theory for the proposed allocation
            !
 
            ! Finally quantify the impact of increasing LAI on GPP, less Rd(24)
 
-           if (alloc_leaf > 0d0) then
+           if (alloc_leaf > 0d0 .and. ncce_gradient > 0d0) then
                ! Store the existing LAI and canopy_scaling
                lai_orig = mV%lai ; scaling_orig = mV%leaf_canopy_light_scaling ; gs_orig = mV%stomatal_conductance
                ! Calculate the total time step investment
@@ -4103,36 +4124,18 @@ module CARBON_MODEL_MOD
                call calculate_shortwave_balance(mV)
                ! Update acm_gpp_stage_1
                call acm_gpp_stage_1(mV)      
-           end if ! alloc_leaf > 0
+           else 
+               alloc_leaf = 0d0
+           end if ! alloc_leaf > 0 .and. ncce_gradient > 0d0 
 
-           !
-           ! Scale allocations to plant tissues based on available labile (gC/m2/day)
-           !
+           ! If leaf allocation is zero and we are not water limited,
+           ! assume that we will grow no roots either
+           if (alloc_leaf == 0d0 .and. gs_demand_supply < 0.99d0) alloc_root = 0d0   
 
-           ! Check their combined daily fractionsl draw is not greater than available stocks
-           if (alloc_leaf + alloc_root + alloc_wood > 1d0) then
-               ! Rescale to be within the limits of available labile
-               rescale = 1d0 / (alloc_leaf + alloc_root + alloc_wood) 
-               alloc_leaf      = alloc_leaf*rescale
-               alloc_root      = alloc_root*rescale
-               alloc_wood      = alloc_wood*rescale
-           end if 
            ! Determine compound interest temporal integral
            alloc_leaf = available_labile * (1d0-(1d0-alloc_leaf)**time)/time
            alloc_root = available_labile * (1d0-(1d0-alloc_root)**time)/time
            alloc_wood = available_labile * (1d0-(1d0-alloc_wood)**time)/time
-
-           ! Assume fine root growth only if GPP > 0 and water supply is limiting
-           !, this should maybe be if fine root is below target or supply is limiting
-           if (alloc_leaf > 0d0 .or. gs_demand_supply > 0.99d0) then
-               ! Grow if:
-               ! 1) Leaves are growing
-               ! 2) We we are water supply limited
-           else 
-               alloc_root = 0d0 
-           end if
-           ! Restrict wood to supply from the daily GPP, assuming wood is not a priority spend.
-           alloc_wood = max(0d0,min(alloc_wood, alloc_labile-alloc_leaf-alloc_root))
 
        end if ! available_labile > 0
 

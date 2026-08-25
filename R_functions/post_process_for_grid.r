@@ -68,6 +68,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
           stop("Error, CARDAMOM cannnot determine where C allocation foliage has come from")
       }
   }
+
   # The total allocation of C to the fine root pool can, depending on model,
   # be the combined total of direct allocation and that via a labile pool.
   # For many comparison we will need their combined total.
@@ -89,6 +90,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
           stop("Error, CARDAMOM cannnot determine where C allocation roots has come from")
       }
   }
+
   # The total allocation of C to the wood pool can, depending on model,
   # be the combined total of direct allocation and that via a labile pool.
   # For many comparison we will need their combined total.
@@ -189,6 +191,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
           states_all$mean_annual_GRAZINGlitter_biomass_gCm2day = states_all$mean_annual_GRAZINGlitter_biomass_gCm2day + states_all$mean_annual_GRAZINGlitter_labile_gCm2day
       }
   }
+
   if (any(check_list == "roots_gCm2")) {
       states_all$biomass_gCm2 = states_all$biomass_gCm2 + states_all$roots_gCm2
       states_all$mean_biomass_gCm2 = states_all$mean_biomass_gCm2 + states_all$mean_roots_gCm2
@@ -224,6 +227,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
           states_all$mean_annual_GRAZINGlitter_biomass_gCm2day = states_all$mean_annual_GRAZINGlitter_biomass_gCm2day + states_all$mean_annual_GRAZINGlitter_roots_gCm2day
       }      
   }
+
   if (any(check_list == "wood_gCm2")) {
       states_all$biomass_gCm2 = states_all$biomass_gCm2 + states_all$wood_gCm2
       states_all$mean_biomass_gCm2 = states_all$mean_biomass_gCm2 + states_all$mean_wood_gCm2
@@ -317,6 +321,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
               states_all$mean_annual_GRAZINGextracted_dom_gCm2day = states_all$mean_annual_GRAZINGextracted_dom_gCm2day + states_all$mean_annual_GRAZINGextracted_litter_gCm2day
           }          
       } # litter
+    
       if (any(check_list == "woodlitter_gCm2")) {
           states_all$dom_gCm2 = states_all$dom_gCm2 + states_all$woodlitter_gCm2
           states_all$mean_dom_gCm2 = states_all$mean_dom_gCm2 + states_all$mean_woodlitter_gCm2
@@ -415,6 +420,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
       site_output$assimilated_lai_sd_m2m2 = NA
       site_output$assimilated_lai_unc_m2m2 = NA
   }
+  
   # Assimilated wood stock / prior information
   # Do we have one or both wood stock prior and time series inforamtion
   if (drivers$parpriors[21] > 0 ||
@@ -1179,7 +1185,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
       # If this one exists then maybe some other fluxes do
       if (any(check_list == "FIREemiss_woodlitter_gCm2day")) {
           site_output$FIREemiss_woodlitter_gCm2day = apply(states_all$FIREemiss_woodlitter_gCm2day,2,quantile,prob=num_quantiles, na.rm = na_flag)
-          site_output$mean_FIREemiss_woodlitter_gCm2day = quantile(rowMeans(states_all$mean_FIREemiss_woodlitter_gCm2day, na.rm = na_flag), prob=num_quantiles)
+          site_output$mean_FIREemiss_woodlitter_gCm2day = quantile(states_all$mean_FIREemiss_woodlitter_gCm2day, na.rm = na_flag, prob=num_quantiles)
           site_output$mean_annual_FIREemiss_woodlitter_gCm2day = apply(states_all$mean_annual_FIREemiss_woodlitter_gCm2day,2,quantile,prob=num_quantiles, na.rm = na_flag)
           site_output$FireFractionOfTurnover_woodlitter = states_all$FIREemiss_woodlitter_gCm2day
           site_output$outflux_woodlitter_gCm2day = site_output$outflux_woodlitter_gCm2day + states_all$FIREemiss_woodlitter_gCm2day
@@ -1206,7 +1212,7 @@ post_process_for_grid<-function(outfile_stock_fluxes,PROJECT,drivers,parameters,
           site_output$mean_annual_GRAZINGextracted_woodlitter_gCm2day = apply(states_all$mean_annual_GRAZINGextracted_woodlitter_gCm2day,2,quantile,prob=num_quantiles, na.rm = na_flag)
           site_output$outflux_woodlitter_gCm2day = site_output$outflux_woodlitter_gCm2day + states_all$GRAZINGextracted_woodlitter_gCm2day
           site_output$GRAZINGFractionOfTurnover_woodlitter = states_all$GRAZINGextracted_woodlitter_gCm2day
-      }      
+      }       
       # Use this information to determine the mean residence times as it evolves over time
       # NOTE: rollapply inverts the dimensions from that wanted
       site_output$MTT_annual_woodlitter_years = t( apply(states_all$woodlitter_gCm2,1, rollapply_mean_annual, step = steps_per_year)

@@ -157,7 +157,7 @@ subroutine rdalec36(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,34) = FLUXES(1:nodays,28)      ! fire induced litter from foliar litter (gC/m2/day)
      out_var1(i,1:nodays,35) = FLUXES(1:nodays,63)      ! fire emission from fine root litter (gC/m2/day)
      out_var1(i,1:nodays,36) = FLUXES(1:nodays,65)      ! fire induced litter from fine root litter (gC/m2/day)
-     out_var1(i,1:nodays,37) = FLUXES(1:nodays,32)      ! fire emission from wood litter (gC/m2/day)
+     out_var1(i,1:nodays,37) = FLUXES(1:nodays,32)      ! fire emission from wood litter (gC/m2/day)     
      out_var1(i,1:nodays,38) = FLUXES(1:nodays,33)      ! fire induced litter from wood litter (gC/m2/day)
      out_var1(i,1:nodays,39) = FLUXES(1:nodays,64)      ! fire emission from fast som (gC/m2/day)
      out_var1(i,1:nodays,40) = FLUXES(1:nodays,23)      ! fire emission from slow som (gC/m2/day)
