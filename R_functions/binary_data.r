@@ -119,6 +119,18 @@ obs_array_names <<- c("GPP (gC/m2/day)",
                       "Mean woody net change (gC/m2/day)",
                       "Mean woody net change variance (gC/m2/day)",
                       "Lag period over which to average (steps)",
+                      "Mean AGB gross productivity (gC/m2/day)",
+                      "Mean AGB gross productivity variance (gC/m2/day)",
+                      "Lag period over which to average (steps)",
+                      "Mean AGB loss (gC/m2/day)",
+                      "Mean AGB loss variance (gC/m2/day)",
+                      "Lag period over which to average (steps)",
+                      "Mean leaf litter flux (gC/m2/day)",
+                      "Mean leaf litter flux variance (gC/m2/day)",
+                      "Lag period over which to average (steps)",
+                      "Mean AGB net change (gC/m2/day)",
+                      "Mean AGB net change variance (gC/m2/day)",
+                      "Lag period over which to average (steps)",
                       "Extracted C due to harvest (gC/m2/day)",
                       "Extracted C due to harvest variance (gC/m2/day)",
                       "Lag period over which to average (steps)",
@@ -353,6 +365,15 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
       OBSMAT[,64] = OBS$soilwater             # Surface (0-30cm) soil water content (m3/m3)
       OBSMAT[,65] = OBS$soilwater_unc         # Surface (0-30cm) soil water content variance (m3/m3)
       OBSMAT[,66] = OBS$soilwater_lag         # Surface (0-30cm) soil water content lag (step)
+      OBSMAT[,67] = OBS$Cagb_change          # Mean AGB net change over lag period (gC/m2/day)
+      OBSMAT[,68] = OBS$Cagb_change_unc      # Mean AGB net change varince
+      OBSMAT[,69] = OBS$Cagb_change_lag      # Lag period over which to average  (steps)
+      OBSMAT[,70] = OBS$Cagb_growth          # Mean AGB productivity over lag period (gC/m2/day)
+      OBSMAT[,71] = OBS$Cagb_growth_unc      # Mean AGB productivity varince
+      OBSMAT[,72] = OBS$Cagb_growth_lag      # Lag period over which to average  (steps)
+      OBSMAT[,73] = OBS$Cagb_loss            # Mean AGB loss over lag period (gC/m2/day)
+      OBSMAT[,74] = OBS$Cagb_loss_unc        # Mean AGB loss varince
+      OBSMAT[,75] = OBS$Cagb_loss_lag        # Lag period over which to average  (steps)
 
       # STATIC DATA (1-50)
       # Model ID      = static_data[1]; DALEC_CDEA, DALEC.A1.C2.D2.F2.H2.P4.R2. etc
@@ -515,6 +536,8 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[23] = OBS$Csom_initial                 ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$frac_Cwood_coarse_root_prior ; PARPRIORUNC[25] = OBS$frac_Cwood_coarse_root_prior_unc # Fraction Cwood coarse root prior
           PARPRIORS[27] = min(19.9,max(0.36,OBS$MaxRootDepth))  ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
+          PARPRIORS[12] = OBS$labile_release_timing         ; PARPRIORUNC[12] = OBS$labile_release_timing_unc # timing of max bud burst
+          PARPRIORS[14] = OBS$labile_release_period         ; PARPRIORUNC[14] = OBS$labile_release_period_unc # timing of bud burst period
 #          PARPRIORS[27] = 1.0                              ; PARPRIORUNC[27] = 0.5 # Maximum rooting depth prior, 
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
@@ -528,6 +551,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 #; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
           OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
+          OTHERPRIORS[9] = OBS$leaflifespan    ; OTHERPRIORUNC[9] = OBS$leaflifespan_unc # Prior on the leaf lifespan
           # Hack to remove loss terms in pixels with disturbance
           if (max(MET[,8]) > 0 | max(MET[,9]) > 0) {
               OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
