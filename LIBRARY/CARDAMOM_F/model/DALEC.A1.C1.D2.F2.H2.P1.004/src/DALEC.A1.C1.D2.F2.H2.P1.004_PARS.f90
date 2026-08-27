@@ -126,9 +126,9 @@ module MODEL_PARAMETERS
     PI%parmin(11) = 10d0  ! 5d0
     PI%parmax(11) = 100d0  ! 42d0  ! 50d0
 
-    ! max bud burst day
-    PI%parmin(12) = 365.25d0
-    PI%parmax(12) = 365.25d0*4d0
+    ! max bud burst day - DTM edit UK based limits
+    PI%parmin(12) = 1.0d0 !365.25d0
+    PI%parmax(12) = 200.0d0 !365.25d0*4d0
 
     ! Fraction to Clab*/
     PI%parmin(13) = 0.01d0
@@ -138,9 +138,9 @@ module MODEL_PARAMETERS
     PI%parmin(14) = 10d0
     PI%parmax(14) = 100d0
 
-    ! max leaf fall day
-    PI%parmin(15) = 365.25d0
-    PI%parmax(15) = 365.25d0*4d0
+    ! max leaf fall day - DTM edit UK based limits
+    PI%parmin(15) = 244.0d0 !365.25d0
+    PI%parmax(15) = 365.25d0 ! 365.25d0*4d0
 
     ! Leaf fall period
     PI%parmin(16) = 20d0
