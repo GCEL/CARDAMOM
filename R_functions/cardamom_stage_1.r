@@ -36,7 +36,9 @@ write_bin_files<-function(n,PROJECT,cardamom_ext,latlon,timestep_days,noyears
                          ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
                          ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_growth_all
                          ,Cwood_mortality_all,fire_all, dlai_all
-                         ,fapar_all, et_all, RhetQ10_all, MTTsom_all,MaxRootDepth_all) {
+                         ,fapar_all, et_all, RhetQ10_all, MTTsom_all,MaxRootDepth_all
+                         ,Cagb_stock_all,Cagb_change_all,Cagb_growth_all,leaflifespan_all
+                         ,labile_release_timing_all,labile_release_period_all,frac_Cwood_coarse_root_all) {
 
    # create the file name for the met/obs binary
    filename = paste(PROJECT$datapath,PROJECT$name,"_",PROJECT$sites[n],".bin",sep="")
@@ -97,6 +99,8 @@ write_bin_files<-function(n,PROJECT,cardamom_ext,latlon,timestep_days,noyears
                              ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
                              ,nbe_all,lca_all,gpp_all,Cwood_change_all,Cwood_growth_all,Cwood_mortality_all
                              ,fire_all,dlai_all,fapar_all, et_all, RhetQ10_all, MTTsom_all, MaxRootDepth_all
+                             ,Cagb_stock_all,Cagb_change_all,Cagb_growth_all,leaflifespan_all
+                             ,labile_release_timing_all,labile_release_period_all,frac_Cwood_coarse_root_all
                              ,PROJECT$ctessel_pft[n],PROJECT$sites[n],PROJECT$start_year,PROJECT$end_year
                              ,timestep_days,PROJECT$spatial_type,PROJECT$resolution,PROJECT$grid_type,PROJECT$model$name)
             # update ctessel pft in the project and potentially the model information
@@ -319,7 +323,52 @@ cardamom_stage_1<-function(PROJECT) {
                                                              est_var_name_out = "Cwood_loss_gCm2day",
                                                              unc_var_name_out = "Cwood_loss_uncertainty_gCm2day",
                                                              lag_var_name_out = "Cwood_loss_lag",
+                                                             default_lag = 0)
+           # AGB stock (gC/m2)
+           Cagb_stock_all = load_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             Cagb_stock_source,path_to_Cagb,prefix = "Cagb_stock_gCm2_",
+                                                             as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),
+                                                             est_var_name_in = "Cagb_stock",
+                                                             unc_var_name_in = "Cagb_stock_SD",
+                                                             lag_var_name_in = "Cagb_stock_lag",
+                                                             est_var_name_out = "Cagb_stock_gCm2",
+                                                             unc_var_name_out = "Cagb_stock_uncertainty_gCm2",
+                                                             lag_var_name_out = "Cagb_stock_lag",
+                                                             default_lag = 1)                                                                         
+           # AGB stock production, i.e. gross growth (gC/m2/day)
+           Cagb_growth_all = load_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             Cagb_growth_source,path_to_Cagb_growth,prefix = "nppCagb_gCm2day_",
+                                                             as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),
+                                                             est_var_name_in = "Cagb_growth",
+                                                             unc_var_name_in = "Cagb_growth_SD",
+                                                             lag_var_name_in = "Cagb_growth_lag",
+                                                             est_var_name_out = "Cagb_growth_gCm2day",
+                                                             unc_var_name_out = "Cagb_uncertainty_gCm2day",
+                                                             lag_var_name_out = "Cagb_growth_lag",
                                                              default_lag = 0)                      
+
+           # AGB stock net increment (gC/m2/day)
+           Cagb_change_all = load_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             Cagb_change_source,path_to_Cagb_change,prefix = "deltaCagb_gCm2day_",
+                                                             as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),
+                                                             est_var_name_in = "Cagb_change",
+                                                             unc_var_name_in = "Cagb_change_SD",
+                                                             lag_var_name_in = "Cagb_change_lag",
+                                                             est_var_name_out = "Cagb_change_gCm2day",
+                                                             unc_var_name_out = "Cagb_change_uncertainty_gCm2day",
+                                                             lag_var_name_out = "Cagb_change_lag",
+                                                             default_lag = 0)                      
+           # Wood stock mortality (gC/m2/day)
+           Cagb_mortality_all = load_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             Cagb_mortality_source,path_to_Cagb_mortality,prefix = "lossCagb_gCm2day_",
+                                                             as.character(as.numeric(PROJECT$start_year):as.numeric(PROJECT$end_year)),
+                                                             est_var_name_in = "Cagb_loss",
+                                                             unc_var_name_in = "Cagb_loss_SD",
+                                                             lag_var_name_in = "Cagb_loss_lag",
+                                                             est_var_name_out = "Cagb_loss_gCm2day",
+                                                             unc_var_name_out = "Cagb_loss_uncertainty_gCm2day",
+                                                             lag_var_name_out = "Cagb_loss_lag",
+                                                             default_lag = 0)                                            
 # Still need to consider how this will be read into the damn model...new timeserie and everything - is really horrible for all analyses input files will need to be update for the new number of forcings...                                                             
 
 
@@ -393,7 +442,30 @@ cardamom_stage_1<-function(PROJECT) {
                                                              est_var_name_in = "leaf_carbon_area",
                                                              unc_var_name_in = "leaf_carbon_area_SD",
                                                              est_var_name_out = "lca_gCm2",
-                                                             unc_var_name_out = "lca_uncertainty_gCm2")               
+                                                             unc_var_name_out = "lca_uncertainty_gCm2")        
+           # Leaf Lifespan (years)
+           leaflifespan_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             leaflifespan_source,path_to_leaflifespan,prefix = "leaf_lifespan_y",
+                                                             est_var_name_in = "leaf_lifespan",
+                                                             unc_var_name_in = "leaf_lifespan_SD",
+                                                             est_var_name_out = "leaf_lifespan_y",
+                                                             unc_var_name_out = "leaf_lifespan_uncertainty_y")               
+
+           # Leaf flush timing (doy)
+           labile_release_timing_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             labile_release_timing_source,path_to_labile_release_timing,prefix = "labile_release_timing_d",
+                                                             est_var_name_in = "labile_release_timing",
+                                                             unc_var_name_in = "labile_release_timing_SD",
+                                                             est_var_name_out = "labile_release_timing_d",
+                                                             unc_var_name_out = "labile_release_timing_uncertainty_d")               
+           # Leaf flush period (doy)
+           labile_release_period_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             labile_release_period_source,path_to_labile_release_period,prefix = "labile_release_period_d",
+                                                             est_var_name_in = "labile_release_period",
+                                                             unc_var_name_in = "labile_release_period_SD",
+                                                             est_var_name_out = "labile_release_period_d",
+                                                             unc_var_name_out = "labile_release_period_uncertainty_d")               
+           
            # Temperature sensitivity of heterotrophic respiration expresses as a Q10 or exp(c*T).
            # The version needed depends on the specific DALEC model selected. Please be very careful that these match
            RhetQ10_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
@@ -416,6 +488,13 @@ cardamom_stage_1<-function(PROJECT) {
                                                              unc_var_name_in = "MaxRootDepth_SD",
                                                              est_var_name_out = "MaxRootDepth_m",
                                                              unc_var_name_out = "MaxRootDepth_uncertainty_m")    
+           # fraction Cwood belowground
+           frac_Cwood_coarse_root_all = load_static_observation_dataset_for_extraction(latlon,cardamom_ext,PROJECT$grid_type,
+                                                             frac_Cwood_coarse_root_source,path_to_frac_Cwood_coarse_root,prefix = "frac_Cwood_coarse_root_m",
+                                                             est_var_name_in = "frac_Cwood_coarse_root",
+                                                             unc_var_name_in = "frac_Cwood_coarse_root_SD",
+                                                             est_var_name_out = "frac_Cwood_coarse_root_m",
+                                                             unc_var_name_out = "frac_Cwood_coarse_root_uncertainty_m")    
 
        } # if (PROJECT$model$name != "ACM")
 
@@ -439,7 +518,10 @@ cardamom_stage_1<-function(PROJECT) {
                            Cwood_growth_all = Cwood_growth_all, Cwood_mortality_all = Cwood_mortality_all, 
                            fire_all = fire_all, dlai_all = dlai_all,
                            fapar_all = fapar_all, et_all = et_all, RhetQ10_all = RhetQ10_all,
-                           MTTsom_all = MTTsom_all, MaxRootDepth_all = MaxRootDepth_all)
+                           MTTsom_all = MTTsom_all, MaxRootDepth_all = MaxRootDepth_all,
+                           Cagb_stock_all = Cagb_stock_all, Cagb_change_all = Cagb_change_all, Cagb_growth_all = Cagb_growth_all,
+                           leaflifespan_all = leaflifespan_all, labile_release_timing_all = labile_release_timing_all,
+                           labile_release_period_all = labile_release_period_all, frac_Cwood_coarse_root_all = frac_Cwood_coarse_root_all)
 
       } else { # use parallel
 
@@ -455,8 +537,10 @@ cardamom_stage_1<-function(PROJECT) {
                               ,sand_clay_all,crop_man_all,burnt_all,soilwater_all
                               ,nbe_all, lca_all,gpp_all,Cwood_change_all,Cwood_growth_all
                               ,Cwood_mortality_all,fire_all, dlai_all
-                              ,fapar_all, et_all, RhetQ10_all, MTTsom_all, MaxRootDepth_all)    
-
+                              ,fapar_all, et_all, RhetQ10_all, MTTsom_all, MaxRootDepth_all,
+                              ,Cagb_stock_all, Cagb_change_all, Cagb_growth_all
+                              ,leaflifespan_all, labile_release_timing_all
+                              ,labile_release_period_all, frac_Cwood_coarse_root_all)    
           } # site loop
 
       } # use_parallel
