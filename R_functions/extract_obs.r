@@ -36,6 +36,8 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                      ,sand_clay_all,crop_man_all,burnt_all,soilwater_all,nbe_all
                      ,lca_all,gpp_all,Cwood_change_all,Cwood_growth_all,Cwood_loss_all
                      ,fire_all,dlai_all,fapar_all,et_all,RhetQ10_all,MTTsom_all,MaxRootDepth_all
+                     ,Cagb_stock_all,Cagb_change_all,Cagb_growth_all,leaflifespan_all
+                     ,labile_release_timing_all,labile_release_period_all,frac_Cwood_coarse_root_all
                      ,ctessel_pft,site_name,start_year,end_year
                      ,timestep_days,spatial_type,resolution,grid_type,modelname) {
 
@@ -721,6 +723,27 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
             # on the other hand if not then we have no uncertainty info, so use default
             Cagb_stock_lag = rep(1,times = length(Cagb_stock))
         }
+    } else if (Cagb_change_source == "Gridded_nc" | Cagb_change_source == "Gridded_tif") {
+        # If there are any values in the analysis window
+        if (Cagb_change_all$data_available) {        
+            # Extract gross wood production / growth and uncertainty information
+            # NOTE: assume default uncertainty (+/- scale)
+            # Extract the current location from the gridded dataset
+            output = extract_timeseries_observations_with_uncertainty(grid_long_loc,grid_lat_loc,timestep_days,years_to_load,doy_obs,
+                                                                      Cagb_change_all,agg_func = "mean", na_flag = -9999,
+                                                                      est_var_name_in = "Cagb_stock_gCm2day",
+                                                                      unc_var_name_in = "Cagb_stock_uncertainty_gCm2day",
+                                                                      lag_var_name_in = "Cagb_stock_lag",
+                                                                      est_var_name_out = "Cagb_stock",
+                                                                      unc_var_name_out = "Cagb_stock_unc",
+                                                                      lag_var_name_out = "Cagb_stock_lag")                                                  
+            Cagb_change = output$Cagb_change ; Cagb_change_unc = output$Cagb_change_unc ; Cagb_change_lag = output$Cagb_change_lag
+            # Tidy up
+            rm(output)
+        } else {
+            # assume no data available
+            Cagb_change = -9999 ; Cagb_change_unc = -9999 ; Cagb_change_lag = -9999
+        }
     } else {
         # assume no data available
         Cagb_stock = -9999 ; Cagb_stock_unc = -9999 ; Cagb_stock_lag = -9999
@@ -728,6 +751,159 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     # apply lower bound in all cases to the uncertainty
     # NOTE minimum uncertainty bound irrespective of the dataset estimates
     Cagb_stock_unc[Cagb_stock_unc >= 0] = pmax(100,sqrt(Cagb_stock_unc[Cagb_stock_unc >= 0]**2 + (0.1*mean(Cagb_stock[Cagb_stock >= 0]))**2))
+
+    ###
+    ## Get some AGB net change information (gC/m2/day; time series)
+
+    if (Cagb_change_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
+        Cagb_change = read_site_specific_obs("Cagb_change_gCm2day",infile)
+        Cagb_change_unc = read_site_specific_obs("Cagb_change_uncertainty_gCm2day",infile)
+        Cagb_change_lag = read_site_specific_obs("Cagb_change_lag_step",infile) # in model time steps
+        # Has uncertainty information been provided?
+        if (length(Cagb_change_unc) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_change_unc = rep(-9999,times = length(Cagb_change))
+            Cagb_change_unc[which(Cagb_change > 0)] = 0.25 * Cagb_change[which(Cagb_change > 0)]
+        }
+        # Has lag information been provided
+        if (length(Cagb_change_lag) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_change_lag = rep(-9999,times = length(Cagb_change))
+            Cagb_change_lag[which(Cagb_change > 0)] = 0 # assume applies to current time step only
+        }
+    } else if (Cagb_change_source == "Gridded_nc" | Cagb_change_source == "Gridded_tif") {
+        # If there are any values in the analysis window
+        if (Cagb_change_all$data_available) {        
+            # Extract gross wood production / growth and uncertainty information
+            # NOTE: assume default uncertainty (+/- scale)
+            # Extract the current location from the gridded dataset
+            output = extract_timeseries_observations_with_uncertainty(grid_long_loc,grid_lat_loc,timestep_days,years_to_load,doy_obs,
+                                                                      Cagb_change_all,agg_func = "mean", na_flag = -9999,
+                                                                      est_var_name_in = "Cagb_change_gCm2day",
+                                                                      unc_var_name_in = "Cagb_change_uncertainty_gCm2day",
+                                                                      lag_var_name_in = "Cagb_change_lag",
+                                                                      est_var_name_out = "Cagb_change",
+                                                                      unc_var_name_out = "Cagb_change_unc",
+                                                                      lag_var_name_out = "Cagb_change_lag")                                                  
+            Cagb_change = output$Cagb_change ; Cagb_change_unc = output$Cagb_change_unc ; Cagb_change_lag = output$Cagb_change_lag
+            # Tidy up
+            rm(output)
+        } else {
+            # assume no data available
+            Cagb_change = -9999 ; Cagb_change_unc = -9999 ; Cagb_change_lag = -9999
+        }
+    } else {
+        # assume no data available
+        Cagb_change = -9999 ; Cagb_change_unc = -9999 ; Cagb_change_lag = -9999
+    }
+    # Assumed uncertainty structure as agreed with Anthony Bloom
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    Cagb_change_unc[Cagb_change_unc >= 0] = pmax(0.1,sqrt(Cagb_change_unc[Cagb_change_unc >= 0]**2 + (0.1*mean(Cagb_change[Cagb_change_unc >= 0]))**2))
+
+    ###
+    ## Get some gross woody production information (gC/m2/day; time series)
+
+    if (Cagb_growth_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
+        Cagb_growth = read_site_specific_obs("Cagb_production_gCm2day",infile)
+        Cagb_growth_unc = read_site_specific_obs("Cagb_production_uncertainty_gCm2day",infile)
+        Cagb_growth_lag = read_site_specific_obs("Cagb_production_lag_step",infile) # in model time steps
+        # Has uncertainty information been provided?
+        if (length(Cagb_growth_unc) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_growth_unc = rep(-9999,times = length(Cagb_growth))
+            Cagb_growth_unc[which(Cagb_growth > 0)] = 0.25 * Cagb_growth[which(Cagb_growth > 0)]
+        }
+        # Has lag information been provided
+        if (length(Cagb_growth_lag) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_growth_lag = rep(-9999,times = length(Cagb_growth))
+            Cagb_growth_lag[which(Cagb_growth > 0)] = 0 # assume applies to current time step only
+        }
+    } else if (Cagb_growth_source == "Gridded_nc" | Cagb_growth_source == "Gridded_tif") {
+        # If there are any values in the analysis window
+        if (Cagb_growth_all$data_available) {      
+            # Extract gross wood production / growth and uncertainty information
+            # NOTE: assume default uncertainty (+/- scale)
+            # Extract the current location from the gridded dataset
+            output = extract_timeseries_observations_with_uncertainty(grid_long_loc,grid_lat_loc,timestep_days,years_to_load,doy_obs,
+                                                                      Cagb_growth_all,agg_func = "mean", na_flag = -9999,
+                                                                      est_var_name_in = "Cagb_growth_gCm2day",
+                                                                      unc_var_name_in = "Cagb_growth_uncertainty_gCm2day",
+                                                                      lag_var_name_in = "Cagb_growth_lag",
+                                                                      est_var_name_out = "Cagb_growth",
+                                                                      unc_var_name_out = "Cagb_growth_unc",
+                                                                      lag_var_name_out = "Cagb_growth_lag")   
+            # Assign to local variables                           
+            Cagb_growth = output$Cagb_growth ; Cagb_growth_unc = output$Cagb_growth_unc ; Cagb_growth_lag = output$Cagb_growth_lag
+            # Tidy up
+            rm(output)
+        } else {
+            # assume no data available
+            Cagb_growth = -9999 ; Cagb_growth_unc = -9999 ; Cagb_growth_lag = -9999
+        }
+    } else {
+        # assume no data available
+        Cagb_growth = -9999 ; Cagb_growth_unc = -9999 ; Cagb_growth_lag = -9999
+    }
+    # Assumed uncertainty structure as agreed with Anthony Bloom
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    Cagb_growth_unc[Cagb_growth_unc >= 0] = pmax(0.1,sqrt(Cagb_growth_unc[Cagb_growth_unc >= 0]**2 + (0.1*mean(Cagb_growth[Cagb_growth_unc >= 0]))**2))
+
+    ###
+    ## Get some Wood loss information (gC/m2/day; time series)
+
+    if (Cagb_mortality_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
+        Cagb_loss = read_site_specific_obs("Cagb_loss_gCm2day",infile)
+        Cagb_loss_unc = read_site_specific_obs("Cagb_loss_uncertainty_gCm2day",infile)
+        Cagb_loss_lag = read_site_specific_obs("Cagb_loss_lag_step",infile) # in model time steps
+        # Has uncertainty information been provided?
+        if (length(Cagb_loss_unc) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_loss_unc = rep(-9999,times = length(Cagb_loss))
+            Cagb_loss_unc[which(Cagb_loss > 0)] = 0.25 * Cagb_loss[which(Cagb_loss > 0)]
+        }
+        # Has lag information been provided
+        if (length(Cagb_loss_lag) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cagb_loss_lag = rep(-9999,times = length(Cagb_loss))
+            Cagb_loss_lag[which(Cagb_loss > 0)] = 0 # assume applies to current time step only
+        }
+    } else if (Cagb_mortality_source == "Gridded_nc" | Cagb_mortality_source == "Gridded_tif") {
+        # If there are any values in the analysis window
+        if (Cagb_loss_all$data_available) {      
+            # Extract wood mortality and uncertainty information
+            # NOTE: assume default uncertainty (+/- scale)
+            # Extract the current location from the gridded dataset
+            output = extract_timeseries_observations_with_uncertainty(grid_long_loc,grid_lat_loc,timestep_days,years_to_load,doy_obs,
+                                                                      Cagb_loss_all,agg_func = "mean", na_flag = -9999,
+                                                                      est_var_name_in = "Cagb_loss_gCm2day",
+                                                                      unc_var_name_in = "Cagb_loss_uncertainty_gCm2day",
+                                                                      lag_var_name_in = "Cagb_loss_lag",
+                                                                      est_var_name_out = "Cagb_loss",
+                                                                      unc_var_name_out = "Cagb_loss_unc",
+                                                                      lag_var_name_out = "Cagb_loss_lag")   
+            # Assign to local variables                           
+            Cagb_loss = output$Cagb_loss ; Cagb_loss_unc = output$Cagb_loss_unc ; Cagb_loss_lag = output$Cagb_loss_lag
+
+            # Tidy up
+            rm(output)
+        } else {
+            # assume no data available
+            Cagb_loss = -9999 ; Cagb_loss_unc = -9999 ; Cagb_loss_lag = -9999
+        }
+    } else {
+        # assume no data available
+        Cagb_loss = -9999 ; Cagb_loss_unc = -9999 ; Cagb_loss_lag = -9999
+    }
+    # Assumed uncertainty structure as agreed with Anthony Bloom
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    Cagb_loss_unc[Cagb_loss_unc >= 0] = pmax(0.1,sqrt(Cagb_loss_unc[Cagb_loss_unc >= 0]**2 + 
+                                                                  (0.1*mean(Cagb_loss[Cagb_loss_unc >= 0]))**2))
+
+
 
     ###
     ## Get some Croots information (stock)
@@ -1002,6 +1178,87 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     if (lca > -9999) { lca_unc = max(10,sqrt(lca_unc**2 + (0.1*lca)**2)) }
 
     ###
+    ## Get some leaf lifespan information (y)
+
+    if (leaflifespan_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        leaflifespan = read_site_specific_obs("leaflifespan_y",infile)
+        leaflifespan_unc = read_site_specific_obs("leaflifespan_unc_y",infile)
+    } else if (lca_source == "Gridded_nc" | lca_source == "Gridded_tif") {
+        # get leaf carbon per unit leaf area from gridded dataset  
+        output = extract_static_observations_with_uncertainty(grid_long_loc,grid_lat_loc,lca_all,
+                                                              na_flag = -9999,
+                                                              est_var_name_in="leaflifespan_y",
+                                                              unc_var_name_in="leaflifespan_uncertainty_y",
+                                                              est_var_name_out="leaflifespan_y",
+                                                              unc_var_name_out="leaflifespan_unc_y") 
+        # Load into local variables
+        leaflifespan = output$leaflifespan_y
+        leaflifespan_unc = output$leaflifespan_unc_y
+    } else {
+        # assume no data available
+        leaflifespan = -9999 ; leaflifespan_unc = -9999
+    }
+    # Assumed uncertainty structure as agreed with Anthony Bloom
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    if (leaflifespan > -9999) { leaflifespan_unc = max(0.1,sqrt(leaflifespan_unc**2 + (0.1*leaflifespan)**2)) }
+
+    ###
+    ## Get some labile release timing information (d)
+
+    if (labile_release_timing_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        labile_release_timing = read_site_specific_obs("labile_release_timing_d",infile)
+        labile_release_timing_unc = read_site_specific_obs("labile_release_timing_unc_d",infile)
+    } else if (lca_source == "Gridded_nc" | lca_source == "Gridded_tif") {
+        # get leaf carbon per unit leaf area from gridded dataset  
+        output = extract_static_observations_with_uncertainty(grid_long_loc,grid_lat_loc,lca_all,
+                                                              na_flag = -9999,
+                                                              est_var_name_in="labile_release_timing_d",
+                                                              unc_var_name_in="labile_release_timing_uncertainty_d",
+                                                              est_var_name_out="labile_release_timing_d",
+                                                              unc_var_name_out="labile_release_timing_unc_d") 
+        # Load into local variables
+        labile_release_timing = output$labile_release_timing_d
+        labile_release_timing_unc = output$labile_release_timing_unc_d
+    } else {
+        # assume no data available
+        labile_release_timing = -9999 ; labile_release_timing_unc = -9999
+    }
+    # Assumed uncertainty structure
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    if (labile_release_timing > -9999) { labile_release_timing_unc = max(7,labile_release_timing_unc**2) }
+
+
+    ###
+    ## Get some labile release period information (d)
+
+    if (labile_release_period_source == "site_specific") {
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        labile_release_period = read_site_specific_obs("labile_release_period_d",infile)
+        labile_release_period_unc = read_site_specific_obs("labile_release_period_unc_d",infile)
+    } else if (lca_source == "Gridded_nc" | lca_source == "Gridded_tif") {
+        # get leaf carbon per unit leaf area from gridded dataset  
+        output = extract_static_observations_with_uncertainty(grid_long_loc,grid_lat_loc,lca_all,
+                                                              na_flag = -9999,
+                                                              est_var_name_in="labile_release_period_d",
+                                                              unc_var_name_in="labile_release_period_uncertainty_d",
+                                                              est_var_name_out="labile_release_period_d",
+                                                              unc_var_name_out="labile_release_period_unc_d") 
+        # Load into local variables
+        labile_release_period = output$labile_release_period_d
+        labile_release_period_unc = output$labile_release_period_unc_d
+    } else {
+        # assume no data available
+        labile_release_period = -9999 ; labile_release_period_unc = -9999
+    }
+    # Assumed uncertainty structure
+    # NOTE minimum uncertainty bound irrespective of the dataset estimates
+    if (labile_release_period > -9999) { labile_release_period_unc = max(7,labile_release_period_unc**2) }
+
+
+
+    ###
     ## Get some maximum rooting depth information (m)
 
     if (MaxRootDepth_source == "site_specific") {
@@ -1034,7 +1291,18 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
         frac_Cwood_coarse_root_prior = read_site_specific_obs("frac_Cwood_coarse_root_prior",infile)
         frac_Cwood_coarse_root_prior_unc = read_site_specific_obs("frac_Cwood_coarse_root_prior_unc",infile)
-    } else {
+    } else if (MaxRootDepth_source == "Gridded_nc" | frac_Cwood_coarse_root_source == "Gridded_tif") {
+        # get leaf carbon per unit leaf area from gridded dataset  
+        output = extract_static_observations_with_uncertainty(grid_long_loc,grid_lat_loc,frac_Cwood_coarse_root_all,
+                                                              na_flag = -9999,
+                                                              est_var_name_in="frac_Cwood_coarse_root_m",
+                                                              unc_var_name_in="frac_Cwood_coarse_root_uncertainty_m",
+                                                              est_var_name_out="frac_Cwood_coarse_root_m",
+                                                              unc_var_name_out="frac_Cwood_coarse_root_unc_m") 
+        # Load into local variables
+        frac_Cwood_coarse_root = output$frac_Cwood_coarse_root_m
+        frac_Cwood_coarse_root_unc = output$frac_Cwood_coarse_root_unc_m
+    }  else {
         # assume no data available
         frac_Cwood_coarse_root_prior = -9999 ; frac_Cwood_coarse_root_prior_unc = -9999
         # If we have some wood stock information we can do better with a prior value
@@ -1364,7 +1632,13 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                 foliage_to_litter = foliage_to_litter, foliage_to_litter_unc = foliage_to_litter_unc, foliage_to_litter_lag = foliage_to_litter_lag,
                 frac_Cwood_coarse_root_prior = frac_Cwood_coarse_root_prior, frac_Cwood_coarse_root_prior_unc = frac_Cwood_coarse_root_prior_unc,
                 minLWP = minLWP, minLWP_unc = minLWP_unc, RhetQ10 = RhetQ10, RhetQ10_unc = RhetQ10_unc, MTTsom = MTTsom, MTTsom_unc = MTTsom_unc,
-                MaxRootDepth = MaxRootDepth, MaxRootDepth_unc = MaxRootDepth_unc))
+                MaxRootDepth = MaxRootDepth, MaxRootDepth_unc = MaxRootDepth_unc,
+                Cagb_change = Cagb_change, Cagb_change_unc = Cagb_change_unc, Cagb_change_lag = Cagb_change_lag,
+                Cagb_growth = Cagb_growth, Cagb_growth_unc = Cagb_growth_unc, Cagb_growth_lag = Cagb_growth_lag,
+                Cagb_loss = Cagb_loss, Cagb_loss_unc = Cagb_loss_unc, Cagb_loss_lag = Cagb_loss_lag,
+                leaflifespan = leaflifespan,
+                labile_release_timing = labile_release_timing, labile_release_period = labile_release_period,
+                frac_Cwood_coarse_root = frac_Cwood_coarse_root))
 
 } # end function extract_obs
 
