@@ -61,6 +61,10 @@ check_control_file_defaults<-function(paths) {
   if (exists("path_to_Cwood_growth") == FALSE)          {path_to_Cwood_growth <<- " "}
   if (exists("path_to_Cwood_mortality") == FALSE)       {path_to_Cwood_mortality <<- " "}
   if (exists("path_to_Cwood") == FALSE)                 {path_to_Cwood <<- " "}
+  if (exists("path_to_Cagb_change") == FALSE)           {path_to_Cagb_change <<- " "}
+  if (exists("path_to_Cagb_growth") == FALSE)           {path_to_Cagb_growth <<- " "}
+  if (exists("path_to_Cagb_mortality") == FALSE)        {path_to_Cagb_mortality <<- " "}
+  if (exists("path_to_Cagb") == FALSE)                  {path_to_Cagb <<- " "}
   if (exists("path_to_Cwood_initial") == FALSE)         {path_to_Cwood_initial <<- " "}
   if (exists("path_to_Cwood_potential") == FALSE)       {path_to_Cwood_potential <<- " "}
   if (exists("path_to_soilwater") == FALSE)             {path_to_soilwater <<- " "}
@@ -69,7 +73,11 @@ check_control_file_defaults<-function(paths) {
   if (exists("path_to_et") == FALSE)                    {path_to_et <<- " "}
   if (exists("path_to_fire") == FALSE)                  {path_to_fire <<- " "}
   if (exists("path_to_lca") == FALSE)                   {path_to_lca <<- " "}
+  if (exists("path_to_leaflifespan") == FALSE)          {path_to_leaflifespan <<- " "}
+  if (exists("path_to_labile_release_period") == FALSE) {path_to_labile_release_period <<- " "}
+  if (exists("path_to_labile_release_timing") == FALSE) {path_to_labile_release_timing <<- " "}
   if (exists("path_to_MaxRootDepth") == FALSE)          {path_to_MaxRootDepth <<- " "}  
+  if (exists("path_to_frac_Cwood_coarse_root") == FALSE) {path_to_frac_Cwood_coarse_root <<- " "}  
   # Forcings data options
   if (exists("met_source") == FALSE)                    {met_source <<- " "}
   if (exists("burnt_area_source") == FALSE)             {burnt_area_source <<- " "}
@@ -84,9 +92,12 @@ check_control_file_defaults<-function(paths) {
   if (exists("Csom_source") == FALSE)                   {Csom_source <<- " "} 
   if (exists("soilwater_source") == FALSE)              {soilwater_source <<- " "}
   if (exists("et_source") == FALSE)                     {et_source <<- " "}
-  if (exists("Cwood_inc_source") == FALSE)              {Cwood_inc_source <<- " "}
+  if (exists("Cwood_change_source") == FALSE)           {Cwood_change_source <<- " "}
   if (exists("Cwood_growth_source") == FALSE)           {Cwood_growth_source <<- " "}
   if (exists("Cwood_mortality_source") == FALSE)        {Cwood_mortality_source <<- " "}
+  if (exists("Cagb_change_source") == FALSE)            {Cagb_change_source <<- " "}
+  if (exists("Cagb_growth_source") == FALSE)            {Cagbgrowth_source <<- " "}
+  if (exists("Cagb_mortality_source") == FALSE)         {Cagb_mortality_source <<- " "}
   if (exists("gpp_source") == FALSE)                    {gpp_source <<- " "}
   if (exists("fire_source") == FALSE)                   {fire_source <<- " "}
   if (exists("Reco_source") == FALSE)                   {Reco_source <<- " "}
@@ -108,6 +119,9 @@ check_control_file_defaults<-function(paths) {
   if (exists("Croots_stock_source") == FALSE)           {Croots_stock_source <<- " "}
   if (exists("Clit_stock_source") == FALSE)             {Clit_stock_source <<- " "}
   if (exists("lca_source") == FALSE)                    {lca_source <<- " "}
+  if (exists("leaflifespan_source") == FALSE)           {leaflifespan_source <<- " "}
+  if (exists("labile_release_timing_source") == FALSE)  {labile_release_timing_source <<- " "}
+  if (exists("labile_release_period_source") == FALSE)  {labile_release_period_source <<- " "}
   if (exists("frac_Cwood_coarse_root_source") == FALSE) {frac_Cwood_coarse_root_source <<- " "}
   if (exists("minLWP_source") == FALSE)                 {minLWP_source <<- " "}
   if (exists("MaxRootDepth_source") == FALSE)           {MaxRootDepth_source <<- " "}
@@ -168,6 +182,10 @@ check_control_file_defaults<-function(paths) {
   if (Cwood_growth_source != "site_specific" & Cwood_growth_source != " " & path_to_Cwood_growth == " ")         {stop(paste("specified 'Cwood_growth_source' and 'path_to_Cwood_growth' incompatible"))}
   if (Cwood_mortality_source != "site_specific" & Cwood_mortality_source != " " & path_to_Cwood_mortality == " "){stop(paste("specified 'Cwood_mortality_source' and 'path_to_Cwood_mortality' incompatible"))}
   if (Cwood_stock_source != "site_specific" & Cwood_stock_source != " " & path_to_Cwood == " ")                  {stop(paste("specified 'Cwood_stock_source' and 'path_to_Cwood' incompatible"))}
+  if (Cagb_change_source != "site_specific" & Cagb_change_source != " " & path_to_Cagb_change == " ")            {stop(paste("specified 'Cagb_change_source' and 'path_to_Cagb_change' incompatible"))}
+  if (Cagb_growth_source != "site_specific" & Cagb_growth_source != " " & path_to_Cagb_growth == " ")            {stop(paste("specified 'Cagb_growth_source' and 'path_to_Cagb_growth' incompatible"))}
+  if (Cagb_mortality_source != "site_specific" & Cagb_mortality_source != " " & path_to_Cagb_mortality == " ")   {stop(paste("specified 'Cagb_mortality_source' and 'path_to_Cagb_mortality' incompatible"))}
+  if (Cagb_stock_source != "site_specific" & Cagb_stock_source != " " & path_to_Cagb == " ")                     {stop(paste("specified 'Cagb_stock_source' and 'path_to_Cagb' incompatible"))}
   if (Cwood_initial_source != "site_specific" & Cwood_initial_source != " " & path_to_Cwood_initial == " ")      {stop(paste("specified 'Cwood_initial_source' and 'path_to_Cwood_initial' incompatible"))}
   if (Cwood_potential_source != "site_specific" & Cwood_potential_source != " " & path_to_Cwood_potential == " "){stop(paste("specified 'Cwood_potential_source' and 'path_to_Cwood_potential' incompatible"))}
   if (soilwater_source != "site_specific" & soilwater_source != " " & path_to_soilwater == " ")                  {stop(paste("specified 'soilwater_source' and 'path_to_soilwater' incompatible"))}
@@ -175,7 +193,11 @@ check_control_file_defaults<-function(paths) {
   if (gpp_source != "site_specific" & gpp_source != " " & path_to_gpp == " ")                                    {stop(paste("specified 'gpp_source' and 'path_to_gpp' incompatible"))}
   if (fire_source != "site_specific" & fire_source != " " & path_to_fire == " ")                                 {stop(paste("specified 'fire_source' and 'path_to_fire' incompatible"))}
   if (lca_source != "site_specific" & lca_source != " " & path_to_lca == " ")                                    {stop(paste("specified 'lca_source' and 'path_to_lca' incompatible"))}
+  if (leaflifespan_source != "site_specific" & leaflifespan_source != " " & path_to_leaflifespan == " ")         {stop(paste("specified 'leaflifespan_source' and 'path_to_leaflifespan' incompatible"))}
+  if (labile_release_timing_source != "site_specific" & labile_release_timing_source != " " & path_to_labile_release_timing == " ") {stop(paste("specified 'labile_release_timing_source' and 'path_to_labile_release_timing' incompatible"))}
+  if (labile_release_period_source != "site_specific" & labile_release_period_source != " " & path_to_labile_release_period == " ") {stop(paste("specified 'labile_release_period_source' and 'path_to_labile_release_period' incompatible"))}
   if (MaxRootDepth_source != "site_specific" & MaxRootDepth_source != " " & path_to_MaxRootDepth == " ")         {stop(paste("specified 'MaxRootDepth_source' and 'path_to_MaxRootDepth' incompatible"))}  
+  if (frac_Cwood_coarse_root_source != "site_specific" & frac_Cwood_coarse_root_source != " " & path_to_frac_Cwood_coarse_root == " ")         {stop(paste("specified 'frac_Cwood_coarse_root_source' and 'path_to_frac_Cwood_coarse_root' incompatible"))}  
 
   # NOTE: current assimilated variables which have currently only been done on site scale, without gridded datasets
 #  if (exists("Evap_source") == FALSE)                   {Evap_source <<- " "}
