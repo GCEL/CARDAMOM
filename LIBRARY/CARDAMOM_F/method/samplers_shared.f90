@@ -203,21 +203,43 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine init_latin_square(PI, pars0, n_chains)  ! TODO
+   subroutine init_latin_square(PI, pars0, n_chains)  ! TODO to test and use
       use samplers_math, only: nor2par
       implicit none(type, external)
 
       ! Arguements
-      type(PARINFO), intent(in):: PI  ! give number, bounds, and potentially current value of params
+      type(PARINFO), intent(in):: PI  ! give number, bounds of parameters 
       integer, intent(in):: n_chains
       double precision, dimension(PI%npars, n_chains), intent(out):: pars0  ! return initial values-nonnormalized
 
       ! Local variables
       integer:: i, j
+      double precision:: r ! TODO get random numbers from the simulations random number generator
       double precision, dimension(PI%npars, n_chains):: points
+      integer, dimension(PI%npars, n_chains):: region_indices
 
       ! generate N initial points on the (0..1)^N space in latin hypercube distribution...
       ! Must be run for all chains at once outside of parallel regions
+
+      ! in lognorm space ? :
+      ! divide the ranges into equal regions
+
+      ! a latin hypercube arrangement of region indices 
+      ! for each parameter, order the indices 1..n in random order
+      do i=1,PI%npars
+         region_indices(i, :) = shuffle(n_chains)
+      end do 
+
+      ! get points in the chosen regions of lognorm space 0..1
+      do i=1,PI%npars
+         do j=1, n_chains
+         call random_number(r)
+         points(i,j) = (1d0/n_chains) * ((region_indices(i, j)-1) + r)
+                      ! example: for n_chains = 4 ( = n regions) , region_index = 4
+                      ! 0.8875 = 1/4 * ((4-1) + 0.55 ) is a point at a random location (here 0.55) 
+                      ! into the 4th and final quarter of range 0..1
+         end do
+      end do 
 
       ! convert to real parameter values space
       do j = 1, n_chains
@@ -225,6 +247,23 @@ contains
             pars0(i, j) = nor2par(points(i, j), PI%parmin(i), PI%parmax(i))
          end do
       end do
+
+      contains
+
+         function shuffle(n) result(shuffled)
+            use samplers_math, only: random_int
+            integer, intent(in) :: n ! shuffle numbers 1 to n
+            integer, dimension(n) :: shuffled
+            integer :: i, r, tmp
+            shuffled = (/ (i, i=1,n) /)
+            do i=n, 1, -1 
+                  r = random_int(i)
+                  tmp = shuffled(i)
+                  shuffled(i) = shuffled(r)
+                  shuffled(r)=tmp
+            end do
+
+         end function
 
    end subroutine init_latin_square
    !

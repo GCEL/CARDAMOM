@@ -15,10 +15,12 @@ module DEMCz
    ! How to use:
    !  Create an object of type PARINFO : number and bounds of parameters
    !  and DEMCzOPT-options, containing as many or few of the fields as needed, the rest default to the
-   !                 default values in type definiton here
-   !  Create an object of type MCMC_OUTPUT to write reults to.
-   !  Create a double precision function loglikelihood taking a vector of npars (same as in PARINFO) parameters and
-   !                 returning real:: loglikelihood.
+   !                 default values in type definiton here (and in base type in method/samplers_shared.f90)
+   !  Create an array of objects of type MCMC_OUTPUT to write reults to, or use the outputs MCMC_OUTPUT of a 
+   !            previous sampler run to continue from the latest points therein 
+   !  Create a double precision function loglikelihood taking a vector of npars parameters and
+   !                 returning a real:: loglikelihood.
+   !  (not implemented yet) Optionally set OMP_NUM_THREADS
    !  Call subroutine run_DEMCz(fct, parinfo, demczopt, mcmcout)
    !-
    use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, sampler_options, filenames_insert_threadid
@@ -43,13 +45,13 @@ contains
 
    !> Main DEMCz sampler subroutine
    !> Write all OMP parallelization at this top level only
-   !> IN: model_loglikelihoodi: a subroutine parameters (array) -> loglikelihood (real), to maximize
+   !> IN: model_loglikelihood: a subroutine parameters (array) -> loglikelihood (real), to maximize
    !> IN: model_loglikelihood_write: an alternative function of same type for writing to file
    !>                                (optional, defaults to using model_loglikelihood )
    !> IN: PI type(ParInfo) collection of parameter bounds
    !> IN: OPT type(DEMCz) collection of sampling options
-   !> OUT: MCOUT_list type(DEMCzOUT) collection of results, one object for each chain
-   !> IN: restart (optional, default .false.) : .true. -> restart from state in MCOU_list
+   !> INOUT: MCOUT_list type(DEMCzOUT) collection of results, one object for each chain
+   !> IN: restart (optional, default .false.) : .true. -> restart from latest state in MCOUT_list
    !>                          .false. -> start from random initial positions
    !> IN : nchains (optional, default 3) : number chains in swarm.
    !> Also writes history to file/output stream and progress to console.
@@ -64,7 +66,7 @@ contains
       type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout) :: MCOUT_list  ! Array of MCMC_OUTPUT structs for each thread's results
       type(MCMC_OUTPUT) :: MCOUT ! A single thread's output object
 
-      integer, optional, intent(in) :: nchains ! number chains optional, default 1
+      integer, optional, intent(in) :: nchains ! number chains optional, default 3
       integer, intent(in):: seed
 
       !> Matrix X, (npars x nchains), holding current state of the n chains
@@ -97,8 +99,8 @@ contains
       type(io_buffer_space), dimension(:), allocatable:: io_space
       !! collection of io_space objects holding file writing buffers, one for each chain
       character(350):: outfile, stepfile, covfile, covifile
-      !! file names tagges with chainid, private to each chain
-      integer :: pfileunit, sfileunit, cfileunit, cifileunit ! file unit numbers reported on opening
+      integer :: pfileunit, sfileunit, cfileunit, cifileunit ! file unit numbers reported on opening      
+      !! file names tagged with chainid, private to each chain
 
       !> the function to maximize.
       !> Completely agnostic, samples any functions vector -> double
@@ -259,8 +261,7 @@ contains
                         l_best(j) = l
                         pars_best(:, j) = proposed_vector
                      end if
-                     !else
-                     ! else-no accept
+                  !else : PARS_current and l0 stay at previous values
                   end if
                end if
 
@@ -298,11 +299,12 @@ contains
             PARS_history(:, len_history + j) = PARS_current(:, j)
          end do  ! nchains
 
-         !$OMP END PARALLEL DO !!Barrier implicit
+         !$OMP END PARALLEL DO 
+         !!Barrier implicit
 
-         ! each thread's ITER update are not brought back ot the shared one -
-         ! now update the public one
-         ITER = ITER + (mco%nadapt - kinit + 1)
+         ! each thread's counter ITER has been updated by +nadapt steps while 'private' -
+         ! now update the shared version by the same amount
+         ITER = ITER + (mco%nadapt - kinit + 1) 
          kinit = 1
 
          ! increment length M (filled so far) of Z
@@ -384,5 +386,4 @@ contains
       end do
       vout = v1 + differential_weight*(v2 - v3) + .000001*rn
    end subroutine step
-
 end module DEMCz
