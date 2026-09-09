@@ -59,12 +59,14 @@ submit_processes_to_cluster<-function (PROJECT_in) {
     # begin writing out the file contents
     # construct the file now
     first_pass=TRUE
-    for (c in seq(1, PROJECT_in$nochains)) {
+#    for (c in seq(1, PROJECT_in$nochains)) {
          for (n in seq(1, PROJECT_in$nosites)) {
               infile=paste(PROJECT_in$edatapath,PROJECT_in$name,"_",PROJECT_in$sites[n],".bin",sep="")
-              output=paste(PROJECT_in$eresultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c,"_",sep="")
+              #output=paste(PROJECT_in$eresultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],"_",c,"_",sep="")
+              output=paste(PROJECT_in$eresultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],sep="")
               if (first_pass) {
                   write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",
+                              "sampler=",method," ",                
                               infile," ",
                               output," ",
                               as.integer(nsamples),
@@ -77,6 +79,7 @@ submit_processes_to_cluster<-function (PROJECT_in) {
                   first_pass=FALSE
               } else {
                   write(paste(PROJECT_in$eexepath,PROJECT_in$exe," ",
+                              "sampler=",method," ",                 
                               infile," ",
                               output," ",
                               as.integer(nsamples),
@@ -86,8 +89,8 @@ submit_processes_to_cluster<-function (PROJECT_in) {
                               as.integer(PROJECT_in$request_cost_function_scaling)," ",
                               as.integer(PROJECT_in$nochains),sep=""),sep=" ", ncolumn=1,file=outfile,append="T")
               }
-         } # chain no
-    } # nosite
+         } # no sites
+#    } # no chains
 
     # do we want to remove any previous output files?
     delete_old=readline("Delete any previous output files for this project name?(y/n)")
@@ -107,11 +110,13 @@ submit_processes_to_cluster<-function (PROJECT_in) {
     nbundles=9000
 
     # number of tasks required
-    ntasks=PROJECT_in$nochains*PROJECT_in$nosites
+    #ntasks=PROJECT_in$nochains*PROJECT_in$nosites
+    ntasks=PROJECT_in$nosites
     # number of bundles needed for tasks (assuming max 5000 bundle limit)
     bundlesize=ceiling(ntasks/nbundles)
     # number of tasks per bundle
-    ntaskbundles=ceiling((PROJECT_in$nochains*PROJECT_in$nosites)/bundlesize)
+    #ntaskbundles=ceiling((PROJECT_in$nochains*PROJECT_in$nosites)/bundlesize)
+    ntaskbundles=ceiling(ntasks/bundlesize)
     # make the size bundle specific to adjust for hangers on
     ntaskbundles=rep(ntaskbundles, times=bundlesize)
     # place any hangers on into the last bundle
@@ -163,8 +168,8 @@ submit_processes_to_cluster<-function (PROJECT_in) {
          } # current = 1 condition
          # now submit them all
          jobnamestr=paste(" -N ",PROJECT_in$name,"_bundle_",bundle_start,"_",bundle_end,sep="")
-         commands=append(commands,paste("qsub -t ",bundle_start,"-",bundle_end,jobnamestr,emailstr,memorystr,runtimestr,oestream," ",PROJECT_in$eexepath,"CARDAMOM_ECDF_SUBMIT_BUNDLES.sh ",PROJECT_in$eexepath,sep=""))
-         #print(commands)
+         commands=append(commands,paste("qsub -pe sharedmem ",PROJECT_in$nochains," -t ",bundle_start,"-",bundle_end,jobnamestr,emailstr,memorystr,runtimestr,oestream," ",PROJECT_in$eexepath,"CARDAMOM_ECDF_SUBMIT_BUNDLES.sh ",PROJECT_in$eexepath,sep=""))
+                  #print(commands)
     } # bundle looping
 
     # issue commands to eddie

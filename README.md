@@ -1,29 +1,3 @@
-## Build instructions
-
-TO change number chains edit `vim CARDAMOM/LIBRARY/CARDAMOM_F/general/cardamom_main.f90` and edit line
-`integer:: nchains = 3` 
-
-```
-cd ~/CARDAMOM/
-mkdir build/
-cd build/
-cmake ..
-make 
-```
-
-Exectuable will be at `~/CARDAMOM/build/LIBRARY/CARDAMOM_F/cardamom'
-
-optionally: 
-`cmake .. -DENABLE_TESTING`
-`cmake .. -DTEST_COMPILE_ALL`
-
-To use:
-
-
-```
-export OMP_NUM_THREADS=4
-```
-
 # CARDAMOM
 This code repository is for the University of Edinburgh / NCEO (UK) CARbon DAta MOdel FraMework (CARDAMOM). 
 CARDAMOM is a Bayesian framework that retrieves ensembles of parameters for models of the terrestrial carbon (C) cycle that are consistent with observational constrains and their associated uncertainties. 

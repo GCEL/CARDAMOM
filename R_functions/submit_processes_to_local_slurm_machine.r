@@ -59,7 +59,7 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
     } else {
         # In a normal run the number of proposals is passed into the local variable unchanged
         nsamples = as.integer(PROJECT_in$nsamples)
-        # Asse the pre-mcmc is used as default
+        # Assess the pre-mcmc is used as default
         pre_mcmc = 1
     }
 
@@ -88,6 +88,7 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
          output = paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],sep="")
          if (first_pass) {
              write(paste(PROJECT_in$exepath,PROJECT_in$exe," ",
+                         "sampler=",method," ",
                          infile," ",
                          output," ",
                          as.integer(nsamples),
@@ -99,6 +100,7 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
              first_pass=FALSE
          } else {
              write(paste(PROJECT_in$exepath,PROJECT_in$exe," ",
+                         "sampler=",method," ",
                          infile," ",
                          output," ",
                          as.integer(nsamples),
@@ -147,9 +149,10 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
          write(    c(paste('#SBATCH --account=',slurm_account,sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c(paste("#SBATCH --job-name=Bundle_",b,sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c("#SBATCH --ntasks=1"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c("#SBATCH --hint=nomultithread"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)         
          # One core per chain: the executable parallelises its chains over OpenMP threads
          write(    c(paste("#SBATCH --cpus-per-task=",as.integer(PROJECT_in$nochains),sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
-         write(    c("#SBATCH --mem=1G "), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c(paste("#SBATCH --mem=",as.integer(PROJECT_in$nochains),"G ",sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c(paste('#SBATCH --output="',PROJECT_in$oestreampath,'/slurm-%A_%a.out"',sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c(paste("#SBATCH --time=",as.numeric(PROJECT_in$chain_runtime),":00:00",sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c(paste("#SBATCH --array=[1-",bundle_end,"]",sep="")), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
@@ -161,6 +164,10 @@ submit_processes_to_local_slurm_machine<-function (PROJECT_in) {
          write(    c("task=$( cat $1CARDAMOM_ECDF_EXECUTABLES_LIST.txt | sed $sitenum\\!d )"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          # Match the OpenMP thread count to the cores requested so each chain gets a core
          write(    c("export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c("export OMP_PROC_BIND=close"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c("export OMP_PLACES=cores"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c("export OMP_DYNAMIC=false"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
+         write(    c("export OMP_STACKSIZE=1G"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
          write(    c("command ${task}"), file = slurm_file, ncolumns = nos_cols, sep=col_sep, append = TRUE)
 
          # Record directory to change back in a moment
