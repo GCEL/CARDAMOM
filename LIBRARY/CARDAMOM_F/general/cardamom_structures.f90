@@ -43,8 +43,7 @@ module cardamom_structures
 
    private
 
-   public:: data_type, DATAin, DATAin_original, set_datain, set_datain_original, emulator_parameters, emulator_pars, &
-            crop_development_parameters, CI
+   public:: data_type, DATAin, DATAin_original, set_datain, set_datain_original, emulator_parameters, emulator_pars
 
    type DATA_type
 
@@ -267,21 +266,6 @@ module cardamom_structures
    end type emulator_parameters  ! emulator parameters
    type(emulator_parameters), protected, save:: emulator_pars  ! TODO make sure not shared, or read-only
 
-   type crop_info
-       double precision  :: stock_seed_labile
-       double precision, allocatable, dimension(:)                :: DS_shoot, & !
-                                                                      DS_root, & !
-                                                                     fol_frac, & !
-                                                                    stem_frac, & !
-                                                                    root_frac, & !
-                                                                      DS_LRLV, & !
-                                                                         LRLV, & !
-                                                                      DS_LRRT, & !
-                                                                         LRRT
-   end type
-   ! Only filled from file in case of model 15 & 14
-   type(crop_info), protected, save :: CI  ! protected: to be set from file by routine here, otherwise read-only
-
 contains
   !
   !--------------------------------------------------------------------
@@ -307,78 +291,6 @@ contains
     DATAin = datain_source
 
   end subroutine set_datain
-  !
-  !--------------------------------------------------------------------
-  !
-  subroutine crop_development_parameters()
-
-    ! subroutine reads in the fixed crop development files which are linked the
-    ! the development state of the crops. The development model varies between
-    ! which species. e.g. winter wheat and barley, spring wheat and barley
-    ! NOTE: duplicate function in the R_interface.f90
-
-    implicit none
-
-    ! declare inputs
-    ! crop specific variables
-
-    ! local variables..
-    integer        :: columns, i, rows, input_crops_unit, ios
-    character(100) :: variables,filename
-
-    ! for the moment hard code the file name
-    filename="winter_wheat_development.csv"
-    input_crops_unit = 20 ; ios = 0
-
-    ! crop development file
-    open(unit = input_crops_unit, file=trim(filename),iostat=ios, status='old', action='read')
-
-    ! ensure we are definitely at the beginning
-    rewind(input_crops_unit)
-
-    ! read in the amount of carbon available (as labile) in each seed..
-    read(unit=input_crops_unit,fmt=*)variables,ci%stock_seed_labile,variables,variables
-
-    ! read in C partitioning/fraction data and corresponding developmental
-    ! stages (DS)
-    ! shoot
-    read(unit=input_crops_unit,fmt=*) variables
-    read(unit=input_crops_unit,fmt=*) rows , columns
-    allocate( ci%DS_shoot(rows) , ci%fol_frac(rows) , ci%stem_frac(rows)  )
-    do i = 1 , rows
-          read(unit=input_crops_unit,fmt=*) ci%DS_shoot(i), ci%fol_frac(i), ci%stem_frac(i)
-    enddo
-
-    ! root
-    read(unit=input_crops_unit,fmt=*) variables
-    read(unit=input_crops_unit,fmt=*) rows , columns
-    allocate( ci%DS_root(rows) , ci%root_frac(rows) )
-    do i = 1 , rows
-      read(unit=input_crops_unit,fmt=*) ci%DS_root(i), ci%root_frac(i)
-    enddo
-
-    ! loss rates of leaves and roots
-    ! leaves
-    read(unit=input_crops_unit,fmt=*) variables
-
-    read(unit=input_crops_unit,fmt=*) rows , columns
-    allocate( ci%DS_LRLV(rows) , ci%LRLV(rows) )
-    do i = 1 , rows
-      read(unit=input_crops_unit,fmt=*) ci%DS_LRLV(i), ci%LRLV(i)
-    enddo
-
-    ! roots
-    read(unit=input_crops_unit,fmt=*) variables
-    read(unit=input_crops_unit,fmt=*) rows , columns
-    allocate( ci%DS_LRRT(rows) , ci%LRRT(rows) )
-    do i = 1 , rows
-      read(unit=input_crops_unit,fmt=*) ci%DS_LRRT(i), ci%LRRT(i)
-    enddo
-
-    ! rewind and close
-    rewind(input_crops_unit) ; close(input_crops_unit)
-
-  end subroutine
   !
   !--------------------------------------------------------------------
   !

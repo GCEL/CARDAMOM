@@ -89,7 +89,6 @@ submit_processes_to_local_machine<-function (PROJECT_in) {
          output=paste(PROJECT_in$resultspath,PROJECT_in$name,"_",PROJECT_in$sites[n],sep="")
          # Build the command (8 positional arguments, the last being the chain count)
          command=paste(PROJECT_in$exepath,PROJECT_in$exe," ",
-                       "sampler=",method," ",     
                        infile," ",
                        output," ",
                        as.integer(nsamples),

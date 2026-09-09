@@ -17,6 +17,7 @@ FI-Hyy_example/RESULTS/
 
 ## Misc
 LIBRARY/Makefile 
+.DS_Store
 **/*.DS_Store*
 .vscode/
 CARDAMOM_F/executable/make_dep
@@ -25,15 +26,15 @@ LIBRARY/zbrent-testcompile/
 examine/
 **/*.RData
 *notes*.md
-test/data/
 doc/
 **/*_editted
 gprof*
+stress_test_output*
+**/Rplots.pdf
+**/.Rhistory
 
 ## potential copyright issue
 CARDAMOM_F/misc/brent_zero/cardamom_zbrent.*
-
-
 
 # doc
 ford_doc/

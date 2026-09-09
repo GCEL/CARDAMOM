@@ -212,8 +212,12 @@ cardamom_project_setup <- function (paths,PROJECT) {
           } else if (project_src == "Fortran") {
               # Map the debug / timing switches onto the CMake build type
               build_type = "RELEASE" ; if (timing | debug) {build_type = "DEBUG"}
-              # Select the target and executable name
-              target = "cardamom"        ; built_exe = "cardamom.exe"
+              # Select the sampler executable to build (see local branch for detail)
+              if (exists("request_sampler") && request_sampler == "DEMCz") {
+                  target = "cardamom-diffev" ; built_exe = "cardamom-diffev.exe"
+              } else {
+                  target = "cardamom"        ; built_exe = "cardamom.exe"
+              }
               # Remote build via CMake, mirroring the local branch. The build tree
               # is LIBRARY/CARDAMOM_F/build; executables land in
               # LIBRARY/CARDAMOM_F/executable. 'module load cmake' may be required
@@ -227,16 +231,12 @@ cardamom_project_setup <- function (paths,PROJECT) {
                                         # (it does project() + add_subdirectory(LIBRARY/CARDAMOM_F)).
                                         ,paste("scp ",username,"@",home_computer,":",paths$cardamom,"CMakeLists.txt ",paths$cardamom_ecdf,"/",sep="")
                                         ,paste("rm -rf ",ecdf_source,"CARDAMOM_F/build",sep="")
-                                        ,paste("cmake --build . --clean-first",sep="")
                                         ,paste("cmake -S ",paths$cardamom_ecdf," -B ",ecdf_source,"CARDAMOM_F/build",
                                                " -DCMAKE_BUILD_TYPE=",build_type,
                                                " -DMODEL=",modelname,
                                                " -DCMAKE_Fortran_COMPILER=",compiler,sep="")
-                                        ,paste("cmake --build ",ecdf_source,"CARDAMOM_F/build --clean-first",sep="")                                        
                                         ,paste("cmake --build ",ecdf_source,"CARDAMOM_F/build --target ",target," -j",sep="")
-                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/executable/",built_exe," ",eexepath,"/",exe,sep="")
-                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/build","/LIBRARY/CARDAMOM_F/libCARDAMOM.so* ",eexepath,"/",sep="")
-                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/build","/LIBRARY/CARDAMOM_F/libcardamom-samplers-lib.so* ",eexepath,"/",sep="")))
+                                        ,paste("cp ",ecdf_source,"CARDAMOM_F/executable/",built_exe," ",eexepath,"/",exe,sep="")))
               # If a crop model the copy the crop development files into place too
               if (modelname == "DALEC.A3.C3.H2.M1.015" | modelname == "DALEC.C3.M1.014") {
                   commands=append(commands,paste("cp ",ecdf_source,"CARDAMOM_F/model/",modelname,"/src/winter_wheat_development.csv ",eexepath,"/",sep=""))
@@ -282,7 +282,13 @@ cardamom_project_setup <- function (paths,PROJECT) {
           build_type = "RELEASE" ; if (timing | debug) {build_type = "DEBUG"}
 
           # Select the sampler executable to build:
-          target = "cardamom"        ; built_exe = "cardamom.exe"
+          #  MHMCMC -> target 'cardamom'        -> cardamom.exe
+          #  DEMCz  -> target 'cardamom-diffev' -> cardamom-diffev.exe
+          if (exists("method") && method == "DEMCz") {
+              target = "cardamom-diffev" ; built_exe = "cardamom-diffev.exe"
+          } else {
+              target = "cardamom"        ; built_exe = "cardamom.exe"
+          }
 
           if (request_compile_server == FALSE | request_compile_local == TRUE) {
               # The compiler, model and build type are baked into the CMake cache
@@ -291,21 +297,16 @@ cardamom_project_setup <- function (paths,PROJECT) {
               if (dir.exists(buildpath)) {system(paste("rm -rf ",buildpath,sep=""))}
               # Remove any stale executable in the project folder
               if (file.exists(paste(exepath,"/",exe,sep=""))) {system(paste("rm ",exepath,"/",exe,sep=""))}
-              if (file.exists(paste(exepath,"/libCARDAMOM.so",sep=""))) {system(paste("rm ",exepath,"/libCARDAMOM.so*",sep=""))}              
               # Configure (compiler / model / build type set here)
               system(paste("cmake -S ",srcroot," -B ",buildpath,
                            " -DCMAKE_BUILD_TYPE=",build_type,
                            " -DMODEL=",modelname,
                            " -DCMAKE_Fortran_COMPILER=",compiler,sep=""))
-              system(paste("cmake --build ",buildpath," --clean-first",sep=""))                           
               # Build the chosen sampler executable
               system(paste("cmake --build ",buildpath," --target ",target," -j",sep=""))
               # Copy the built executable (source name = CMake OUTPUT_NAME) to the
               # project executable directory, renamed to the project executable name
               system(paste("cp ",exedir,"/",built_exe," ",exepath,"/",exe,sep=""))
-              # Copy the shared library the executable is linked against
-              system(paste("cp ",buildpath,"/LIBRARY/CARDAMOM_F/libCARDAMOM.so* ",exepath,"/",sep=""))    
-              system(paste("cp ",buildpath,"/LIBRARY/CARDAMOM_F/libcardamom-samplers-lib.so** ",exepath,"/",sep=""))    
               # Build the shared library needed later by R for forward DALEC runs
               system(paste("cmake --build ",buildpath," --target dalec -j",sep=""))
               system(paste("cp ",exedir,"/dalec.so ",exepath,"/dalec.so",sep=""))
