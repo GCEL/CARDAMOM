@@ -37,8 +37,12 @@ module samplers_io
            ,close_output_files
 
    integer:: pfile_unit = 10, sfile_unit = 11, cfile_unit = 12, cifile_unit = 13
+   !! In case of single set of output files, these are literally the file unit numbers.
+   !! In case of MCMC simulation, these are ids of the first thread's files; others are
+   !! calculated based on them.
 
    ! parameters
+   ! TODO Compiler dependent, should check kind of our doubles
    integer, parameter:: real_bytes = 8  ! number of bytes in real variable, 8 bytes is to make double precision
 
    type io_buffer_space
@@ -58,10 +62,12 @@ module samplers_io
 
    save
 
+
 contains
    !
    !------------------------------------------------------------------
    !
+
    subroutine calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
       !! Calculate unit numbers for the simulation's nth thread's files.
       !! Applies to APMCMC and MHMCMC sampelrs, where each thread writes its own set of output files.
@@ -85,9 +91,7 @@ contains
       cfile_unit_thread = cfile_unit + offset
       cifile_unit_thread = cifile_unit + offset
    end subroutine calculate_file_ids
-   !
-   !------------------------------------------------------------------
-   !
+
    subroutine check_for_existing_output_files(npars, MCO, sub_fraction, chainid, restart)
       use samplers_shared, only: SAMPLER_OPTIONS, filenames_insert_threadid
 
@@ -426,6 +430,7 @@ contains
    !
    !------------------------------------------------------------------
    !
+
    subroutine open_output_files(parname, stepname, covname, covinfoname, chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
       ! Subroutine opens the needed output files and destroys any previously
@@ -446,7 +451,8 @@ contains
       double precision, save:: a = 1d0
 
       integer, intent(in):: chainid
-      integer, intent(out) :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread  !! file unit numbers for this thread
+      integer, intent(out) :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
+        !! file unit numbers for this thread
 
       call calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
@@ -473,10 +479,6 @@ contains
    subroutine initialize_buffers(npars, nwrite_events, io_space)
       integer, intent(in):: npars, nwrite_events
       type(io_buffer_space), intent(inout):: io_space
-      ! TODO oops each chain needs its own buffer obeject and file streams
-      ! also initialize buffers
-      ! TODO move because not fitting function name
-      ! Initialise counters used to track the output of parameter sets
       io_space%io_buffer_count = 0
       io_space%io_buffer = min(1000, max(10, nwrite_events/10))
 
@@ -503,7 +505,7 @@ contains
       implicit none(type, external)
 
       ! arguments
-      logical, intent(in):: initial_cov
+      logical, intent(in):: initial_cov ! Is it the first valid covariance matrix found?
       integer, intent(in):: npars
       double precision, dimension(npars, npars), intent(in):: covariance
 
@@ -511,9 +513,10 @@ contains
       integer:: i, j, irec
 
       integer, intent(in):: chainid
-      integer  :: offset
 
-      offset = (chainid - 1)*4
+      integer :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
+
+      call calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
       ! If we have already written the initial covariance matrix we want to keep
       ! over-writing the current matrix. We do this to avoid large files form
@@ -530,7 +533,7 @@ contains
       do i = 1, npars
          do j = 1, npars
             irec = irec + 1
-            write (cfile_unit + offset, rec=irec) covariance(i, j)
+            write (cfile_unit_thread , rec=irec) covariance(i, j)
          end do
       end do
 
@@ -555,18 +558,20 @@ contains
       integer:: i
 
       integer, intent(in):: chainid
-      integer  :: offset
 
-      offset = (chainid - 1)*4
+      integer :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
+
+      call calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
+
 
       ! write out the file. Its binary format has already been determined at the
       ! openning of the file
 
       do i = 1, npars
-         write (cifile_unit + offset) meanpars(i)
+         write (cifile_unit_thread ) meanpars(i)
       end do
 
-      write (cifile_unit + offset) nsample
+      write (cifile_unit_thread ) nsample
 
       return
 
@@ -589,19 +594,20 @@ contains
       integer:: n
 
       integer, intent(in):: chainid
-      integer  :: offset
 
-      offset = (chainid - 1)*4
+      integer :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
+
+      call calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
       ! write out the file. Its binary format has already been determined at the
       ! openning of the file
 
       do n = 1, npars
-         write (sfile_unit + offset) variance(n)
+         write (sfile_unit_thread ) variance(n)
       end do
 
       ! we will need to know the current acceptance rate for restarts
-      write (sfile_unit + offset) accept_rate
+      write (sfile_unit_thread ) accept_rate
 
       return
 
@@ -624,19 +630,19 @@ contains
       integer:: n
 
       integer, intent(in):: chainid
-      integer  :: offset
+      integer :: pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread
 
-      offset = (chainid - 1)*4
+      call calculate_file_ids(chainid, pfile_unit_thread, sfile_unit_thread, cfile_unit_thread, cifile_unit_thread)
 
       ! write out the file. Its binary format has already been determined at the
       ! openning of the file
 
       do n = 1, npars
-         write (pfile_unit + offset) pars(n)
+         write (pfile_unit_thread ) pars(n)
       end do
 
       ! now add the probability
-      write (pfile_unit + offset) prob
+      write (pfile_unit_thread) prob
 
       ! close will occur at the end of the MCMC
 

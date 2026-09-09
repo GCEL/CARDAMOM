@@ -47,7 +47,8 @@ module samplers_math
              random_multivariate, increment_covariance_matrix, &
              par2nor, nor2par, log_par2nor, log_nor2par, &
              cholesky_factor, inverse_matrix, matrix_vector_func, &
-             calculate_variance, increment_variance
+             calculate_variance, increment_variance, &
+             random_int
 
    double precision:: idum
   !! randn() related seed value  ! TODO
@@ -868,7 +869,7 @@ contains
       !
       !  Licensing: This code is distributed under the GNU LGPL license.
       !
-      !  Last Modified: Thu 02 Jul 2026 16:00:38 BST
+      !  Last Modified: Tue 28 Jul 2026 11:57:14 BST
       !
       !  Original Author: John Burkardt (07 December 2009)
       !
@@ -976,7 +977,7 @@ contains
       !
       !    This code is distributed under the GNU LGPL license.
       !
-      !  Last Modified: Thu 02 Jul 2026 16:00:38 BST
+      !  Last Modified: Tue 28 Jul 2026 11:57:14 BST
       !
       !    03/05/2019
       !
@@ -1059,4 +1060,27 @@ contains
    !
    !--------------------------------------------------------------------
    !
+
+   integer function random_int(N)
+      !! An integer in range 1 to N (incl), if given.
+      !! If no argument N is given, an integer in range 1 to
+      !! HUGE (max value of default int type).
+      !! Not intended for use with negative N,
+      !! but will give random int in range N+1 to 0.
+      !! Same behavior as random_number intrinsic:
+      !! Next pseudorandom value from the series each call,
+      !! affected by initialization calls to random_seed random_init.
+      !! Note intrinsic IRAND is similar, but not supoprted by ifx.
+      integer, intent(in), optional:: N
+      integer :: N_
+      double precision:: r
+      if (present(N)) then
+         N_ = N
+      else
+         N_ = huge(1)
+      endif
+      call random_number(r)
+      random_int = floor(N_*r) + 1
+   end function random_int
+
 end module samplers_math
