@@ -1449,7 +1449,10 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           # Note the positive values, i.e. implied growth, will be ignored by the model
           MET[,8]  = OBS$lai_change  # m2/m2
 
+          PARPRIORS[1]  = 0.06                 ; PARPRIORUNC[1] = 0.03 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
           PARPRIORS[2]  = 0.54                 ; PARPRIORUNC[2] = 0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
+          PARPRIORS[4]  = 0.33                 ; PARPRIORUNC[4] = 0.07 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
+          PARPRIORS[6]  = 3.5e-3               ; PARPRIORUNC[6] = 2e-3 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
           PARPRIORS[11] = 21.1491              ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values from Kattge et al., (2011)
                                                                             # Note that this prior is difference from DALEC.C1.D1.F2.P1.
                                                                             # due to the different temperature response functions used in ACM2 vs ACM 1
@@ -1460,6 +1463,9 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[19] = OBS$Clit_initial     ; PARPRIORUNC[19] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial     ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$MaxRootDepth     ; PARPRIORUNC[25] = OBS$MaxRootDepth_unc # Maximum rooting depth prior,           
+          PARPRIORS[27] = 1000                 ; PARPRIORUNC[27] = 200 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
+          PARPRIORS[32] = 0.16                 ; PARPRIORUNC[32] = 0.06 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
+          PARPRIORS[33] = 0.18                 ; PARPRIORUNC[33] = 0.15 # Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
           # other priors
 #          OTHERPRIORS[2] =        ; OTHERPRIORUNC[2] =  # Initial soil water fraction 
 #          OTHERPRIORS[3] = 27.295              ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
@@ -1474,7 +1480,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
                                                                             # Note that this prior is difference from DALEC.C1.D1.F2.P1.
                                                                             # due to the different temperature response functions used in ACM2 vs ACM 1
           #PARPRIORS[15] = OBS$lca              ; PARPRIORUNC[15] = OBS$lca_unc
-          PARPRIORS[15] = 32                   ; PARPRIORUNC[15]=13 # Grass prior for UK purpose
+          PARPRIORS[15] = 32                   ; PARPRIORUNC[15] = 13 # Grass prior for UK purpose
           PARPRIORS[17] = OBS$Cfol_initial     ; PARPRIORUNC[17] = OBS$Cfol_initial_unc # Cfoliar prior
           PARPRIORS[18] = OBS$Croots_initial   ; PARPRIORUNC[18] = OBS$Croots_initial_unc # Croots prior
           PARPRIORS[19] = OBS$Clit_initial     ; PARPRIORUNC[19] = OBS$Clit_initial_unc # Clitter prior

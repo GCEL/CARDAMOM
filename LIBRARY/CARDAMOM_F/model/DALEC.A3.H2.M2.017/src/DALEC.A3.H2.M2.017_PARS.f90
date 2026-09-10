@@ -192,11 +192,11 @@ use samplers_shared, only: PARINFO
 
     ! Post-grazing labile loss (fraction)
     PI%parmin(32) = 0.01d0 
-    PI%parmax(32) = 0.1d0 
+    PI%parmax(32) = 0.75d0 
 
     ! Post-cutting labile loss (fraction)
-    PI%parmin(33) = 0.5d0 
-    PI%parmax(33) = 0.9d0 
+    PI%parmin(33) = 0.01d0 
+    PI%parmax(33) = 0.75d0 
 
     ! Minimum amount of DM which must be removed for grazing instance to occur (g.C.m-2.d-1)
     PI%parmin(34) = 0.1d0!/7d0 

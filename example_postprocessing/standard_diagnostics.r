@@ -84,35 +84,62 @@ plot_clustering()
 tmp = grid_output$landmask ; tmp[tmp == 0] = NA
 key_variables_parameters_spatial_correlation(tmp,"Global")
                   
-# Do timeseries and anomaly plots - modelled
+# Generate time series plots of the aggregated fluxes and anomalies - modelled
+# These should be made to include each of the reccap regions in a single panel plot
 var_and_units    = c("wSWP_MPa","SurfWater_kgH2Om2","CiCa","lai_m2m2","nbp_PgCyr", "nbe_PgCyr", "nee_PgCyr","npp_PgCyr", "gpp_PgCyr", "reco_PgCyr","rhet_PgCyr", "rhet_litter_PgCyr", "rhet_som_PgCyr", 
-                    "rauto_PgCyr", "fire_PgCyr", "harvest_PgCyr","combined_alloc_foliage_PgCyr","alloc_roots_PgCyr","alloc_wood_PgCyr","dnbp_PgCyr", "dnbe_PgCyr", 
+                    "rauto_PgCyr", "fire_PgCyr", "harvest_PgCyr","grazing_PgCyr","combined_alloc_foliage_PgCyr","alloc_roots_PgCyr","dnbp_PgCyr", "dnbe_PgCyr", 
                     "dnee_PgCyr","dnpp_PgCyr", "dgpp_PgCyr","dreco_PgCyr","drhet_PgCyr", "drhet_litter_PgCyr","drhet_som_PgCyr", 
-                    "drauto_PgCyr", "dfire_PgCyr", "dharvest_PgCyr","biomass_PgC", "dom_PgC", "labile_PgC","foliage_PgC", "roots_PgC", "wood_PgC",
-                    "litter_PgC", "som_PgC","dCbiomass_PgC","dCdom_PgC", "dClabile_PgC","dCfoliage_PgC","dCroots_PgC", "dCwood_PgC","dClitter_PgC","dCsom_PgC",
+                    "drauto_PgCyr", "dfire_PgCyr", "dharvest_PgCyr","dgrazing_PgCyr","biomass_PgC", "dom_PgC", "labile_PgC","foliage_PgC", "roots_PgC", 
+                    "litter_PgC", "som_PgC","dCbiomass_PgC","dCdom_PgC", "dClabile_PgC","dCfoliage_PgC","dCroots_PgC", "dClitter_PgC","dCsom_PgC",
                     "dCiCa","dwSWP_MPa","dSurfWater_kgH2Om2")
 outfile_var_name    = c("wSWP","SurfWater","CiCa","LAI","NBP", "NBE", "NEE", "NPP", "GPP", "Reco","Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
-                        "NPPflux_foliage","NPPflux_roots","NPPflux_wood","NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
+                        "Grazing","NPPflux_foliage","NPPflux_roots","NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
                         "GPP_anomaly", "Reco_anomaly","Rhet_anomaly", "Rhet_litter_anomaly","Rhet_som_anomaly", "Rauto_anomaly", "Fire_anomaly", "Harvest_anomaly",
-                        "Biomass", "DOM", "Labile", "Foliage", "FineRoots", "Wood","Litter", "SOM","Biomass_anomaly", "DOM_anomaly", "Labile_anomaly",
-                        "Foliage_anomaly", "FineRoots_anomaly", "Wood_anomaly","Litter_anomaly", "SOM_anomaly","CiCa_anomaly","wSWP_anomaly","SurfWater_anomaly")
+                        "Grazing_anomaly","Biomass", "DOM", "Labile", "Foliage", "FineRoots", "Litter", "SOM","Biomass_anomaly", "DOM_anomaly", "Labile_anomaly",
+                        "Foliage_anomaly", "FineRoots_anomaly", "Litter_anomaly", "SOM_anomaly","CiCa_anomaly","wSWP_anomaly","SurfWater_anomaly")
 outfile_var_units    = c(expression('(MPa)'),expression(paste('kgH2Om'^-2,sep="")),expression('(0-1)'),expression(paste('m'^2,'m'^-2,sep="")),expression('(PgC/yr)'),
+                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
+                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
-                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
-                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
-                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
-                         expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
+                         expression('(PgC/yr)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
+                         expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
                          expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
                          expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(0-1)'),expression('(MPa)'),
                          expression(paste('kgH2Om'^-2,sep="")))
 for (i in seq(1, length(var_and_units))) { 
-     create_spatially_aggregate_mean_annual_timeseries_and_anomaly(do_global = FALSE, do_obs = TRUE, outfile_prefix = "zonal",
-                                                                   zonal_names[c(-3,-6)], outfile_zonal_names[c(-3,-6)], 
+     create_spatially_aggregate_mean_annual_timeseries_and_anomaly(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                                   region_list[-3], region_list[-3], 
                                                                    var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
+     create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                                                 region_list[-3], region_list[-3], 
+                                                                                 var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
+
 }
+
+# Do seasonal cycles for model outputs
+# These should be made to include each of the reccap regions in a single panel plot
+var_and_units    = c("wSWP_MPa","SurfWater_kgH2Om2","CiCa","lai_m2m2","nbp_PgCday", "nbe_PgCday", "nee_PgCday","npp_PgCday", "gpp_PgCday", 
+                     "reco_PgCday","rhet_PgCday", "rhet_litter_PgCday", "rhet_som_PgCday", "rauto_PgCday", "fire_PgCday", "harvest_PgCday",
+                     "grazing_PgCday","combined_alloc_foliage_PgCday","alloc_roots_PgCday")
+outfile_var_name    = c("wSWP","SurfWater","CiCa","LAI","NBP", "NBE", "NEE", "NPP", "GPP", "Reco","Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
+                        "Grazing","NPPflux_foliage","NPPflux_roots")
+outfile_var_units    = c(expression('(MPa)'),expression(paste('kgH2Om'^-2,sep="")),expression('(0-1)'),expression(paste('m'^2,'m'^-2,sep="")),expression('(PgC/day)'),
+                         expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
+                         expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
+                         expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
+                         expression('(PgC/day)'))
+for (i in seq(1, length(var_and_units))) { 
+     create_spatially_aggregate_seasonal_cycles(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                region_list[-3], region_list[-3], 
+                                                var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
+     create_spatially_aggregate_seasonal_cycles_per_unit_area(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                              region_list[-3], region_list[-3], 
+                                                              var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
+}
+
 # Do timeseries and anomaly plots - forcings
 var_and_units     = c("daily_min_temperature_C","daily_max_temperature_C","mean_temperature_C","sw_radiation_MJm2day","precipitation_kgH2Om2s","mean_vpd_Pa","biomass_removal_fraction",
                      "burned_fraction","mean_wind_speed_ms")

@@ -41,16 +41,19 @@ generate_parameter_maps<-function(PROJECT) {
    infile = paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep="")
    load(infile)
 
-   # determine the array value for the median,
-   if (length(grid_output$num_quantiles ) == 9) {
-       # then we assume we are dealing with 0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975 quantiles
-       median_loc = 5 ; lower_loc = 1 ; upper_loc = 9 # if == 9
-       #median_loc = 4 ; lower_loc = 1 ; upper_loc = 7 # if == 7
-   } else {
-       # Approximate
-       median_loc = grid_output$num_quantiles[median(c(1:length(grid_output$num_quantiles)))]
-       lower_loc = 1 ; upper_loc = length(grid_output$num_quantiles)
+   # Determine the correct quantiles
+   ee = length(grid_output$num_quantiles) ; ss = 1 ; ci95 = rep(NA, 2) ; ci68 = rep(NA, 2)    
+   for (i in seq(1, floor(length(grid_output$num_quantiles)*0.5))) {
+        tmp1 = grid_output$num_quantiles[ss] ; tmp2 = grid_output$num_quantiles[ee]         
+        if (round(tmp2-tmp1, digits=2) == 0.95) { ci95[1] = ss ; ci95[2] = ee }
+        if (round(tmp2-tmp1, digits=2) == 0.68) { ci68[1] = ss ; ci68[2] = ee }
+        ss = ss + 1 ; ee = ee - 1
    }
+   # Median estimate array index
+   median_loc = which(round(grid_output$num_quantiles, digits=2) == 0.5)
+   # Lower and lower quantiles array index
+   #low_quant = ci95[1]  ; high_quant = ci95[2] # 95 %
+   lower_loc = ci68[1] ; upper_loc = ci68[2] # 68, i.e. 1-SD %
 
    # Extract the lat / long information
    grid_lat = grid_output$lat ; grid_long = grid_output$long
@@ -64,7 +67,7 @@ generate_parameter_maps<-function(PROJECT) {
 
    # load timesteps to local variable
    timestep_days = PROJECT$model$timestep_days ; seconds_per_day = 86400
-   timestep_days = rep(timestep_days, length.out=grid_output$time_dim)
+   timestep_days = rep(timestep_days, length.out = grid_output$time_dim)
 
    # Convert avgN log10-normal to gN/m2, in models which use foliar N in gN/m2
    if (PROJECT$model$name == "DALEC.A1.C2.D2.F2.H2.P3.R1.008"| PROJECT$model$name == "DALEC.A1.C2.D2.F2.H1.P3.R1.009" |
@@ -106,8 +109,8 @@ generate_parameter_maps<-function(PROJECT) {
           par_array_median_normalised = grid_output$parameters[,,,median_loc]
           # now normalise the parameter values
           for (i in seq(1,dim(par_array_median_normalised)[3])) {
-               min_par_val = min(par_array_median_normalised[,,i],na.rm=TRUE)
-               max_par_val = max(par_array_median_normalised[,,i],na.rm=TRUE)
+               min_par_val = min(as.vector(par_array_median_normalised[,,i]),na.rm=TRUE)
+               max_par_val = max(as.vector(par_array_median_normalised[,,i]),na.rm=TRUE)
                par_array_median_normalised[,,i] = ((par_array_median_normalised[,,i]-min_par_val)/(max_par_val-min_par_val))
           }
           # Create temporary arrays needed to allow removing of NAs and convert array into (space,par)

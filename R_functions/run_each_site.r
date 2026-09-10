@@ -147,7 +147,20 @@ run_each_site<-function(n,PROJECT,repair,grid_override) {
           # The current quantiles allow for calculation of the 95 % CI (0.975-0.025) and the standard deviation equivalent (0.839-0.1607)
           # The other quantiles provide a equal description of the distribution.
           #num_quantiles = c(0.025,0.05,0.16,0.5,0.84,0.95,0.975) #; num_quantiles_agg = seq(0.0,1, length = 100)
-          num_quantiles = c(0.025,0.1607143,0.2964286,0.4321429,0.5,0.5678571,0.7035714,0.8392857,0.975)
+          #num_quantiles = c(0.025,0.1607143,0.2964286,0.4321429,0.5,0.5678571,0.7035714,0.8392857,0.975)
+          num_quantiles <- c(0,       # ensemble minimum
+                             0.010,   # lower tail interpolation
+                             0.025,   # 95% CI lower bound
+                             0.100,   # lower shoulder resolution
+                             0.160,   # 68% CI lower bound
+                             0.250,   # lower interior (quartile)
+                             0.500,   # median
+                             0.750,   # upper interior (quartile)
+                             0.840,   # 68% CI upper bound
+                             0.900,   # upper shoulder resolution
+                             0.975,   # 95% CI upper bound
+                             0.990,   # upper tail interpolation
+                             1)       # ensemble maximum         
           na_flag = TRUE
      
           # Run post-processing for gridded analysis

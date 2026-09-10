@@ -544,6 +544,11 @@ module model_likelihood_module
         EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
     end if
 
+    ! Mean annual GPP should be > 800 gCm2yr, Myrgiotis et al., (2022)
+    if ((EDC2 == 1 .or. DIAG == 1) .and. sum(M_FLUXES(1:nodays,1)) / dble(nodays) < 2.2d0 ) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
+    end if
+
     ! What are in effect the potential growth rates are modulated by the current 
     ! fixed temperature sub-model used in the model. This means that the parameterised 
     ! potential rates might never be achievable even if plausible. Thus the maximum 
@@ -553,21 +558,21 @@ module model_likelihood_module
     if ((EDC2 == 1 .or. DIAG == 1)) then
         ! Foliage
         if (maxval(M_FLUXES(:,4) + M_FLUXES(:,7)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(14) = 0
         end if
         ! Fine roots
         if (maxval(M_FLUXES(:,6)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(14) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(15) = 0
         end if
     end if
 
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. FT(4) + FT(7) > (5d0*FT(6))) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(15) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
     endif
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. ((FT(4)+FT(7))*5d0) < FT(6)) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(17) = 0
     endif
 
     if (EDC2 == 1 .or. DIAG == 1) then

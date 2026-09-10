@@ -202,17 +202,17 @@ module MODEL_PARAMETERS
 
     ! Efficiency of substrate uptake by microbes 
     ! original value from Xenakis & Williams (2014)
-    PI%parmin(44) = 0.62d0-(0.62d0*0.75d0)
-    PI%parmax(44) = 0.62d0+(0.62d0*0.75d0)
+    PI%parmin(44) = 0.62d0-(0.62d0*0.95d0)
+    PI%parmax(44) = 0.62d0+(0.62d0*0.95d0)
 
     ! Maximum microbial death rate  (fraction/day)
     ! original value from Xenakis & Williams (2014)
-    PI%parmin(45) = 0.24d0-(0.24d0*0.75d0)
-    PI%parmax(45) = 0.24d0+(0.24d0*0.75d0)
+    PI%parmin(45) = 0.24d0-(0.24d0*0.95d0)
+    PI%parmax(45) = 0.24d0+(0.24d0*0.95d0)
     ! Inhibition constant for microbial death 
     ! original value from Xenakis & Williams (2014)
-    PI%parmin(46) = 0.213d0-(0.213d0*0.75d0)
-    PI%parmax(46) = 0.213d0+(0.213d0*0.75d0)
+    PI%parmin(46) = 0.213d0-(0.213d0*0.95d0)
+    PI%parmax(46) = 0.213d0+(0.213d0*0.95d0)
 
     ! Microbial maintenance respiration coefficient 
     PI%parmin(47) = 0.45d0
@@ -225,12 +225,12 @@ module MODEL_PARAMETERS
     ! Turnover constant for slow som (fraction/day)
     ! Slow som turnover is assumed to be a based on this fraction
     ! applied to the microbial pool C and scaled by its activity.
-    PI%parmin(49) = 0.3688761d0-(0.3688761d0*0.75d0)
-    PI%parmax(49) = 0.3688761d0+(0.3688761d0*0.75d0)
+    PI%parmin(49) = 0.3688761d0-(0.3688761d0*0.95d0)
+    PI%parmax(49) = 0.3688761d0+(0.3688761d0*0.95d0)
 
     ! 2nd order rate constant for microbial uptake from fast som pool (day-1)
-    PI%parmin(50) = 0.1129056d0-(0.1129056d0*0.75d0)
-    PI%parmax(50) = 0.1129056d0+(0.1129056d0*0.75d0)
+    PI%parmin(50) = 0.1129056d0-(0.1129056d0*0.95d0)
+    PI%parmax(50) = 0.1129056d0+(0.1129056d0*0.95d0)
 
     !
     ! INITIAL VALUES DECLARED HERE

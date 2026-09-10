@@ -296,7 +296,7 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(2) = 0
     endif
 
-    ! turnover of foliage faster than turnover of wood
+    ! turnover of foliage should be faster than turnover of wood
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(6) > torfol) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
     end if
@@ -314,25 +314,30 @@ module model_likelihood_module
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(42) > pars(43)) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     endif    
+    ! Turnover of foliar litter (pars(8)) should be faster than fine root litter (pars(9))
+    ! Guo et al., (2021). Global Ecology and Biogeography, 30, 2286–2296. https://doi.org/10.1111/geb.13384
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(9) > pars(8)) then
+       EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
+    endif    
 
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
     ! IMPLICIT Combustion completeness for wood litter and fol+root litter should be greater than soil
 
     ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(29) < pars(30)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
     endif
     ! Combustion completeness for non-photosynthetic tissue should be greater than soil
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(30) < pars(31)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
     endif
     ! Combustion completeness for foliar + fine root litter should be greater than foliage
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(32) < pars(29)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
     endif
     ! Combustion completeness for wood litter should be greater than non-photosynthetic tissue
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(33) < pars(30)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
     endif
 
     ! could always add more / remove some
@@ -504,20 +509,22 @@ module model_likelihood_module
     !       to the temporal mismatch in these variables, but they provide appropriate 
     !       scaling for their relative comparison to be true.
     if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(9)/mean_pools(9) > Fout(5)/mean_pools(5) ) then
-       EDC2 = 0d0 ; EDCD%PASSFAIL(11) = 0
+       EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
     endif    
     ! Turnover rate of fine root litter should be greater than slow som
     ! NOTE: yes, I know this does not actually calculate the turnover fraction 
     !       to the temporal mismatch in these variables, but they provide appropriate 
     !       scaling for their relative comparison to be true.    
     if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(9)/mean_pools(9) > Fout(6)/mean_pools(6) ) then
-       EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
+       EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
     endif    
-    ! Turnover of foliar litter (pars(8)) should be faster than fine root litter (pars(9))
-    ! Guo et al., (2021). Global Ecology and Biogeography, 30, 2286–2296. https://doi.org/10.1111/geb.13384
-    !if ((EDC2 == 1 .or. DIAG == 1) .and. pars(9) > pars(8)) then
-    !   EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
-    !endif    
+    ! Turnover rate of wood litter should be greater than slow som
+    ! NOTE: yes, I know this does not actually calculate the turnover fraction 
+    !       to the temporal mismatch in these variables, but they provide appropriate 
+    !       scaling for their relative comparison to be true.    
+    if ((EDC2 == 1 .or. DIAG == 1) .and. Fout(9)/mean_pools(9) > Fout(7)/mean_pools(7) ) then
+       EDC2 = 0d0 ; EDCD%PASSFAIL(14) = 0
+    endif    
 
     if (DATAin%nos_years > 1) then
         ! Determine the mean and standard deviation of January LAIs 
@@ -537,8 +544,8 @@ module model_likelihood_module
         end do
         jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
-            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(14) = 0
+            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*1.5d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(15) = 0
         end if
     end if ! nos_years > 1
 
@@ -560,15 +567,15 @@ module model_likelihood_module
         end do
         jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
-            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(15) = 0
+            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*1.5d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
         end if
     end if ! nos_years > 1
 
     ! EDC just for DALEC_CDEA_ACM2_BUCKET due to complications linked to
     ! the empirical phenology but mechanistic hydrology / photosynthesis
     if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_DIAGS(1:nodays,1)) > 10d0 ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(17) = 0
     end if
 
     ! What are in effect the potential growth rates are modulated by the current 
@@ -580,25 +587,25 @@ module model_likelihood_module
     if ((EDC2 == 1 .or. DIAG == 1)) then
         ! Foliage
         if (maxval(M_FLUXES(:,4) + M_FLUXES(:,8)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(17) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(18) = 0
         end if
         ! Fine roots
         if (maxval(M_FLUXES(:,6)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(18) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(19) = 0
         end if
         ! Wood
         if (maxval(M_FLUXES(:,7)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(19) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
         end if
     end if
 
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. (FT(4)+FT(8)) > (5d0*FT(6))) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
     endif
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. ((FT(4)+FT(8))*5d0) < FT(6)) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(22) = 0
     endif
 
     if (EDC2 == 1 .or. DIAG == 1) then
@@ -636,15 +643,15 @@ module model_likelihood_module
                   abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
         end if
-!        ! Wood pool hack, note that in CDEA EDCs Fin has already been multiplied by time step
-!        n = 4
+        ! Wood pool hack, note that in CDEA EDCs Fin has already been multiplied by time step
+        n = 4
 !        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
 !            EDC2 = 0d0 ; EDCD%PASSFAIL(25+n-1) = 0
 !        end if
-!        if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
-!                  abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
-!        end if
+        if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
+                  abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
+        end if
 
         ! Dead pools - foliar litter, root litter, wood litter, fast som, slow som, microbial
         do n = 5, 10
@@ -672,6 +679,12 @@ module model_likelihood_module
         end if
 
     end if ! EDC2 == 1 .or. DIAG == 1
+
+    ! The mean annual carbon stock change for soils is unlikely to be >500 gC/m2/yr
+    ! an informed guess.
+    if ((EDC2 == 1 .or. DIAG == 1) .and. abs((M_POOLS(nodays,9)-M_POOLS(1,9))/dble(DATAin%nos_years)) > 100d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(25) = 0
+    end if
 
     ! Ensure that the mean transit time of foliage and the LCA are consistent with the 
     ! leaf economic spectrum (LES).

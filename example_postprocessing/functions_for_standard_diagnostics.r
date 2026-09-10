@@ -2827,7 +2827,7 @@ key_variables_parameters_spatial_correlation<-function(mask_area,mask_name) {
     } # loop through each forcing    
     dev.off()        
     # Create a plotting space
-    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",mask_name,"_NPPflx_foliage_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",mask_name,"_NPPflux_foliage_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
     par(mfrow=c(4,4), mar=c(4.0,4.3,0.7,0.5),omi=c(0.1,0.1,0.1,0.1))
     for (n in seq(1, length(met_array_names))) {
          # Plot the combination
@@ -2842,7 +2842,7 @@ key_variables_parameters_spatial_correlation<-function(mask_area,mask_name) {
     } # loop through each forcing    
     dev.off()
     # Create a plotting space
-    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_NPPflx_wood_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_NPPflux_wood_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
     par(mfrow=c(4,4), mar=c(4.0,4.3,0.7,0.5),omi=c(0.1,0.1,0.1,0.1))
     for (n in seq(1, length(met_array_names))) {
          # Plot the combination
@@ -2857,7 +2857,7 @@ key_variables_parameters_spatial_correlation<-function(mask_area,mask_name) {
     } # loop through each forcing    
     dev.off()
     # Create a plotting space
-    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",mask_name,"_NPPflx_roots_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",mask_name,"_NPPflux_roots_versus_forcings.png",sep=""), height = 2800, width = 4600, res = 300)
     par(mfrow=c(4,4), mar=c(4.0,4.3,0.7,0.5),omi=c(0.1,0.1,0.1,0.1))
     for (n in seq(1, length(met_array_names))) {
          # Plot the combination
@@ -4591,7 +4591,7 @@ global_zonal_budget<-function(){
     ## Corresponding lists of variable names to be used in the output files - refers to the annual files only
     names_vars_gCm2day    = c("NBP", "NBE", "NEE", "NPP", "GPP", "Reco",
                               "Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
-                              "NPPflx_foliage","NPPflx_roots","NPPflx_wood",
+                              "NPPflux_foliage","NPPflux_roots","NPPflux_wood",
                               "NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
                               "GPP_anomaly", "Reco_anomaly","Rhet_anomaly", "Rhet_litter_anomaly",
                               "Rhet_som_anomaly", "Rauto_anomaly", "Fire_anomaly", "Harvest_anomaly")
@@ -5585,7 +5585,7 @@ masked_budget<-function(landmask_grid, outfile_prefix){
     ## Corresponding lists of variable names to be used in the output files - refers to the annual files only
     names_vars_gCm2day    = c("NBP", "NBE", "NEE", "NPP", "GPP", "Reco",
                               "Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
-                              "NPPflx_foliage","NPPflx_roots","NPPflx_wood",
+                              "NPPflux_foliage","NPPflux_roots","NPPflux_wood",
                               "NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
                               "GPP_anomaly", "Reco_anomaly","Rhet_anomaly", "Rhet_litter_anomaly",
                               "Rhet_som_anomaly", "Rauto_anomaly", "Fire_anomaly", "Harvest_anomaly")
@@ -13133,7 +13133,7 @@ npp_plots<-function() {
     new_var2 = seq(min(var2, na.rm=TRUE),max(var2, na.rm=TRUE), length.out=1000) 
     new_var3 = seq(min(var3, na.rm=TRUE),max(var3, na.rm=TRUE), length.out=1000) 
     # Generate maps of headline traits for Amazon area
-    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_NPPflx_trade_offs.png",sep=""), height = 900, width = 3200, res = 300)
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_NPPflux_trade_offs.png",sep=""), height = 900, width = 3200, res = 300)
     # Set common plotting variables
     par(mfrow=c(1,3), mar=c(4.0,5.0,2.5,1.0),omi=c(0.01,0.01,0.01,0.01))
     plot(var1 ~ var2, ylab=expression(paste("NPP foliage (gC",m^-2,d^-1,")",sep="")), xlab=expression(paste("NPP fine roots (gC",m^-2,d^-1,")",sep="")),
@@ -13777,7 +13777,314 @@ disturbance_and_mrt<-function() {
 
 } # end function disturbance_and_mrt
 
-create_spatially_aggregate_mean_annual_timeseries_and_anomaly<-function(do_global,do_obs,outfile_prefix,
+create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area<-function(do_global,global_lab,do_obs,outfile_prefix,
+                                                                                      masked_names,outfile_masked_names,
+                                                                                      var_and_units,outfile_var_name,outfile_var_units) {
+
+    # Number of plots to be done
+    nos_plots = length(masked_names)
+    if (do_global) {nos_plots = nos_plots + 1}
+    
+    # Determine the shape of map plots
+    if (nos_plots == 1) {
+        height = 2500 ; width = 5000
+        mfrow_ij = c(1,1)
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 2) {
+        height = 1000 ; width = 3800
+        mfrow_ij = c(1,2)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 3) {
+        height = 750 ; width = 5000
+        mfrow_ij = c(1,3)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 4) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(2,2)        
+        mar_ijkz = c(3.0,4.5,2,0.5)     
+        omi_ijkz = c(0.08,0.08,0.1,0.1)    
+    } else if (nos_plots == 5) {
+        height = 6000 ; width = 2500
+        mfrow_ij = c(5,1)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 6) {
+        height = 2200 ; width = 4000
+        mfrow_ij = c(2,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 12) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(3,4)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 16) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(4,4)   
+        mar_ijkz = c(1.4,4.5,1.8,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else {
+        stop("the number of plots requested has not been coded for")
+    } # different plotting dimensions...
+
+    # Load the current variables global aggregate file. We really just want the correct areas
+    find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+    find_file = find_file[grepl(paste("/",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+    if (length(find_file) > 1 | length(find_file) == 0) {
+        # Try for the outfile variable name
+        if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+            tmp = ""
+        } else {
+            tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+            tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+            # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+            tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+            tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+            tmp = paste("_",tmp,sep="")
+        }
+        find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+        find_file = find_file[grepl(paste("/",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+        if (length(find_file) > 1 | length(find_file) == 0) {
+            print(find_file)
+            print(paste(var_and_units,".txt",sep="")) ; print(paste(outfile_var_name,tmp,sep=""))
+            stop("Could not positively identify the global file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
+        }
+    }
+    global_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+    global_area_m2 = global_area_m2$Global_area_m2
+
+    masked_area_m2_flag = TRUE
+    # Determine the unit conversation based on the provided.
+    # Note the order of the if statements mattters
+    if (grepl("PgCyr",var_and_units)) {
+        unit_correction = 1e9 # PgCyr -> MgCyr
+        unit_correction = unit_correction * 1e4 # m2->ha
+        outfile_var_units_local = gsub("PgC","MgC/ha",outfile_var_units)
+    } else if (grepl("PgC",var_and_units)) {
+        unit_correction = 1e9 # PgC -> MgC
+        unit_correction = unit_correction * 1e4 # m2->ha        
+        outfile_var_units_local = gsub("PgC","MgC/ha",outfile_var_units)        
+    } else {
+        # No unit or area correction intended, reset these
+        unit_correction = 1 ; global_area_m2 = 1 ; masked_area_m2_flag = FALSE ; outfile_var_units_local = outfile_var_units
+    }
+
+    # Determine the axis ranges, take the global first if needed
+    if (do_global) {
+        ## Plot each masked area
+        # Load the explicitly calculated anomaly for each term
+        var1 = get(paste("agg_mean_annual_",var_and_units,sep=""), pos = grid_output)[1,] 
+        var3 = get(paste("agg_mean_annual_",var_and_units,sep=""), pos = grid_output)[3,] 
+        # Add assimilated data if available
+        if (max(grepl(paste("agg_assimilated_",var_and_units,sep=""), names(grid_output))) == 1) {
+            var4 = get(paste("agg_assimilated_",var_and_units,sep=""), pos = grid_output)[1,] 
+            var6 = get(paste("agg_assimilated_",var_and_units,sep=""), pos = grid_output)[3,] 
+        } else {
+            var4 = NA ; var6 = NA
+        }
+        # Apply area and unit correction
+        var1 = (var1 * unit_correction) / global_area_m2
+        var3 = (var3 * unit_correction) / global_area_m2
+        var4 = (var4 * unit_correction) / global_area_m2
+        var6 = (var6 * unit_correction) / global_area_m2                                        
+        # Determine axes size
+        yrange = range(c(var1,var3,var4,var6), na.rm=TRUE) # base ranges on the uncertainty estimate only
+        yrange[2] = yrange[2] + abs(yrange[2])*0.05 # add some buffer
+    } else {
+        # Work out the y-axis for the current plot
+        yrange = c(0,0)
+    }
+    # Then update with the masked areas    
+    for (m in seq(1, length(masked_names))) {             
+         # Load the explicitly calculated anomaly for each term
+         var1 = get(paste("agg_",masked_names[m],"_mean_annual_",var_and_units,sep=""), pos = grid_output)[1,] 
+         var3 = get(paste("agg_",masked_names[m],"_mean_annual_",var_and_units,sep=""), pos = grid_output)[3,] 
+         # Add assimilated data if available
+         if (max(grepl(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), names(grid_output))) == 1) {
+             var4 = get(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), pos = grid_output)[1,] 
+             var6 = get(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), pos = grid_output)[3,] 
+         } else {
+             var4 = NA ; var6 = NA
+         }
+         # Load the current variables masked area aggregate file. We really just want the correct areas
+         find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+         find_file = find_file[grepl(paste("/",masked_names[m],"_",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+         if (length(find_file) > 1 | length(find_file) == 0) {
+             # Try for the outfile variable name
+             if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+                 tmp = ""
+             } else {
+                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+                 tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+                 # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+                 tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+                 tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+                 tmp = paste("_",tmp,sep="")
+             }
+             find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+             find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+             if (length(find_file) > 1 | length(find_file) == 0) {
+                 print(find_file)
+                 print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
+                 stop("Could not positively identify the masked file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
+             }
+         }
+      
+         masked_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+         #masked_area_m2 = read.table(paste(output_dir,"/",masked_names[m],"_",var_and_units,".txt",sep=""), sep=" ", header=TRUE)
+         masked_area_m2 = masked_area_m2$area_m2
+         if (masked_area_m2_flag == FALSE) {masked_area_m2 = 1}
+         var1 = (var1 * unit_correction) / masked_area_m2
+         var3 = (var3 * unit_correction) / masked_area_m2
+         var4 = (var4 * unit_correction) / masked_area_m2
+         var6 = (var6 * unit_correction) / masked_area_m2                                        
+         # Determine axes size for the current masked area
+         tmp = range(c(var1,var3,var4,var6), na.rm=TRUE)
+         # Increment the axis range
+         if (tmp[1] < yrange[1]) { yrange[1] = tmp[1] }
+         if (tmp[2] > yrange[2]) { yrange[2] = tmp[2] }
+    } 
+    # Add some buffer
+    yrange[2] = yrange[2] + abs(yrange[2])*0.05    
+
+    # How consistent is the CARDAMOM analysis with available independent datasets?
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",outfile_prefix,"_",outfile_var_name,"_mean_annual_timeseries_per_unit_area.png",sep=""), width = width, height = height, res = 300)
+    # Define the plotting space
+    par(mfrow=mfrow_ij, mar=mar_ijkz+c(1.05,0,0,1.0), omi = omi_ijkz)
+
+    # Now we have used the outfile_var_name to create the output file, we will now substitute the '_' for a space for the labels
+    outfile_var_name_local = gsub("_", " ", outfile_var_name)
+
+    if (do_global) {
+        ## Plot each masked area
+        # Load the explicitly calculated anomaly for each term
+        var1 = get(paste("agg_mean_annual_",var_and_units,sep=""), pos = grid_output)[1,] 
+        var2 = get(paste("agg_mean_annual_",var_and_units,sep=""), pos = grid_output)[2,] 
+        var3 = get(paste("agg_mean_annual_",var_and_units,sep=""), pos = grid_output)[3,] 
+        # Add assimilated data if available
+        if (max(grepl(paste("agg_assimilated_",var_and_units,sep=""), names(grid_output))) == 1) {
+            var4 = get(paste("agg_assimilated_",var_and_units,sep=""), pos = grid_output)[1,] 
+            var5 = get(paste("agg_assimilated_",var_and_units,sep=""), pos = grid_output)[2,] 
+            var6 = get(paste("agg_assimilated_",var_and_units,sep=""), pos = grid_output)[3,] 
+        } else {
+            var4 = NA ; var5 = NA ; var6 = NA
+        }
+        # Apply area and unit correction
+        var1 = (var1 * unit_correction) / global_area_m2
+        var2 = (var2 * unit_correction) / global_area_m2
+        var3 = (var3 * unit_correction) / global_area_m2
+        var4 = (var4 * unit_correction) / global_area_m2
+        var5 = (var5 * unit_correction) / global_area_m2
+        var6 = (var6 * unit_correction) / global_area_m2                                        
+
+        # Determine the axis labels
+        ylab.text = eval(bquote(expression(.(outfile_var_name_local) ~ .(outfile_var_units_local[[1]]))))
+        # Create initial plot
+        plot(var2 ~ run_years, type="p", pch=16, cex = 0.5, col = "black", 
+             cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
+             main = global_lab, ylab = ylab.text, xlab="Year")
+        lines(var2 ~ run_years, lwd = 2, lty = 1, col = "black")
+        lines(var1 ~ run_years, lwd = 2, lty = 1, col = "blue") ; points(var1 ~ run_years, pch = 16, col = "blue")
+        lines(var3 ~ run_years, lwd = 2, lty = 1, col = "red") ; points(var3 ~ run_years, pch = 16, col = "red")
+        # Assimilated data if available
+        if (any(is.na(var5) == FALSE)) {
+            plotCI(x = run_years, y = var5, ui = var6, li = var4, pch = 16, lwd = 2, col="grey", add=TRUE)
+        }
+        # Postive / negative anomaly
+        if (grepl("NBE",outfile_var_name) | grepl("NBP",outfile_var_name) | grepl("NEE",outfile_var_name) | grepl("anomaly",outfile_var_name)) {
+            abline(0,0,col="grey", lwd=1)
+        }
+    } # do global plot
+
+    for (m in seq(1, length(masked_names))) {            
+
+         # Load the current variables masked area aggregate file. We really just want the correct areas
+         find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+         find_file = find_file[grepl(paste("/",masked_names[m],"_",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+         if (length(find_file) > 1 | length(find_file) == 0) {
+             # Try for the outfile variable name
+             if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+                 tmp = ""
+             } else {
+                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+                 tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+                 # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+                 tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+                 tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+                 tmp = paste("_",tmp,sep="")
+             }
+             find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+             find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+             if (length(find_file) > 1 | length(find_file) == 0) {
+                 print(find_file)                 
+                 print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
+                 stop("Could not positively identify the masked file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
+             }
+         }
+         masked_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+         #masked_area_m2 = read.table(paste(output_dir,"/",masked_names[m],"_",var_and_units,".txt",sep=""), sep=" ", header=TRUE)
+         masked_area_m2 = masked_area_m2$area_m2
+         if (masked_area_m2_flag == FALSE) {masked_area_m2 = 1}
+         
+         ## Plot each masked area
+         # Load the explicitly calculated anomaly for each term
+         var1 = get(paste("agg_",masked_names[m],"_mean_annual_",var_and_units,sep=""), pos = grid_output)[1,] 
+         var2 = get(paste("agg_",masked_names[m],"_mean_annual_",var_and_units,sep=""), pos = grid_output)[2,] 
+         var3 = get(paste("agg_",masked_names[m],"_mean_annual_",var_and_units,sep=""), pos = grid_output)[3,] 
+         # Assimilated data if available
+         if (max(grepl(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), names(grid_output))) == 1) {
+             var4 = get(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), pos = grid_output)[1,] 
+             var5 = get(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), pos = grid_output)[2,] 
+             var6 = get(paste("agg_",masked_names[m],"_assimilated_",var_and_units,sep=""), pos = grid_output)[3,] 
+         } else {
+             var4 = NA ; var5 = NA ; var6 = NA
+         }
+         var1 = (var1 * unit_correction) / masked_area_m2
+         var2 = (var2 * unit_correction) / masked_area_m2
+         var3 = (var3 * unit_correction) / masked_area_m2
+         var4 = (var4 * unit_correction) / masked_area_m2
+         var5 = (var5 * unit_correction) / masked_area_m2
+         var6 = (var6 * unit_correction) / masked_area_m2                                                 
+         # Determine axes size
+#         yrange = range(c(var1,var3), na.rm=TRUE) # base ranges on the uncertainty estimate only
+#         yrange[2] = yrange[2] + abs(yrange[2])*0.05 # add some buffer
+         # Determine the axis labels
+         ylab.text = eval(bquote(expression(.(outfile_var_name_local) ~ .(outfile_var_units_local[[1]]))))
+         # Create initial plot
+         plot(var2 ~ run_years, type="p", pch=16, cex = 0.5, col = "black", 
+             cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
+             main = outfile_masked_names[m], ylab = ylab.text, xlab="Year")
+         lines(var2 ~ run_years, lwd = 2, lty = 1, col = "black")
+         lines(var1 ~ run_years, lwd = 2, lty = 1, col = "blue") ; points(var1 ~ run_years, pch = 16, col = "blue")
+         lines(var3 ~ run_years, lwd = 2, lty = 1, col = "red") ; points(var3 ~ run_years, pch = 16, col = "red")
+         # Assimilated data if available
+         if (any(is.na(var5) == FALSE)) {
+             plotCI(x = run_years, y = var5, ui = var6, li = var4, pch = 16, lwd = 2, col="grey", add=TRUE)
+         }
+         # Postive / negative anomaly
+         if (grepl("NBE",outfile_var_name_local) | grepl("NBP",outfile_var_name_local) | grepl("NEE",outfile_var_name_local) | grepl("anomaly",outfile_var_name_local)) {
+             abline(0,0,col="grey", lwd=1)
+         }
+    } # masked_names loop
+    
+    dev.off()
+    
+} # end function create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area
+
+create_spatially_aggregate_mean_annual_timeseries_and_anomaly<-function(do_global,global_lab,do_obs,outfile_prefix,
                                                                         masked_names,outfile_masked_names,
                                                                         var_and_units,outfile_var_name,outfile_var_units) {
 
@@ -13821,6 +14128,21 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly<-function(do_globa
         mfrow_ij = c(3,4)   
         mar_ijkz = c(1.4,4.5,1.0,0.0)     
         omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 16) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(4,4)   
+        mar_ijkz = c(1.4,4.5,1.8,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
     } else {
         stop("the number of plots requested has not been coded for")
     } # different plotting dimensions...
@@ -13855,7 +14177,7 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly<-function(do_globa
         # Create initial plot
         plot(var2 ~ run_years, type="p", pch=16, cex = 0.5, col = "black", 
              cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
-             main = "Global", ylab = ylab.text, xlab="Year")
+             main = global_lab, ylab = ylab.text, xlab="Year")
         lines(var2 ~ run_years, lwd = 2, lty = 1, col = "black")
         lines(var1 ~ run_years, lwd = 2, lty = 1, col = "blue") ; points(var1 ~ run_years, pch = 16, col = "blue")
         lines(var3 ~ run_years, lwd = 2, lty = 1, col = "red") ; points(var3 ~ run_years, pch = 16, col = "red")
@@ -13976,6 +14298,21 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_forcings<-function
         mfrow_ij = c(3,4)   
         mar_ijkz = c(1.4,4.5,1.0,0.0)     
         omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 16) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(4,4)   
+        mar_ijkz = c(1.4,4.5,1.8,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
     } else {
         stop("the number of plots requested has not been coded for")
     } # different plotting dimensions...
@@ -14045,7 +14382,241 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_forcings<-function
     
 } # end function create_spatially_aggregate_mean_annual_timeseries_and_anomaly_forcings
 
-create_spatially_aggregate_seasonal_cycles<-function(do_global,do_obs,outfile_prefix,
+create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,global_lab,do_obs,outfile_prefix,
+                                                                   masked_names,outfile_masked_names,
+                                                                   var_and_units,outfile_var_name,outfile_var_units) {
+
+    # Number of plots to be done
+    nos_plots = length(masked_names)
+    if (do_global) {nos_plots = nos_plots + 1}
+    
+    # Determine the shape of map plots
+    if (nos_plots == 1) {
+        height = 2500 ; width = 5000
+        mfrow_ij = c(1,1)
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 2) {
+        height = 1000 ; width = 3800
+        mfrow_ij = c(1,2)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 3) {
+        height = 750 ; width = 5000
+        mfrow_ij = c(1,3)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 4) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(2,2)        
+        mar_ijkz = c(3.0,4.5,2,0.5)     
+        omi_ijkz = c(0.08,0.08,0.1,0.1)    
+    } else if (nos_plots == 5) {
+        height = 6000 ; width = 2500
+        mfrow_ij = c(5,1)        
+        mar_ijkz = c(0.05,0.9,0.9,6.2)     
+        omi_ijkz = c(0.01,0.2,0.3,0.1)
+    } else if (nos_plots == 6) {
+        height = 2200 ; width = 4000
+        mfrow_ij = c(2,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 12) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(3,4)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 16) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(4,4)   
+        mar_ijkz = c(1.4,4.5,1.8,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else {
+        stop("the number of plots requested has not been coded for")
+    } # different plotting dimensions...
+
+    # Load the current variables global aggregate file. We really just want the correct areas
+    find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+    find_file = find_file[grepl(paste("/",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+    if (length(find_file) > 1 | length(find_file) == 0) {
+        # Try for the outfile variable name
+        if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+            tmp = ""
+        } else {
+            tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+            tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+            # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+            tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+            tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+            tmp = paste("_",tmp,sep="")
+        }
+        find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+        find_file = find_file[grepl(paste("/",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+        if (length(find_file) > 1 | length(find_file) == 0) {
+            print(find_file)
+            print(paste(var_and_units,".txt",sep="")) ; print(paste(outfile_var_name,tmp,sep=""))
+            stop("Could not positively identify the global file in create_spatially_aggregate_seasonal_cycles_per_unit_area()")
+        }
+    }
+    global_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+    global_area_m2 = global_area_m2$Global_area_m2
+
+    masked_area_m2_flag = TRUE
+    # Determine the unit conversation based on the provided.
+    # Note the order of the if statements mattters
+    if (grepl("PgCyr",var_and_units)) {
+        unit_correction = 1e9 # PgCyr -> MgCyr
+        unit_correction = unit_correction * 1e4 # m2->ha
+        outfile_var_units_local = gsub("PgC","MgC/ha",outfile_var_units)
+    } else if (grepl("PgC",var_and_units)) {
+        unit_correction = 1e9 # PgC -> MgC
+        unit_correction = unit_correction * 1e4 # m2->ha        
+        outfile_var_units_local = gsub("PgC","MgC/ha",outfile_var_units)        
+    } else {
+        # No unit or area correction intended, reset these
+        unit_correction = 1 ; global_area_m2 = 1 ; masked_area_m2_flag = FALSE ; outfile_var_units_local = outfile_var_units
+    }
+
+    # Determine the axis ranges, take the global first if needed
+    if (do_global) {
+        ## Plot each masked area
+        # Load the explicitly calculated anomaly for each term
+        var2 = get(paste("agg_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,] 
+
+        # Apply area and unit correction
+        var2 = (var2 * unit_correction) / global_area_m2
+        # Determine axes size
+        yrange = range(c(var2), na.rm=TRUE) # base ranges on the uncertainty estimate only
+        yrange[2] = yrange[2] + abs(yrange[2])*0.05 # add some buffer
+    } else {
+        # Work out the y-axis for the current plot
+        yrange = c(0,0)
+    }
+    # Then update with the masked areas    
+    for (m in seq(1, length(masked_names))) {             
+         # Load the explicitly calculated anomaly for each term
+         var2 = get(paste("agg_",masked_names[m],"_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,] 
+
+         # Load the current variables masked area aggregate file. We really just want the correct areas
+         find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+         find_file = find_file[grepl(paste("/",masked_names[m],"_",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+         if (length(find_file) > 1 | length(find_file) == 0) {
+             # Try for the outfile variable name
+             if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+                 tmp = ""
+             } else {
+                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+                 tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+                 # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+                 tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+                 tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+                 tmp = paste("_",tmp,sep="")
+             }
+             find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+             find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+             if (length(find_file) > 1 | length(find_file) == 0) {
+                 print(find_file)
+                 print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
+                 stop("Could not positively identify the masked file in create_spatially_aggregate_seasonal_cycles_per_unit_area()")
+             }
+         }
+      
+         masked_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+         #masked_area_m2 = read.table(paste(output_dir,"/",masked_names[m],"_",var_and_units,".txt",sep=""), sep=" ", header=TRUE)
+         masked_area_m2 = masked_area_m2$area_m2
+         if (masked_area_m2_flag == FALSE) {masked_area_m2 = 1}
+         var2 = (var2 * unit_correction) / masked_area_m2
+         # Determine axes size for the current masked area
+         tmp = range(c(var2), na.rm=TRUE)
+         # Increment the axis range
+         if (tmp[1] < yrange[1]) { yrange[1] = tmp[1] }
+         if (tmp[2] > yrange[2]) { yrange[2] = tmp[2] }
+    } 
+    # Add some buffer
+    yrange[2] = yrange[2] + abs(yrange[2])*0.05    
+
+
+    # How consistent is the CARDAMOM analysis with available independent datasets?
+    png(file = paste(output_dir,"/",gsub("%","_",PROJECT$name),"_",outfile_prefix,"_",outfile_var_name,"_seasonal_cycles_per_unit_area.png",sep=""), width = width, height = height, res = 300)
+    # Define the plotting space
+    par(mfrow=mfrow_ij, mar=mar_ijkz+c(1.05,0,0,1.0), omi = omi_ijkz)
+
+    # Now we have used the outfile_var_name to create the output file, we will now substitute the '_' for a space for the labels
+    outfile_var_name_local = gsub("_", " ", outfile_var_name)
+
+    legend_todo = TRUE
+    if (do_global) {
+        ## Plot each masked area
+        # Load the explicitly calculated anomaly for each term
+        var2 = get(paste("agg_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,] 
+        var2 = (var2 * unit_correction) / masked_area_m2        
+        
+        # Determine the axis labels
+        ylab.text = eval(bquote(expression(.(outfile_var_name_local) ~ .(outfile_var_units_local[[1]]))))
+        # Create initial plot
+        plot(var2[,1], type="l", pch=16, cex = 0.5, col = colour_choices_years[2], 
+             cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
+             main = global_lab, ylab = ylab.text, xlab="Step of year")
+        # Loop through remaining years
+        for (y in seq(2, nos_years)) {
+             lines(var2[,y], col = colour_choices_years[y+1], lwd=2) 
+        }
+        # Postive / negative anomaly
+        if (grepl("NBE",outfile_var_name_local) | grepl("NBP",outfile_var_name_local) | grepl("NEE",outfile_var_name_local) | grepl("anomaly",outfile_var_name_local)) {
+            abline(0,0,col="grey", lwd=1)
+        }
+        # Add legend for the overall scheme
+        if (legend_todo) {
+            legend("topleft", legend = c(PROJECT$start_year,PROJECT$end_year), col = c(colour_choices_years[2],colour_choices_years[nos_years+1]), 
+                   lty = c(1,1), pch=rep(NA,2), horiz = FALSE, bty = "n", cex=1.6, lwd=3, ncol = 2)
+            legend_todo = FALSE
+        }
+        
+    } # do global plot
+        
+    for (m in seq(1, length(masked_names))) {            
+         ## Plot each masked area
+         # Load the explicitly calculated anomaly for each term
+         var2 = get(paste("agg_",masked_names[m],"_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,]         
+         var2 = (var2 * unit_correction) / masked_area_m2
+         
+         # Determine the axis labels
+         ylab.text = eval(bquote(expression(.(outfile_var_name) ~ .(outfile_var_units_local[[1]]))))
+         # Create initial plot
+         plot(var2[,1], type="l", pch=16, cex = 0.5, col = colour_choices_years[2], 
+              cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
+              main = outfile_masked_names[m], ylab = ylab.text, xlab="Step of year")
+         # Loop through remaining years
+         for (y in seq(2, nos_years)) {
+              lines(var2[,y], col = colour_choices_years[y+1], lwd=2) 
+         }
+         # Postive / negative anomaly
+         if (grepl("NBE",outfile_var_name) | grepl("NBP",outfile_var_name) | grepl("NEE",outfile_var_name) | grepl("anomaly",outfile_var_name)) {
+             abline(0,0,col="grey", lwd=1)
+         }
+        # Add legend for the overall scheme
+        if (legend_todo) {
+            legend("topleft", legend = c(PROJECT$start_year,PROJECT$end_year), col = c(colour_choices_years[2],colour_choices_years[nos_years+1]), 
+                   lty = c(1,1), pch=rep(NA,2), horiz = FALSE, bty = "n", cex=1.6, lwd=3, ncol = 2)
+            legend_todo = FALSE
+        }
+    } # masked_names loop
+    
+    dev.off()
+    
+} # end function create_spatially_aggregate_seasonal_cycles_per_unit_area
+
+create_spatially_aggregate_seasonal_cycles<-function(do_global,global_lab,do_obs,outfile_prefix,
                                                      masked_names,outfile_masked_names,
                                                      var_and_units,outfile_var_name,outfile_var_units) {
 
@@ -14089,6 +14660,21 @@ create_spatially_aggregate_seasonal_cycles<-function(do_global,do_obs,outfile_pr
         mfrow_ij = c(3,4)   
         mar_ijkz = c(1.4,4.5,1.0,0.0)     
         omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 16) {
+        height = 2000 ; width = 4000
+        mfrow_ij = c(4,4)   
+        mar_ijkz = c(1.4,4.5,1.8,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
     } else {
         stop("the number of plots requested has not been coded for")
     } # different plotting dimensions...
@@ -14114,7 +14700,7 @@ create_spatially_aggregate_seasonal_cycles<-function(do_global,do_obs,outfile_pr
         # Create initial plot
         plot(var2[,1], type="l", pch=16, cex = 0.5, col = colour_choices_years[2], 
              cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
-             main = "Global", ylab = ylab.text, xlab="Step of year")
+             main = global_lab, ylab = ylab.text, xlab="Step of year")
         # Loop through remaining years
         for (y in seq(2, nos_years)) {
              lines(var2[,y], col = colour_choices_years[y+1], lwd=2) 
@@ -14179,6 +14765,7 @@ create_spatially_aggregate_seasonal_cycles<-function(do_global,do_obs,outfile_pr
     
 } # end function create_spatially_aggregate_seasonal_cycles
 
+
 create_spatially_aggregate_seasonal_cycles_forcings<-function(do_global,do_obs,outfile_prefix,
                                                               masked_names,outfile_masked_names,
                                                               var_and_units,outfile_var_name,outfile_var_units) {
@@ -14223,6 +14810,16 @@ create_spatially_aggregate_seasonal_cycles_forcings<-function(do_global,do_obs,o
         mfrow_ij = c(3,4)   
         mar_ijkz = c(1.4,4.5,1.0,0.0)     
         omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 17) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)
+    } else if (nos_plots == 18) {
+        height = 2000 ; width = 4500
+        mfrow_ij = c(3,6)   
+        mar_ijkz = c(1.4,4.5,1.0,0.0)     
+        omi_ijkz = c(0.01,0.01,0.1,0.001)        
     } else {
         stop("the number of plots requested has not been coded for")
     } # different plotting dimensions...

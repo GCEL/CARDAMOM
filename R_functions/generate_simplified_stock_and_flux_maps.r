@@ -49,16 +49,19 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
   area_with_g_Tg = area*1e-12
   rm(output)
 
-  # determine the array value for the median,
-  if (length(grid_output$num_quantiles ) == 9) {
-      # then we assume we are dealing with 0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975 quantiles
-      median_loc = 5 ; lower_loc = 1 ; upper_loc = 9 # if == 9
-      #median_loc = 4 ; lower_loc = 1 ; upper_loc = 7 # if == 7
-  } else {
-      # Approximate
-      median_loc = grid_output$num_quantiles[median(c(1:length(grid_output$num_quantiles)))]
-      lower_loc = 1 ; upper_loc = length(grid_output$num_quantiles)
+  # Determine the correct quantiles
+  ee = length(grid_output$num_quantiles) ; ss = 1 ; ci95 = rep(NA, 2) ; ci68 = rep(NA, 2)    
+  for (i in seq(1, floor(length(grid_output$num_quantiles)*0.5))) {
+       tmp1 = grid_output$num_quantiles[ss] ; tmp2 = grid_output$num_quantiles[ee]         
+       if (round(tmp2-tmp1, digits=2) == 0.95) { ci95[1] = ss ; ci95[2] = ee }
+       if (round(tmp2-tmp1, digits=2) == 0.68) { ci68[1] = ss ; ci68[2] = ee }
+       ss = ss + 1 ; ee = ee - 1
   }
+  # Median estimate array index
+  median_loc = which(round(grid_output$num_quantiles, digits=2) == 0.5)
+  # Lower and lower quantiles array index
+  #low_quant = ci95[1]  ; high_quant = ci95[2] # 95 %
+  lower_loc = ci68[1] ; upper_loc = ci68[2] # 68, i.e. 1-SD %
 
   # calculate land mask
   landmask = array(PROJECT$landsea, dim=c(PROJECT$long_dim,PROJECT$lat_dim))
