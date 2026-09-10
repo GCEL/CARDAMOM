@@ -1,6 +1,6 @@
 module DEMCz
    !-
-   ! Differential evolution sampler (with history z), see ter Braak & Vrugt, Stat Comput 2008,
+   ! Differential evolution sampler (with history Z), see ter Braak & Vrugt, Stat Comput 2008,
    ! "Differential Evolution Markov Chain with snooker updater and fewer chains".
    !
    !  jklebes 2024-2025
@@ -15,16 +15,18 @@ module DEMCz
    ! How to use:
    !  Create an object of type PARINFO : number and bounds of parameters
    !  and DEMCzOPT-options, containing as many or few of the fields as needed, the rest default to the
-   !                 default values in type definiton here
-   !  Create an object of type MCMC_OUTPUT to write reults to.
-   !  Create a double precision function loglikelihood taking a vector of npars (same as in PARINFO) parameters and
-   !                 returning rel:: loglikelihood.
+   !                 default values in type definiton here (and in base type in method/samplers_shared.f90)
+   !  Create an array of objects of type MCMC_OUTPUT to write reults to, or use the outputs MCMC_OUTPUT of a 
+   !            previous sampler run to continue from the latest points therein 
+   !  Create a double precision function loglikelihood taking a vector of npars parameters and
+   !                 returning a real:: loglikelihood.
    !  (not implemented yet) Optionally set OMP_NUM_THREADS
    !  Call subroutine run_DEMCz(fct, parinfo, demczopt, mcmcout)
    !-
-   use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, MCMC_options, filenames_insert_threadid
+   use samplers_shared, only: PARINFO, bounds_check, init_pars_random, MCMC_OUTPUT, sampler_options, filenames_insert_threadid
    use random_uniform, only: UNIF_VECTOR
    use samplers_io, only: io_buffer_space, initialize_buffers, open_output_files, close_output_files
+   use samplers_math, only: random_int
    use OMP_LIB
 
    implicit none(type, external)
@@ -33,7 +35,7 @@ module DEMCz
 
    !> A collection of input options to the DEMCz sampler run
    !> contains default values
-   type, extends(MCMC_options):: DEMCZOPT
+   type, extends(SAMPLER_options):: DEMCZOPT
       ! DEMcz algorithm parameters
       double precision:: differential_weight = 0.8d0  ! differential weight gamma, [0, 2]
       double precision:: crossover_probability = 0.9d0 ! crossover probability CR, [0, 1]
@@ -43,13 +45,13 @@ contains
 
    !> Main DEMCz sampler subroutine
    !> Write all OMP parallelization at this top level only
-   !> IN: model_loglikelihoodi: a subroutine parameters (array) -> loglikelihood (real), to maximize
+   !> IN: model_loglikelihood: a subroutine parameters (array) -> loglikelihood (real), to maximize
    !> IN: model_loglikelihood_write: an alternative function of same type for writing to file
    !>                                (optional, defaults to using model_loglikelihood )
    !> IN: PI type(ParInfo) collection of parameter bounds
    !> IN: OPT type(DEMCz) collection of sampling options
-   !> OUT: MCOUT_list type(DEMCzOUT) collection of results, one object for each chain
-   !> IN: restart (optional, default .false.) : .true. -> restart from state in MCOU_list
+   !> INOUT: MCOUT_list type(DEMCzOUT) collection of results, one object for each chain
+   !> IN: restart (optional, default .false.) : .true. -> restart from latest state in MCOUT_list
    !>                          .false. -> start from random initial positions
    !> IN : nchains (optional, default 3) : number chains in swarm.
    !> Also writes history to file/output stream and progress to console.
@@ -59,14 +61,14 @@ contains
       implicit none(type, external)
 
       ! Arguments
-      type(PARINFO), intent(in) :: PI ! PARINFO struct from model giving number, bounds of parameters    
+      type(PARINFO), intent(in) :: PI ! PARINFO struct from model giving number, bounds of parameters
       type(DEMCZOPT), intent(inout) :: MCO ! struct of options for the run, shared between all threads
       type(MCMC_OUTPUT), dimension(:), allocatable, intent(inout) :: MCOUT_list  ! Array of MCMC_OUTPUT structs for each thread's results
       type(MCMC_OUTPUT) :: MCOUT ! A single thread's output object
 
-      integer, optional, intent(in) :: nchains ! number chains optional, default 1
+      integer, optional, intent(in) :: nchains ! number chains optional, default 3
       integer, intent(in):: seed
-      
+
       !> Matrix X, (npars x nchains), holding current state of the n chains
       double precision, allocatable, dimension(:,:):: PARS_current
       double precision, dimension(PI%npars):: norPARS
@@ -90,7 +92,7 @@ contains
       !! acceptance counter for each thread
       integer, dimension(:), allocatable:: ACCLOC
       !! acceptance counter for each thread, local to each nadapt phase
-      integer:: i, j, k, ITER, len_history, kinit  ! counters
+      integer:: j, k, ITER, len_history, kinit  ! counters
       integer:: R1, R2
       !!random indices in history
 
@@ -98,7 +100,7 @@ contains
       !! collection of io_space objects holding file writing buffers, one for each chain
       character(350):: outfile, stepfile, covfile, covifile
       integer :: pfileunit, sfileunit, cfileunit, cifileunit ! file unit numbers reported on opening      
-      !! file names tagges with chainid, private to each chain
+      !! file names tagged with chainid, private to each chain
 
       !> the function to maximize.
       !> Completely agnostic, samples any functions vector -> double
@@ -106,10 +108,11 @@ contains
       !> given the inputted parameter values.
       interface
          subroutine model_likelihood(param_vector, n, ML, id) bind(c)
+            use iso_c_binding, only: c_int, c_double
             implicit none(type, external)
-            integer, intent(in)  :: n, id
-            double precision, intent(inout), dimension(n) :: param_vector
-            double precision, intent(out) :: ML
+            integer(c_int), intent(in)  :: n, id
+            real(c_double), intent(inout), dimension(n) :: param_vector
+            real(c_double), intent(out) :: ML
          end subroutine model_likelihood
       end interface
 
@@ -230,7 +233,7 @@ contains
       do while (ITER + mco%nadapt <= MAXITER) !TODO could add convergence criteria for early stop
 
          ! evolve each chain independently for nsteps (nsteps = K in ter Braak & Vrugt)
-!$OMP PARALLEL DO private(R1, R2, l, proposed_vector, output_loglikelihood, MCOUT) firstprivate(ITER)
+!$OMP PARALLEL DO default(shared) private(R1, R2, l, proposed_vector, output_loglikelihood, MCOUT) firstprivate(ITER)
          do j = 1, mco%nchains
             MCOUT = MCOUT_list(j)
             ACCLOC(j) = 0
@@ -245,7 +248,7 @@ contains
                do while (R1 == R2)  ! should not equal R1 ("without replacement")
                   R2 = random_int(len_history)
                end do
-               call step_real(proposed_vector, PARS_current(:, j), PARS_history(:, R1), PARS_history(:, R2), & 
+               call step_real(proposed_vector, PARS_current(:, j), PARS_history(:, R1), PARS_history(:, R2), &
                               differential_weight, random_uniform_vectors(j), PI)
                if (bounds_check(PI, proposed_vector)) then
                   call model_likelihood(proposed_vector, PI%npars, l, j)
@@ -258,8 +261,7 @@ contains
                         l_best(j) = l
                         pars_best(:, j) = proposed_vector
                      end if
-                     !else
-                     ! else-no accept
+                  !else : PARS_current and l0 stay at previous values
                   end if
                end if
 
@@ -297,11 +299,12 @@ contains
             PARS_history(:, len_history + j) = PARS_current(:, j)
          end do  ! nchains
 
-         !$OMP END PARALLEL DO !!Barrier implicit
+         !$OMP END PARALLEL DO 
+         !!Barrier implicit
 
-         ! each thread's ITER update are not brought back ot the shared one -
-         ! now update the public one
-         ITER = ITER + (mco%nadapt - kinit + 1)
+         ! each thread's counter ITER has been updated by +nadapt steps while 'private' -
+         ! now update the shared version by the same amount
+         ITER = ITER + (mco%nadapt - kinit + 1) 
          kinit = 1
 
          ! increment length M (filled so far) of Z
@@ -314,7 +317,7 @@ contains
       end do !end while ITER < MAXITER
 
       ! Final summary output from each chain individually
-      !$OMP PARALLEL DO
+      !$OMP PARALLEL DO default(shared)
       do j = 1, mco%nchains
          ! completed
          write (*,*) "chain ", j, ": DEMCZ completed"
@@ -325,88 +328,62 @@ contains
       end do
       !$OMP END PARALLEL DO
 
-      ! Close out the files
       call close_output_files(pfileunit, sfileunit, cfileunit, cifileunit)
 
-  end subroutine run_DEMCz
-  !
-  !--------------------------------------------------------------------
-  !
-  subroutine init_random(npars, norpars)
+   end subroutine run_DEMCz
 
-     !> Initialize the chain's state with random values from
-     !> parameter ranges.
-     !> Works with normalized values : returns a number between 0 and 1
-     !> For each parameter
+   !> Initialize the chain's state with random values from
+   !> parameter ranges.
+   !> Works with normalized values : returns a number between 0 and 1
+   !> For each parameter
+   subroutine init_random(npars, norpars)
+      integer, intent(in):: npars
+      double precision, dimension(:), intent(out):: norpars
+      integer:: i
+      do i = 1, npars
+         call random_number(norpars(i))
+      end do
+      ! also output the loglikelihood of the state generated
 
-     integer, intent(in):: npars
-     double precision, dimension(:), intent(out):: norpars
-     integer:: i
-     do i = 1, npars
-        call random_number(norpars(i))
-     end do
-     ! also output the loglikelihood of the state generated
+   end subroutine init_random
 
-  end subroutine init_random
-  !
-  !--------------------------------------------------------------------
-  !
-  subroutine step_real(vout, v1, v2, v3, differential_weight, random_uniform_vector, PI)
-     use samplers_math, only: log_nor2par, log_par2nor
+   !> Thin wrapper on "step" which takes three vectors in the space of raw parameter values;
+   !> they are converted to lognormalized parameters (0, 1) before being lineraly combined in
+   !> the core "step" function.  After cardamom-MHMCMC and
+   !> sampling is observed to be better when this is done on lognormalized parameters.
+   subroutine step_real(vout, v1, v2, v3, differential_weight, random_uniform_vector, PI)
+      use samplers_math, only: log_nor2par, log_par2nor
+      type(PARINFO), intent(in):: PI
+      double precision, dimension(PI%npars), intent(out):: vout
+      !! proposed step on raw parameter space
+      double precision, dimension(PI%npars):: vout_lognorm
+      !! proposed step on lognormed parameter space
+      double precision, dimension(PI%npars), intent(in):: v1, v2, v3
+      !! input: current and two random states from history on parameter space
+      type(UNIF_VECTOR), intent(inout):: random_uniform_vector
+      double precision, intent(in):: differential_weight
+      call step(vout_lognorm, log_par2nor(v1, PI%parmin, PI%parmax, PI%paradj), &
+                log_par2nor(v2, PI%parmin, PI%parmax, PI%paradj), &
+                log_par2nor(v3, PI%parmin, PI%parmax, PI%paradj), &
+                differential_weight, random_uniform_vector, PI%npars)
+      vout = log_nor2par(vout_lognorm, PI%parmin, PI%parmax, PI%paradj)
+   end subroutine step_real
 
-     !> Thin wrapper on "step" which takes three vectors in the space of raw parameter values;
-     !> they are converted to lognormalized parameters (0, 1) before being lineraly combined in
-     !> the core "step" function.  After cardamom-MHMCMC and
-     !> sampling is observed to be better when this is done on lognormalized parameters.
-
-     type(PARINFO), intent(in):: PI
-     double precision, dimension(PI%npars), intent(out):: vout ! proposed step on raw parameter space
-     double precision, dimension(PI%npars):: vout_lognorm      ! proposed step on lognormed parameter space
-     double precision, dimension(PI%npars), intent(in):: v1, v2, v3 ! input: current and two random states from history on parameter space
-     type(UNIF_VECTOR), intent(inout):: random_uniform_vector
-     double precision, intent(in):: differential_weight
-     call step(vout_lognorm, log_par2nor(v1, PI%parmin, PI%parmax, PI%paradj), &
-               log_par2nor(v2, PI%parmin, PI%parmax, PI%paradj), &
-               log_par2nor(v3, PI%parmin, PI%parmax, PI%paradj), &
-               differential_weight, random_uniform_vector, PI%npars)
-     vout = log_nor2par(vout_lognorm, PI%parmin, PI%parmax, PI%paradj)
-
-  end subroutine step_real
-  !
-  !--------------------------------------------------------------------
-  !
-  subroutine step(vout, v1, v2, v3, differential_weight, random_uniform_vector, npars)
-     use samplers_math, only: random_normal
-
-     !> Generate new proposed state from currect state and history
-     !> ter Braak & Vrugt eq 2
-
-     integer, intent(in):: npars
-     double precision, dimension(:), intent(out):: vout
-     double precision, dimension(:), intent(in):: v1, v2, v3
-     type(UNIF_VECTOR), intent(inout):: random_uniform_vector
-     double precision, intent(in):: differential_weight
-     double precision:: rn(npars)
-     integer:: p
-     ! get differential_weight, corssover_probability from module data
-     do p = 1, npars
-        call random_normal(random_uniform_vector, rn(p))
-     end do
-     vout = v1 + differential_weight*(v2 - v3) + .000001*rn
-
-  end subroutine step
-  !
-  !--------------------------------------------------------------------
-  !
-  integer function random_int(N)
-
-     integer, intent(in):: N
-     double precision:: r
-     call random_number(r)
-     random_int = floor(N*r) + 1
-
-  end function random_int
-  !
-  !--------------------------------------------------------------------
-  !
+   !> Generate new proposed state from currect state and history
+   !> ter Braak & Vrugt eq 2
+   subroutine step(vout, v1, v2, v3, differential_weight, random_uniform_vector, npars)
+      use samplers_math, only: random_normal
+      integer, intent(in):: npars
+      double precision, dimension(:), intent(out):: vout
+      double precision, dimension(:), intent(in):: v1, v2, v3
+      type(UNIF_VECTOR), intent(inout):: random_uniform_vector
+      double precision, intent(in):: differential_weight
+      double precision:: rn(npars)
+      integer:: p
+      ! get differential_weight, corssover_probability from module data
+      do p = 1, npars
+         call random_normal(random_uniform_vector, rn(p))
+      end do
+      vout = v1 + differential_weight*(v2 - v3) + .000001*rn
+   end subroutine step
 end module DEMCz

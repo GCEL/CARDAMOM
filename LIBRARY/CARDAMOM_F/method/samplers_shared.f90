@@ -23,7 +23,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 !!!!!!!!!!!! File specific description !!!!!!!!!!
-! This file contains the source code of various different 
+! This file contains the source code of various different
 ! declarable types used in the MCMC solvers.
 !
 ! This code was implemented by Jason Klebes (Jason.Klebes@ed.ac.uk)
@@ -35,9 +35,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module samplers_shared
-   
-   implicit none(type, external)
 
+   implicit none(type, external)
    public
 
    private filename_insert_threadid_single
@@ -93,7 +92,6 @@ module samplers_shared
                                                          ! NOTE 2: 2.381204**2 = 5.670132
       integer :: N_before_mv = 10 ! Number of accepted proposals before attempting to build multi-variate sampler
    end type MCMC_OPTIONS
-
 
    !> Collection of info for output of the sampling run
    !> , can also be passed to next run to continue from the last state
@@ -151,10 +149,10 @@ contains
 
       ! TODO add optional pregen random
       ! l1/l2 > r  <=> logl1-logl2 > log(r)
-      ! TODO very small chance of r = exactly 0 .  (is this true with our generator)  
+      ! TODO very small chance of r = exactly 0 .  (is this true with our generator)
       ! should catch and supply log(r) = -inf .  Performance  impact of check?
       metropolis_choice = ((new_loglikelihood - old_loglikelihood) > log(r))
- 
+
    end function metropolis_choice
    !
    !--------------------------------------------------------------------
@@ -167,7 +165,7 @@ contains
       use random_uniform, only: UNIF_VECTOR, next_random_uniform
       use samplers_math, only: log_nor2par
       implicit none(type, external)
-      
+
       ! Arguments
       type(PARINFO), intent(in):: PI  ! give number, bounds of params
       double precision, dimension(PI%npars), intent(inout):: pars0  ! return random initial values-nonnormalized
@@ -205,21 +203,43 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine init_latin_square(PI, pars0, n_chains)  ! TODO
+   subroutine init_latin_square(PI, pars0, n_chains)  ! TODO to test and use
       use samplers_math, only: nor2par
       implicit none(type, external)
 
       ! Arguements
-      type(PARINFO), intent(in):: PI  ! give number, bounds, and potentially current value of params
+      type(PARINFO), intent(in):: PI  ! give number, bounds of parameters 
       integer, intent(in):: n_chains
       double precision, dimension(PI%npars, n_chains), intent(out):: pars0  ! return initial values-nonnormalized
 
       ! Local variables
       integer:: i, j
+      double precision:: r ! TODO get random numbers from the simulations random number generator
       double precision, dimension(PI%npars, n_chains):: points
+      integer, dimension(PI%npars, n_chains):: region_indices
 
       ! generate N initial points on the (0..1)^N space in latin hypercube distribution...
       ! Must be run for all chains at once outside of parallel regions
+
+      ! in lognorm space ? :
+      ! divide the ranges into equal regions
+
+      ! a latin hypercube arrangement of region indices 
+      ! for each parameter, order the indices 1..n in random order
+      do i=1,PI%npars
+         region_indices(i, :) = shuffle(n_chains)
+      end do 
+
+      ! get points in the chosen regions of lognorm space 0..1
+      do i=1,PI%npars
+         do j=1, n_chains
+         call random_number(r)
+         points(i,j) = (1d0/n_chains) * ((region_indices(i, j)-1) + r)
+                      ! example: for n_chains = 4 ( = n regions) , region_index = 4
+                      ! 0.8875 = 1/4 * ((4-1) + 0.55 ) is a point at a random location (here 0.55) 
+                      ! into the 4th and final quarter of range 0..1
+         end do
+      end do 
 
       ! convert to real parameter values space
       do j = 1, n_chains
@@ -227,6 +247,23 @@ contains
             pars0(i, j) = nor2par(points(i, j), PI%parmin(i), PI%parmax(i))
          end do
       end do
+
+      contains
+
+         function shuffle(n) result(shuffled)
+            use samplers_math, only: random_int
+            integer, intent(in) :: n ! shuffle numbers 1 to n
+            integer, dimension(n) :: shuffled
+            integer :: i, r, tmp
+            shuffled = (/ (i, i=1,n) /)
+            do i=n, 1, -1 
+                  r = random_int(i)
+                  tmp = shuffled(i)
+                  shuffled(i) = shuffled(r)
+                  shuffled(r)=tmp
+            end do
+
+         end function
 
    end subroutine init_latin_square
    !
@@ -243,17 +280,17 @@ contains
       bounds_check = all((PARS > PI%parmin) .and. (PARS < PI%parmax))
 
    end function bounds_check
-   ! 
+   !
    !--------------------------------------------------------------------
    !
    subroutine filenames_insert_threadid(outfile, stepfile, covfile, covifile, chainid)
       !! Amends the given 4 filenames by inserting chainid in the appropriate place
       !! e.g. stem_COV -> stem_1_COV
-      
+
       ! Arguments
       character(len=*), intent(inout):: outfile, stepfile, covfile, covifile
       integer, intent(in):: chainid
-      
+
       call filename_insert_threadid_single(outfile, chainid)
       call filename_insert_threadid_single(stepfile, chainid)
       call filename_insert_threadid_single(covfile, chainid)
@@ -263,13 +300,13 @@ contains
    !
    !--------------------------------------------------------------------
    !
-   subroutine filename_insert_threadid_single(filename, chainid) 
+   subroutine filename_insert_threadid_single(filename, chainid)
 
       ! inserts thread id into a single filename,
       ! STEM_FILETYPE -> STEM_NUMBER_FILETYPE
 
       ! Arguements
-      character(len=*), intent(inout):: filename  ! expected format STEM_FILETYPE eg "UK_baseline_sites_AliceHolt_COV" 
+      character(len=*), intent(inout):: filename  ! expected format STEM_FILETYPE eg "UK_baseline_sites_AliceHolt_COV"
       integer, intent(in):: chainid
 
       ! Local variables
@@ -280,10 +317,10 @@ contains
       write (chainid_str, '(i0)') chainid
 
       ! separate filename into stem and suffix again at last _
-      index_split = scan(filename, '_', back=.true.) !location of last _     
+      index_split = scan(filename, '_', back=.true.) !location of last _
       ! assemble new filename
       filename =  trim(filename(1:index_split))//trim(chainid_str)//"_"//trim(filename((index_split+1):))
- 
+
    end subroutine filename_insert_threadid_single
    !
    !--------------------------------------------------------------------

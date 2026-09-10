@@ -62,7 +62,7 @@ module weather_generator
     call sunrise_daylength( latitude , day_number , days_in_year , declination , sunrise , daylength )
 
     ! Check whether in polar winter (ie sun never rises)..
-    if ( sunrise .ge. (0.5 * hours_per_day) ) then
+    if ( sunrise >= (0.5 * hours_per_day) ) then
 
         ! No sunlight, so...
         sw_hr  = 0.0
@@ -130,7 +130,7 @@ module weather_generator
 
     ! Daylength in hours..
     calcs = -tan(latitude) * tan(declination)
-    if ( ( calcs .lt. -1.0  .or.  calcs .gt. 1.0 ) .and. declination < 0.0) then
+    if ( ( calcs < -1.0  .or.  calcs > 1.0 ) .and. declination < 0.0) then
         ! Days that have no sunlight at all...
         daylength = 0.0
     else
@@ -224,7 +224,7 @@ module weather_generator
     do hr = 1 , nint(hours_per_day)
 
        ! only calculate when sun is up..
-       if ( ( real(hr) .gt. sunrise ) .and. ( real(hr) .lt. sunrise+daylength ) ) then
+       if ( ( real(hr) > sunrise ) .and. ( real(hr) < sunrise+daylength ) ) then
 
            hour_angle = real( hr - nint(hours_per_day * 0.5))  * 15. * ( pi / 180.0 )
 
@@ -232,7 +232,7 @@ module weather_generator
            cos_solar_zenith_angle(hr) = sin(latitude) * sin(declination) &
                                       + cos(latitude) * cos(declination) * cos(hour_angle)
            ! sanity check..
-           if ( cos_solar_zenith_angle(hr) .lt. 0.0 ) then
+           if ( cos_solar_zenith_angle(hr) < 0.0 ) then
                print*,"The cosine of the solar zenith angle is less than 0 (it shouldn't be!)."
                print*,"At step ",hr," of ",hours_per_day,"on day ",day_number," at latitude ",latitude*(180/pi), &
                       "the cosine of the solar zenith angle is ",cos_solar_zenith_angle(hr)
@@ -252,7 +252,7 @@ module weather_generator
                                 cos_solar_zenith_angle( minhr:maxhr ) , 0.0 )
 
     ! catch the error if cloudy day is sunnier that clear-sky day!
-    if ( abs( (hours_per_day*sw_day) - sum(sw_hr)) .gt. 1.0 ) then
+    if ( abs( (hours_per_day*sw_day) - sum(sw_hr)) > 1.0 ) then
          print*,"ERROR! More sunlight on cloudy day than in our clear-sky calculations!"
          print*,"Clear sky SW radiation ",24.0*sw_day,"Cloudy (input) SW radiation ",sum(sw_hr)
          print*,"Sunrise ",sunrise,"day length ",daylength,"Latitude ",latitude*(180.0/pi),"Day number ",day_number
@@ -284,7 +284,7 @@ module weather_generator
     integer :: index_hot_time, hr
 
     ! if very first day, set the midnight-temp to equal the daily minimum..
-    if ( sat_at_midnight .eq. -999. ) sat_at_midnight = 0.5*(tavg_day + tmin_day)
+    if ( sat_at_midnight == -999. ) sat_at_midnight = 0.5*(tavg_day + tmin_day)
 
     ! We break the daily curve into three parts:
     !  midnight--dawn, dawn--maximum, maximum--midnight.
@@ -344,7 +344,7 @@ module weather_generator
     real    :: hottest_time, sum_one, sum_two
 
     ! if very first day, set the midnight-RH to equal the daily maximum..
-    if ( rh_at_midnight .eq. -999. ) rh_at_midnight = rh_max
+    if ( rh_at_midnight == -999. ) rh_at_midnight = rh_max
 
     ! We break the daily curve into three parts:
     !  midnight--dawn, dawn--maximum, maximum--midnight.

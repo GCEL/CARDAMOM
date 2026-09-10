@@ -38,7 +38,7 @@ module cardamom_main_utils
   implicit none(type, external)
 
   ! Numeric code for available samplers
-  integer, parameter :: sampler_APMCMC = 1, sampler_DEMCZ = 2
+  integer, parameter :: sampler_APMCMC = 1, sampler_MHMCMC = 2, sampler_DEMCZ = 3 ! enum-like codes for sampler types
 
   public
 
