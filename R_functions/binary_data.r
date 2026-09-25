@@ -285,7 +285,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
       } # acm or not
 
       # Create time series observation matrix, i.e. things with uncertainty associated.
-      OBSMAT = array(-9999.0,dim=c(length(met$run_day),66))
+      OBSMAT = array(-9999.0,dim=c(length(met$run_day),69))
       # Line makes the correct array size but with -9999 in place of all
       OBSMAT[,1]  = OBS$GPP                   # GPP (gC/m2/day)
       OBSMAT[,2]  = OBS$GPP_unc               # GPP variance (gC/m2/day)
@@ -353,6 +353,9 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
       OBSMAT[,64] = OBS$soilwater             # Surface (0-30cm) soil water content (m3/m3)
       OBSMAT[,65] = OBS$soilwater_unc         # Surface (0-30cm) soil water content variance (m3/m3)
       OBSMAT[,66] = OBS$soilwater_lag         # Surface (0-30cm) soil water content lag (step)
+      OBSMAT[,67] = OBS$WTD                   # Water table depth (m)
+      OBSMAT[,68] = OBS$WTD_unc               # Water table depth variance (m)
+      OBSMAT[,69] = OBS$WTD_lag               # Water table depth lag (step)
 
       # STATIC DATA (1-50)
       # Model ID      = static_data[1]; DALEC_CDEA, DALEC.A1.C2.D2.F2.H2.P4.R2. etc

@@ -4043,7 +4043,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       # Tidy up variables
       rm(output,output_mean,output_annual,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A1.C1.D2.F2.H6.P1.R5.032") {
-      output_dim = 81 ; MTT_dim = 6 ; SS_dim = 6
+      output_dim = 83 ; MTT_dim = 6 ; SS_dim = 6
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       tmp=.Fortran( "rdalec32",output_dim=as.integer(output_dim)
                               ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -4241,7 +4241,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       mean_annual_snow_kgH2Om2 = output_annual[,,55],
                       hydraulic_conductivity_ms = output[,,66],
                       relative_waterfrac_m3m3 = output[,,67],
-                      soil_waterpot_MPa = output[,,68],
+                      soil_waterpot_L1_MPa = output[,,68],
                       field_capacity = output[,,69],
                       water_balance_mm = output[,,70],
                       SurfWater_2_kgH2Om2 = output[,,71],
@@ -4255,6 +4255,9 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       porosity_L2 = output[,,79],
                       field_capacity_L2 = output[,,80],
                       rainfall_in_kgH2Om2day = output[,,81],
+                      soil_waterpot_L2_MPa = output[,,82],
+                      WTD_m =  output[,,83],
+                     # WTD_m = output[,,83],
                       # Canopy (phenology) properties
                       lai_m2m2 = output[,,56],
                       mean_lai_m2m2 = output_mean[,56],

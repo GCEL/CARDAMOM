@@ -33,7 +33,7 @@
 
 extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,forest_all
                      ,Cwood_initial_all,Cwood_stock_all,Cwood_potential_all
-                     ,sand_clay_all,crop_man_all,burnt_all,soilwater_all,nbe_all
+                     ,sand_clay_all,crop_man_all,burnt_all,soilwater_all,nbe_all, WTD_all
                      ,lca_all,gpp_all,Cwood_change_all,Cwood_growth_all,Cwood_loss_all
                      ,fire_all,dlai_all,fapar_all,et_all,RhetQ10_all,MTTsom_all,MaxRootDepth_all
                      ,ctessel_pft,site_name,start_year,end_year
@@ -1056,22 +1056,33 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     ## Get soil water fraction (m3/m3 vol.)
 
     if (soilwater_source == "site_specific") {
-        infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
-        soilwater = read_site_specific_obs("soil_water_m3m3",infile)
-        soilwater_unc = read_site_specific_obs("soil_water_unc_m3m3",infile)
-        soilwater_lag = read_site_specific_obs("soil_water_lag_step",infile)
-        if (soilwater_unc == -9999 & soilwater > 0) {
-          # on the other hand if not then we have no uncertainty info, so use default
-          soilwater_unc = 0.10 * soilwater
-        }
-        if (soilwater_lag == -9999 & soilwater > 0) {
-          # on the other hand if not then we have no uncertainty info, so use default
-          soilwater_lag = rep(1, length(soilwater))
-        }        
+      infile = paste(path_to_site_obs, site_name, "_timeseries_obs.csv", sep = "")
+      soilwater = read_site_specific_obs("soil_water_m3m3", infile)
+      soilwater_unc = read_site_specific_obs("soil_water_unc_m3m3", infile)
+      soilwater_lag = read_site_specific_obs("soil_water_lag_step", infile)
+      
+      # Vectorized operations
+      soilwater_unc = ifelse(soilwater_unc == -9999 & soilwater > 0, 0.10 * soilwater, soilwater_unc)
+      soilwater_lag = ifelse(soilwater_lag == -9999 & soilwater > 0, 1, soilwater_lag)
     } else {
         # assume no data available
         soilwater = -9999 ; soilwater_unc = -9999 ; soilwater_lag = -9999
     }
+    # Get WTD
+    if (soilwater_source == "site_specific") {
+      infile = paste(path_to_site_obs, site_name, "_timeseries_obs.csv", sep = "")
+      WTD = read_site_specific_obs("WTD_m", infile)
+      WTD_unc = read_site_specific_obs("WTD_unc_m", infile)
+      WTD_lag = read_site_specific_obs("WTD_lag_step", infile)
+      
+      # Vectorized operations
+      WTD_unc = ifelse(WTD_unc == -9999 & WTD < 0, 0.10 * WTD, WTD_unc)
+      WTD_lag = ifelse(WTD_lag == -9999 & WTD < 0, 1, WTD_lag)
+    } else {
+      # assume no data available
+      WTD = -9999 ; WTD_unc = -9999 ; WTD_lag = -9999
+    }    
+    
 
     ###
     ## Get some Cwood information (potential stock)
@@ -1345,6 +1356,7 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
                 nbe = nbe, nbe_unc = nbe_unc, nbe_lag = nbe_lag,
                 SWE = SWE, SWE_unc = SWE_unc, SWE_lag = SWE_lag,
                 soilwater = soilwater, soilwater_unc = soilwater_unc, soilwater_lag = soilwater_lag,
+                WTD = WTD, WTD_unc = WTD_unc, WTD_lag = WTD_lag,
                 Cwood_change = Cwood_change, Cwood_change_unc = Cwood_change_unc, Cwood_change_lag = Cwood_change_lag,
                 Cwood_growth = Cwood_growth, Cwood_growth_unc = Cwood_growth_unc, Cwood_growth_lag = Cwood_growth_lag,
                 Cwood_loss = Cwood_loss, Cwood_loss_unc = Cwood_loss_unc, Cwood_loss_lag = Cwood_loss_lag,
