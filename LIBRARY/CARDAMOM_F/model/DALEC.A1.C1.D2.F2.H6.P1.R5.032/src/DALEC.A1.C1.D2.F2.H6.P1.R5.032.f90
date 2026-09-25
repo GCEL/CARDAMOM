@@ -63,7 +63,8 @@ module CARBON_MODEL_MOD
            ,bestvar          &
 		   ,conductivity_time       &
            ,relative_waterfrac_time &
-           ,swp_time                &
+           ,swp_time_1              &
+           ,swp_time_2              &
            ,field_capacity_time     &
            ,wb_time                 &
 		   ,rainfall_in_time        &
@@ -77,8 +78,7 @@ module CARBON_MODEL_MOD
            ,soil_waterfrac_total_time &
 		   ,porosity_time_L1        &
 		   ,porosity_time_L2        &
-		   ,field_capacity_time_L2
-
+		   ,field_capacity_time_L2  
 
   !!!!!!!!!
   ! Parameters
@@ -297,7 +297,10 @@ module CARBON_MODEL_MOD
                                 canopy_storage, & ! water storage on canopy (kgH2O.m-2)
                           intercepted_rainfall, & ! intercepted rainfall rate equivalent (kgH2O.m-2.s-1)
 						    soil_water_balance, & ! soil water balance
-								    runoff_dew    ! Runoff generated from dew
+								    runoff_dew, & ! Runoff generated from dew
+									       WTD, & ! Total Water table depth
+										 WTD_1, & ! WTD layer 1
+										 WTD_2    ! WTD layer 2
 
   ! Module level variables for ACM_GPP_ET variables
   double precision ::   delta_gs, & ! day length corrected gs increment mmolH2O/m2/day
@@ -349,7 +352,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                                             rainfall_time, &
 									    conductivity_time, &
                                   relative_waterfrac_time, &
-                        						 swp_time, &
+                        					   swp_time_1, &
+											   swp_time_2, &
 									  field_capacity_time, &
 									              wb_time, &
 										 rainfall_in_time, &
@@ -363,7 +367,8 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 							    soil_waterfrac_total_time, &
 								         porosity_time_L1, &
 										 porosity_time_L2, &
-								    field_capacity_time_L2
+								   field_capacity_time_L2
+									               
   contains
   !
   !--------------------------------------------------------------------
@@ -577,7 +582,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! layer_thickness correctly!
     root_reach = max_depth * root_biomass / (root_k + root_biomass)
     ! Determine initial soil layer thickness
-    layer_thickness(1) = top_soil_depth !; layer_thickness(2) = max(min_layer,root_reach-top_soil_depth)
+    layer_thickness(1) = top_soil_depth 
     layer_thickness(2) = 0.7
     layer_thickness(3) = top_soil_depth
     previous_depth = sum(layer_thickness(1:2))
@@ -587,14 +592,15 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
         ! allocate variables dimension which are fixed per site only the once
         allocate(deltat_1(nodays),daylength_hours(nodays),daylength_seconds(nodays), &
                  daylength_seconds_1(nodays),rainfall_time(nodays),airt_zero_fraction_time(nodays), &
-				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time(nodays), &
+				 conductivity_time(nodays), relative_waterfrac_time(nodays), swp_time_1(nodays), &
 				 field_capacity_time(nodays), wb_time(nodays), rainfall_in_time(nodays), &
 				 soil_waterfrac_2_time(nodays+1),  &
 				 soil_waterfrac_1_m3m3_time(nodays+1), soil_waterfrac_2_m3m3_time(nodays+1), &
                  runoff_dew_time(nodays), Layer_thickness_time1(nodays), &
                  Layer_thickness_time2(nodays), Layer_thickness_time3(nodays), &
                  soil_waterfrac_total_time(nodays+1), porosity_time_L1(nodays), &
-                 porosity_time_L2(nodays), field_capacity_time_L2(nodays) ) 
+                 porosity_time_L2(nodays), field_capacity_time_L2(nodays), &
+				 swp_time_2(nodays) ) 
 				 
         !
         ! Timing variables which are needed first
@@ -849,14 +855,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	soil_waterfrac_1_m3m3_time(1) = soil_waterfrac(1)
 	soil_waterfrac_2_m3m3_time(1) = soil_waterfrac(2)
 	soil_waterfrac_total_time(1) =  sum(soil_waterfrac(1:nos_soil_layers) * layer_thickness(1:nos_soil_layers) * 1d3)
-	
-!print*, "n", pore_size_dist
-!print*, "ks", saturated_conductivity
-!print*, "ts",porosity
-!print*, "tr", residual_waterfrac
-!print*, "alpha",air_entry
-!print*, "fc",field_capacity
-!print*, "begining test"
+
 	
     do n = start, finish
 
@@ -1041,7 +1040,34 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !
        ! those with time dependancies
        !
+    ! Begin Water Table Depth (WTD) estimation from VGM Soil Water Potential 
+    ! References:
+    ! Van Genuchten, M. T. (1980). A Closed form Equation for Predicting the Hydraulic Conductivity of Unsaturated Soils.
+    !                              Soil Science Society of America Journal, 44(5), 892-898.
+    !                              https://doi.org/10.2136/sssaj1980.03615995004400050002x
+	! Dimitrov, D.D. et al., (2022). Hydrology of peat estimated from near-surface water contents
+	! 						  Hydrological Sciences Journal. Pages 1-20
+	! 						  DOI: 10.1080/02626667.2022.2099281
 
+     WTD_1 = (SWP(1))/head
+     WTD_2 = (SWP(2))/head
+     if (WTD_1 < -layer_thickness(1) ) then
+	 WTD_1 = -layer_thickness(1)
+	 end if 
+	 
+	 if (WTD_2 <  -layer_thickness(2) ) then
+	 WTD_2 = -layer_thickness(2) 
+	 end if 
+	 
+	 if(WTD_1 == -layer_thickness(1)) then
+	 WTD = WTD_1 + WTD_2
+	 else
+	 WTD = WTD_1
+	 end if
+	 
+	 ! Print WTD as output
+	 DIAGS(n,16) = WTD
+	 
        ! total labile release
        FLUXES(n,8) = POOLS(n,1)*(1d0-(1d0-FLUXES(n,16))**deltat(n))/deltat(n)
        ! total leaf litter production
@@ -1108,7 +1134,6 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,42) = soilevaporation ! soil evaporation
        FLUXES(n,43) = wetcanopy_evap  ! wet canopy evaporation
        FLUXES(n,44) = runoff          ! soil surface runoff
-
        FLUXES(n,45) = underflow       ! drainage from bottom of soil column
        FLUXES(n,46) = water_grav_flow(1) ! drainage from the surface soil layer to 2nd
        FLUXES(n,47) = infiltrated(1)  ! top soil surface infiltration by rain (kgH2O/m2/day)
@@ -1117,18 +1142,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        FLUXES(n,48) = uptake_fraction(1) ! transpiration fraction extracted from 1st rooting layer (the soil surface)
        FLUXES(n,49) = uptake_fraction(1) ! transpiration fraction extracted from 2nd rooting layer (dynamic 2nd layer)
 
-!print*, "n", pore_size_dist
-!print*, "ks", saturated_conductivity
-!print*, "ts",porosity
-!print*, "tr", residual_waterfrac
-!print*, "alpha",air_entry
-!print*, "fc",field_capacity
-!print*, "end of test"
-
 
 
  ! Printing or passing to output variable?
-       swp_time(n) = SWP(1)
+       swp_time_1(n) = SWP(1)
+       swp_time_2(n) = SWP(2)	   
        wb_time(n) = soil_water_balance
        rainfall_in_time(n) = (rainfall-intercepted_rainfall)*seconds_per_day
 	   soil_waterfrac_2_time(n+1) = 1d3 * soil_waterfrac(2) * layer_thickness(2)
@@ -1141,10 +1159,10 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 	   Layer_thickness_time3(n) = layer_thickness(3)
    
 !	print*, iteration_count
-!	if (iteration_count == 200) then
-!     print *, "Stopping after 20 day"
+!	if (iteration_count == 5) then
+!    print *, "Stopping after 20 day"
 !     stop
-!    end if
+ !  end if
 
        !!!!!!!!!!
        ! Extract biomass - e.g. deforestation / degradation
@@ -2405,66 +2423,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        call calculate_soil_conductivity(i,soil_waterfrac(i),soil_conductivity(i))
     end do ! soil layers
 
-    !!!!!!!!!!!
-    ! Calculate root profile
-    !!!!!!!!!!!
-
-    ! The original SPA src generates an exponential distribution which aims
-    ! to maintain 50 % of root biomass in the top 25 % of the rooting depth.
-    ! In a simple 3 root layer system this can be estimates more simply
-
-!    ! top 25 % of root profile
-!    root_depth_50 = root_reach * root_depth_frac_50
-!    if (root_depth_50 <= layer_thickness(1)) then
-!
-!        ! Greater than 50 % of the fine root biomass can be found in the top
-!        ! soil layer
-!
-!        ! Start by assigning all 50 % of root biomass to the top soil layer
-!        root_mass(1) = fine_root_biomass * 0.5d0
-!        ! Then quantify how much additional root is found in the top soil layer
-!        ! assuming that the top 25 % depth is found somewhere within the top
-!        ! layer
-!        bonus = (fine_root_biomass-root_mass(1)) &
-!              * (layer_thickness(1)-root_depth_50) / (root_reach - root_depth_50)
-!        root_mass(1) = root_mass(1) + bonus
-!        ! partition the remaining root biomass between the seconds and third
-!        ! soil layers
-!        if (root_reach > sum(layer_thickness(1:2))) then
-!            root_mass(2) = (fine_root_biomass - root_mass(1)) &
-!                         * (layer_thickness(2)/(root_reach-layer_thickness(1)))
-!            root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-!        else
-!            root_mass(2) = fine_root_biomass - root_mass(1)
-!        endif
-!
-!    else if (root_depth_50 > layer_thickness(1) .and. root_depth_50 <= sum(layer_thickness(1:2))) then
-!
-!        ! Greater than 50 % of fine root biomass found in the top two soil
-!        ! layers. We will divide the root biomass uniformly based on volume,
-!        ! plus bonus for the second layer (as done above)
-!        root_mass(1) = fine_root_biomass * (layer_thickness(1)/root_depth_50)
-!        root_mass(2) = fine_root_biomass * ((root_depth_50-layer_thickness(1))/root_depth_50)
-!        root_mass(1:2) = root_mass(1:2) * 0.5d0
-!
-!        ! determine bonus for the seconds layer
-!        bonus = (fine_root_biomass-sum(root_mass(1:2))) &
-!              * ((sum(layer_thickness(1:2))-root_depth_50)/(root_reach-root_depth_50))
-!        root_mass(2) = root_mass(2) + bonus
-!        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-!
-!    else
-!
-!        ! Greater than 50 % of fine root biomass stock spans across all three
-!        ! layers
-!        root_mass(1:2) = fine_root_biomass * 0.5d0 * (layer_thickness(1:2)/root_depth_50)
-!        root_mass(3) = fine_root_biomass - sum(root_mass(1:2))
-!
-!    endif
-!    ! now convert root mass into lengths
-!    root_length = root_mass * root_mass_length_coef_1
-!!    root_length = root_mass / (root_density * root_cross_sec_area)
-
+  
     !!!!!!!!!!!
     ! Calculate hydraulic properties and each rooted layer
     !!!!!!!!!!!
@@ -2754,8 +2713,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
        !!!!!!!!!!
 
        ! Estimate drythick for the current step
-       !drythick = max(min_drythick, top_soil_depth * max(0d0,(1d0 - (soil_waterfrac(1) / field_capacity(1)))))
-       drythick = max(min_drythick, top_soil_depth * max(0d0,(1d0 - (soil_waterfrac(1) / porosity(1)))))
+	   ! Here we use the WTD from Layer 1 for drythick 
+       drythick = max(min_drythick, -WTD_1)
+	   
+	   ! Old drythick
+	   !drythick = max(min_drythick, top_soil_depth * max(0d0,(1d0 - (soil_waterfrac(1) / porosity(1)))))
+	   !print*, "dry thick", drythick
+	   
        ! Soil surface (kgH2O.m-2.day-1)
        call calculate_soil_evaporation(Esoil_local)
 
@@ -2852,13 +2816,18 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
 
     ! Separately update relative water content as this applies to each layer
+
     do i = 1, nos_soil_layers
        call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
     end do ! soil layers
+	
+	! but apply the lowest soil layer to the core as well in initial conditions
+    relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
+
 
     ! Update soil water potential
     call soil_water_potential
-
+	!print*, "SOIL WATER POTENTIAL", SWP
 !    ! check water balance
     soil_water_balance = (sum(infiltrated) - corrected_ET - underflow - runoff) * days_per_step
     soil_water_balance = balance &
@@ -3342,9 +3311,11 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     double precision, intent(in) :: waterfrac
     double precision, intent(out) :: relative_water
 
+	
     ! calculate relative water content (0-1)
     relative_water =  max(0.001d0,min(1d0,(waterfrac - residual_waterfrac(s)) / (porosity(s) - residual_waterfrac(s))))
-	
+
+
   end subroutine calculate_relative_water_frac  
   !
   !---------------------------------------------------------------------
@@ -3400,14 +3371,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     ! calculate field capacity (m3/m3)
     call calculate_field_capacity
     
-	!print*, "input swc", input_soilwater_frac
-    !print*, "porosity", porosity
-    !print*, "fc", field_capacity
-	!print*, "saturated_conductivity",saturated_conductivity
-	!print*, "residual_waterfrac" ,residual_waterfrac
-	!print*, "pore_size_dist", pore_size_dist
-	!print*, "air_entry", air_entry
-    
+	!print*, "Fc", field_capacity
+
+	
 	! Load initial soil water fraction to the dynamic layers
     !soil_waterfrac(1:nos_soil_layers) = input_soilwater_frac
     ! Load initial soil water fraction into the top soil layer...
@@ -3418,12 +3384,13 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
     soil_waterfrac(2) = min(porosity(2),(input_soilwater_frac / field_capacity(1)) * field_capacity(2))
     ! Assume that the 'core' soil layer is field capacity
     soil_waterfrac(nos_soil_layers+1) = field_capacity(nos_soil_layers)
-    !print*, "soilwaterfrac", soil_waterfrac
+  
 
     ! Separately calculate relative water content as this applies to each layer
     do i = 1, nos_soil_layers
        call calculate_relative_water_frac(i,soil_waterfrac(i),relative_water_frac(i))
     end do ! soil layers
+	
 
     ! but apply the lowest soil layer to the core as well in initial conditions
     relative_water_frac(nos_soil_layers+1) = relative_water_frac(nos_soil_layers)
@@ -3551,7 +3518,9 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
 
     ! declare local variables
     integer :: i
-
+	! load parameters into their memory variables
+	
+	
     ! Estimate soil water potential using the VGM model and parameters
     SWP = head * (-1d0 / air_entry) * &
           ((relative_water_frac**(-1d0/m_pore_size_dist) - 1d0) ** (1d0/pore_size_dist))

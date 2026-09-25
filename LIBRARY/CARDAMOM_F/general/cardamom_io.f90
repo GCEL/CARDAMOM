@@ -596,7 +596,8 @@ module cardamom_io
             ,DATAin%Cwood_mortality(DATAin%nodays),DATAin%Cwood_mortality_unc(DATAin%nodays),DATAin%Cwood_mortality_lag(DATAin%nodays)       &
             ,DATAin%harvest(DATAin%nodays),DATAin%harvest_unc(DATAin%nodays),DATAin%harvest_lag(DATAin%nodays)                &
             ,DATAin%foliage_to_litter(DATAin%nodays),DATAin%foliage_to_litter_unc(DATAin%nodays),DATAin%foliage_to_litter_lag(DATAin%nodays) &
-            ,DATAin%soilwater(DATAin%nodays),DATAin%soilwater_unc(DATAin%nodays),DATAin%soilwater_lag(DATAin%nodays) )
+            ,DATAin%soilwater(DATAin%nodays),DATAin%soilwater_unc(DATAin%nodays),DATAin%soilwater_lag(DATAin%nodays)                         &
+			,DATAin%WTD(DATAin%nodays),DATAin%WTD_unc(DATAin%nodays),DATAin%WTD_lag(DATAin%nodays) )
 
     !! Zero all variables
     ! Drivers
@@ -624,6 +625,8 @@ module cardamom_io
     DATAin%harvest = 0d0           ; DATAin%harvest_unc = 0d0           ; DATAin%harvest_lag = 0
     DATAin%foliage_to_litter = 0d0 ; DATAin%foliage_to_litter_unc = 0d0 ; DATAin%foliage_to_litter_lag = 0
     DATAin%soilwater = 0d0         ; DATAin%soilwater_unc = 0d0         ; DATAin%soilwater_lag = 0
+	DATAin%WTD = 0d0               ; DATAin%WTD_unc = 0d0               ; DATAin%WTD_lag = 0
+
     ! Temorary arrays
     mettemp = 0d0 ; obstemp = 0d0
 
@@ -651,6 +654,7 @@ module cardamom_io
     DATAin%nfAPAR = 0
     DATAin%nharvest = 0
     DATAin%nsoilwater = 0
+    DATAin%nWTD = 0
 
     ! work out some key variables
     ! DATAin%noobs corresponds to observations and uncertainties
@@ -819,6 +823,12 @@ module cardamom_io
        DATAin%soilwater_unc(day) = obstemp(a) ; a = a + 1
        DATAin%soilwater_lag(day) = nint(obstemp(a)) ; a = a + 1
 
+       ! Water Table Depth (m)
+       DATAin%WTD(day) = obstemp(a) ; a = a + 1
+       if (obstemp(a-1) > -9998d0) DATAin%nWTD = DATAin%nWTD+1
+       DATAin%WTD_unc(day) = obstemp(a) ; a = a + 1
+       DATAin%WTD_lag(day) = nint(obstemp(a)) ; a = a + 1
+	   
     end do ! day loop
 
     ! Count the total number of observations which are to be used.
@@ -829,7 +839,8 @@ module cardamom_io
                      + DATAin%nClit_stock + DATAin%nCagb_stock + DATAin%nCcoarseroot_stock &
                      + DATAin%nEvap + DATAin%nSWE + DATAin%nNBE &
                      + DATAin%nCwood_mortality + DATAin%nfoliage_to_litter + DATAin%nFire &
-                     + DATAin%nfAPAR + DATAin%nharvest + DATAin%nsoilwater + DATAin%nCwood_growth
+                     + DATAin%nfAPAR + DATAin%nharvest + DATAin%nsoilwater + DATAin%nCwood_growth &
+					 + DATAin%nWTD
 
     ! allocate to time step
     allocate(DATAin%deltat(DATAin%nodays)) ; DATAin%deltat = 0d0
@@ -874,6 +885,7 @@ module cardamom_io
     if (DATAin%nfAPAR > 0) allocate(DATAin%fAPARpts(DATAin%nfAPAR))
     if (DATAin%nharvest > 0) allocate(DATAin%harvestpts(DATAin%nharvest))
     if (DATAin%nsoilwater > 0) allocate(DATAin%soilwaterpts(DATAin%nsoilwater))
+    if (DATAin%nWTD > 0) allocate(DATAin%WTDpts(DATAin%nWTD))
 
     ! we know how many observations we have and what they are, but now lets work
     ! out where they are in the data sets
@@ -950,6 +962,9 @@ module cardamom_io
        if (DATAin%soilwater(day) > -9998d0) then
            DATAin%soilwaterpts(v) = day ; v = v + 1
        endif ! data present condition              
+       if (DATAin%WTD(day) > -9998d0) then
+           DATAin%WTDpts(w) = day ; w = w + 1
+       endif ! data present condition      	   
     end do ! day loop
 
     ! timestep mean temperature (oC)
@@ -1326,6 +1341,7 @@ module cardamom_io
     DATAin%fAPAR_scaling             = 1d0
     DATAin%harvest_scaling           = 1d0
     DATAin%soilwater_scaling         = 1d0
+    DATAin%WTD_scaling               = 1d0
 
     return
 
@@ -1362,6 +1378,7 @@ module cardamom_io
     DATAin%fAPAR_scaling             = 1d0 / dble(DATAin%nfAPAR)
     DATAin%harvest_scaling           = 1d0 / dble(DATAin%nharvest)
     DATAin%soilwater_scaling         = 1d0 / dble(DATAin%nsoilwater)
+    DATAin%WTD_scaling               = 1d0 / dble(DATAin%nWTD)
 
     return
 
@@ -1400,6 +1417,7 @@ module cardamom_io
     DATAin%fAPAR_scaling             = 1d0 / sqrt(dble(DATAin%nfAPAR))
     DATAin%harvest_scaling           = 1d0 / sqrt(dble(DATAin%nharvest))
     DATAin%soilwater_scaling         = 1d0 / sqrt(dble(DATAin%nsoilwater))
+    DATAin%WTD_scaling               = 1d0 / sqrt(dble(DATAin%nWTD))
 
     return
 
@@ -1438,6 +1456,7 @@ module cardamom_io
     DATAin%fAPAR_scaling             = 1d0 / (1d0+log(dble(DATAin%nfAPAR)))
     DATAin%harvest_scaling           = 1d0 / (1d0+log(dble(DATAin%nharvest)))
     DATAin%soilwater_scaling         = 1d0 / (1d0+log(dble(DATAin%nsoilwater)))
+    DATAin%WTD_scaling               = 1d0 / (1d0+log(dble(DATAin%nWTD)))
 
     return
 

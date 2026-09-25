@@ -77,7 +77,8 @@ public :: data_type, DATAin, io_space
                                                     ,NBE               & ! Net Biome Exchange (gC/m2/day)
                                                     ,fAPAR             & ! Fraction of absorbed PAR by green vegetation
                                                     ,soilwater         & ! Soil surface water content (m3/m3)
-                                                    ,harvest             ! C extracted due to harvest activities (gC/m2/day)
+                                                    ,harvest           & ! C extracted due to harvest activities (gC/m2/day)
+                                                    ,WTD                 ! Water table depth (m)
 
 
       ! OBS uncertainties: obv these must be paired with OBS above
@@ -102,7 +103,8 @@ public :: data_type, DATAin, io_space
                                                     ,NBE_unc               & ! gC/m2/day
                                                     ,fAPAR_unc             & ! (0-1)
                                                     ,soilwater_unc         & ! (m3/m3)
-                                                    ,harvest_unc             ! gC/m2/day
+                                                    ,harvest_unc           & ! gC/m2/day
+                                                    ,WTD_unc                 ! m
 
       ! OBS lagged period (model timestep): obs these must be paired with OBS and their uncertainties above
       integer, allocatable, dimension(:) :: GPP_lag               &
@@ -126,7 +128,8 @@ public :: data_type, DATAin, io_space
                                            ,NBE_lag               &
                                            ,fAPAR_lag             &
                                            ,soilwater_lag         &
-                                           ,harvest_lag            
+                                           ,harvest_lag           & 
+                                           ,WTD_lag            
 
       ! location of observations in the data stream, these must be paired with the above
       integer, allocatable, dimension(:) :: gpppts                   & ! gpppts vector used in deriving ngpp
@@ -150,7 +153,8 @@ public :: data_type, DATAin, io_space
                                            ,NBEpts                   & ! same for net biome exchange of CO2
                                            ,fAPARpts                 & ! same for fraction absorbed PAR
                                            ,soilwaterpts             & ! same for surface soil water content
-                                           ,harvestpts                 ! same for C extracted due to harvest
+                                           ,harvestpts               & ! same for C extracted due to harvest
+                                           ,WTDpts                     ! same for Water table depth
 
       double precision :: nobs_scaler
 
@@ -176,7 +180,8 @@ public :: data_type, DATAin, io_space
                          ,NBE_scaling               &
                          ,fAPAR_scaling             &
                          ,soilwater_scaling         &
-                         ,harvest_scaling            
+                         ,harvest_scaling           & 
+                         ,WTD_scaling            
 
       ! counters for the number of observations per data stream
       integer :: total_obs              & ! total number of obervations
@@ -201,7 +206,8 @@ public :: data_type, DATAin, io_space
                 ,nNBE                   & ! number of net biome exchange of CO2
                 ,nfAPAR                 & ! number of fAPAR by green vegetation
                 ,nsoilwater             & ! number of surface soil water observations
-                ,nharvest                 ! number of harvest observations
+                ,nharvest               & ! number of harvest observations
+                ,nWTD                     ! number of Water table depth observations
 
       ! timing variable
       integer :: nos_years, steps_per_year

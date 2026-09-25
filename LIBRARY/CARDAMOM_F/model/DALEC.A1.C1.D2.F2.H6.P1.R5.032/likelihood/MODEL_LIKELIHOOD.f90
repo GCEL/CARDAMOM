@@ -1253,7 +1253,11 @@ endif ! EDC2 == 1 .or. DIAG == 1
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nlai,DATAin%laipts,DATAin%LAI,DATAin%LAI_unc,DATAin%LAI_lag, &
                                              1d0,DATAin%M_DIAGS(1:DATAin%nodays,1))
     end if ! nLAI > 0
-
+    
+	if (DATAin%nWTD > 0) then
+        ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nWTD,DATAin%WTDpts,DATAin%WTD,DATAin%WTD_unc,DATAin%WTD_lag, &
+                                             1d0,DATAin%M_DIAGS(1:DATAin%nodays,16))
+    end if ! nWTD > 0
     !
     ! Do pools (POOLS)
     !

@@ -38,13 +38,13 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
 
   use CARBON_MODEL_MOD, only: CARBON_MODEL, nos_soil_layers , &
                               conductivity_time, relative_waterfrac_time, &
-							  swp_time, field_capacity_time, wb_time, &
+							  swp_time_1, field_capacity_time, wb_time, &
 							  soil_waterfrac_2_time, soil_waterfrac_1_m3m3_time, &
 							  soil_waterfrac_2_m3m3_time, &
 							  runoff_dew_time, soil_waterfrac_total_time, &
 							  porosity_time_L1, porosity_time_L2,&
-                              field_capacity_time_L2, rainfall_in_time
-
+                              field_capacity_time_L2, rainfall_in_time, &
+							  swp_time_2
   ! subroutine specificially deals with the calling of the fortran code model by
   ! R
 
@@ -194,7 +194,7 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,65) = DIAGS(1:nodays,15)          ! Canopy area scaling as a function of wind
      out_var1(i,1:nodays,66) = conductivity_time(1:nodays) ! Soil hydraulic conductivity
 	 out_var1(i,1:nodays,67) = relative_waterfrac_time(1:nodays) ! Relative water fraction
-	 out_var1(i,1:nodays,68) = swp_time(1:nodays)          ! Soil water potential 
+	 out_var1(i,1:nodays,68) = swp_time_1(1:nodays)          ! Soil water potential L1
      out_var1(i,1:nodays,69) = field_capacity_time(1:nodays) ! Field capacity
      out_var1(i,1:nodays,70) = wb_time(1:nodays)
      out_var1(i,1:nodays,71) = soil_waterfrac_2_time(1:nodays) ! ! surface water (kgH2O.m-2. layer 2)
@@ -208,6 +208,8 @@ subroutine rdalec32(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,79) = porosity_time_L2(1:nodays) ! Field capacity
      out_var1(i,1:nodays,80) = field_capacity_time_L2(1:nodays) ! Field capacity
      out_var1(i,1:nodays,81) = rainfall_in_time(1:nodays) ! Field capacity
+	 out_var1(i,1:nodays,82) = swp_time_2(1:nodays)          ! Soil water potential L2
+	 out_var1(i,1:nodays,83) = DIAGS(1:nodays,16) 
 
 	 !
      ! Calculate long-term mean of out_var1
