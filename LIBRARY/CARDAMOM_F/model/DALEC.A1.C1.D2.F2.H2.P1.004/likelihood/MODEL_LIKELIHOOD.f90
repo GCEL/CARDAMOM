@@ -273,14 +273,6 @@ module model_likelihood_module
     EDC1 = 1
     DIAG = EDCD%DIAG
 
-    ! estimate GPP allocation fractions
-    fauto = pars(2)
-    ffol = (1d0-fauto)*pars(3)
-    flab = (1d0-fauto-ffol)*pars(13)
-    froot = (1d0-fauto-ffol-flab)*pars(4)
-    fwood = 1d0-fauto-ffol-flab-froot
-    fsom = fwood+(froot+flab+ffol)*pars(1)/(pars(1)+pars(8))
-
     ! yearly leaf loss fraction
     torfol = 1d0/(pars(5)*365.25d0)
 
@@ -316,12 +308,6 @@ module model_likelihood_module
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(19)/pars(17)) > 10d0) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
     endif
-
-    !! GPP allocation to foliage and labile cannot be 5 orders of magnitude
-    !! difference from GPP allocation to roots
-    !if ((EDC1 == 1 .or. DIAG == 1) .and. ((ffol+flab) > (5d0*froot) .or. ((ffol+flab)*5d0) < froot)) then
-    !    EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
-    !endif
 
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
     ! IMPLICIT Combustion completeness for fol+root litter should be greater than soil

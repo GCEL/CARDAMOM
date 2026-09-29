@@ -17,21 +17,13 @@
 # Set working directory for CARDAMOM codebase
 cardamom_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/"
 # Set directory for the CARDAMOM project to be analysed
-project_dir = "~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB/"
+project_dir = "~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C2.D2.F2.H2.P3.R1.009_DEMCz/global_1deg_dalec9_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB/"
+#project_dir = "~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv15_LCA_TWB_GPP_fAPAR_hashimoto_SGDB/"
 #project_dir = "~/gcel_ceph/cardamom_analyses/lsmallma/CARDAMOM_OUTPUTS/DALEC.A1.C1.D2.F2.H2.P1.004_MHMCMC/global_0.5deg_dalec4_trendyv14_LCA_TWB_GPP_fAPAR/"
 # Set the current working directory for this script
 script_dir = "/home/lsmallma/WORK/GREENHOUSE/models/CARDAMOM/example_postprocessing/"
 # Set output directory, if left empty then the FIGURES directory of the specific project will be assumed to be the location
 output_dir = ""
-
-###
-## Settings for the analysis
-
-# Median estimate array index
-mid_quant = 5
-# Lower and lower quantiles array index
-low_quant = 1  ; high_quant = 9 # 95 %
-#low_quant = 2 ; high_quant = 8 # 68, i.e. 1-SD %
 
 ###
 ## Load functions in memory
@@ -49,6 +41,23 @@ source(paste(script_dir,"functions_for_standard_diagnostics.r",sep=""))
 load(paste(project_dir,"infofile.RData",sep=""))
 # Load project gridded output file
 load(paste(PROJECT$results_processedpath,PROJECT$name,"_stock_flux.RData",sep=""))
+
+###
+## Settings for the analysis
+
+# Determine the correct quantiles
+ee = length(grid_output$num_quantiles) ; ss = 1 ; ci95 = rep(NA, 2) ; ci68 = rep(NA, 2)    
+for (i in seq(1, floor(length(grid_output$num_quantiles)*0.5))) {
+     tmp1 = grid_output$num_quantiles[ss] ; tmp2 = grid_output$num_quantiles[ee]         
+     if (round(tmp2-tmp1, digits=2) == 0.95) { ci95[1] = ss ; ci95[2] = ee }
+     if (round(tmp2-tmp1, digits=2) == 0.68) { ci68[1] = ss ; ci68[2] = ee }
+     ss = ss + 1 ; ee = ee - 1
+}
+# Median estimate array index
+mid_quant = which(round(grid_output$num_quantiles, digits=2) == 0.5)
+# Lower and lower quantiles array index
+#low_quant = ci95[1]  ; high_quant = ci95[2] # 95 %
+low_quant = ci68[1] ; high_quant = ci68[2] # 68, i.e. 1-SD %
 
 ###
 ## Calculate repeat use information
@@ -74,6 +83,27 @@ sink(file = paste(output_dir,"standard_diagnostics_output_",PROJECT$name,"_",Sys
 # Generate global and zonal carbon budgets, consistent with TRENDY model intercomparison
 global_zonal_budget()
 
+# Filter mask for Boreal
+sub_mask_class = grid_output$landmask
+sub_mask_class[which(grid_output$lat < 60)] = NA
+sub_mask_class[which(sub_mask_class >= 60)] = 1 # this line is not needed, but included for human ease    
+masked_budget(sub_mask_class,zonal_names[1])
+# Filter mask for temperate north
+sub_mask_class = grid_output$landmask
+sub_mask_class[which(grid_output$lat >= 60 | grid_output$lat < 30)] = NA
+sub_mask_class[which(grid_output$lat < 60 & grid_output$lat >= 30)] = 1 # this line is not needed, but included for human ease    
+masked_budget(sub_mask_class,zonal_names[2])
+# Filter mask for tropics
+sub_mask_class = grid_output$landmask
+sub_mask_class[which(grid_output$lat >= 30 | grid_output$lat <= -30)] = NA
+sub_mask_class[which(grid_output$lat < 30 & grid_output$lat > -30)] = 1 # this line is not needed, but included for human ease    
+masked_budget(sub_mask_class,zonal_names[4])
+# Filter mask for temperate south
+sub_mask_class = grid_output$landmask
+sub_mask_class[which(grid_output$lat >= -30 | grid_output$lat <= -60)] = NA
+sub_mask_class[which(grid_output$lat < -30 & grid_output$lat > -60)] = 1 # this line is not needed, but included for human ease    
+masked_budget(sub_mask_class,zonal_names[5])
+
 # Conduct K-means cluster analysis, save output and plot.
 # Useful for exploring what 'PFTs' you could have with constrained analyses
 k_means_clustering(nos_clusters=9) # default is number of JULES PFTs
@@ -87,21 +117,21 @@ key_variables_parameters_spatial_correlation(tmp,"Global")
 # Generate time series plots of the aggregated fluxes and anomalies - modelled
 # These should be made to include each of the reccap regions in a single panel plot
 var_and_units    = c("wSWP_MPa","SurfWater_kgH2Om2","CiCa","lai_m2m2","nbp_PgCyr", "nbe_PgCyr", "nee_PgCyr","npp_PgCyr", "gpp_PgCyr", "reco_PgCyr","rhet_PgCyr", "rhet_litter_PgCyr", "rhet_som_PgCyr", 
-                    "rauto_PgCyr", "fire_PgCyr", "harvest_PgCyr","grazing_PgCyr","combined_alloc_foliage_PgCyr","alloc_roots_PgCyr","dnbp_PgCyr", "dnbe_PgCyr", 
+                    "rauto_PgCyr", "fire_PgCyr", "harvest_PgCyr","combined_alloc_foliage_PgCyr","alloc_roots_PgCyr","dnbp_PgCyr", "dnbe_PgCyr", 
                     "dnee_PgCyr","dnpp_PgCyr", "dgpp_PgCyr","dreco_PgCyr","drhet_PgCyr", "drhet_litter_PgCyr","drhet_som_PgCyr", 
-                    "drauto_PgCyr", "dfire_PgCyr", "dharvest_PgCyr","dgrazing_PgCyr","biomass_PgC", "dom_PgC", "labile_PgC","foliage_PgC", "roots_PgC", 
+                    "drauto_PgCyr", "dfire_PgCyr", "dharvest_PgCyr","biomass_PgC", "dom_PgC", "labile_PgC","foliage_PgC", "roots_PgC", 
                     "litter_PgC", "som_PgC","dCbiomass_PgC","dCdom_PgC", "dClabile_PgC","dCfoliage_PgC","dCroots_PgC", "dClitter_PgC","dCsom_PgC",
                     "dCiCa","dwSWP_MPa","dSurfWater_kgH2Om2")
 outfile_var_name    = c("wSWP","SurfWater","CiCa","LAI","NBP", "NBE", "NEE", "NPP", "GPP", "Reco","Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
-                        "Grazing","NPPflux_foliage","NPPflux_roots","NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
+                        "NPPflux_foliage","NPPflux_roots","NBP_anomaly", "NBE_anomaly", "NEE_anomaly", "NPP_anomaly", 
                         "GPP_anomaly", "Reco_anomaly","Rhet_anomaly", "Rhet_litter_anomaly","Rhet_som_anomaly", "Rauto_anomaly", "Fire_anomaly", "Harvest_anomaly",
-                        "Grazing_anomaly","Biomass", "DOM", "Labile", "Foliage", "FineRoots", "Litter", "SOM","Biomass_anomaly", "DOM_anomaly", "Labile_anomaly",
+                        "Biomass", "DOM", "Labile", "Foliage", "FineRoots", "Litter", "SOM","Biomass_anomaly", "DOM_anomaly", "Labile_anomaly",
                         "Foliage_anomaly", "FineRoots_anomaly", "Litter_anomaly", "SOM_anomaly","CiCa_anomaly","wSWP_anomaly","SurfWater_anomaly")
 outfile_var_units    = c(expression('(MPa)'),expression(paste('kgH2Om'^-2,sep="")),expression('(0-1)'),expression(paste('m'^2,'m'^-2,sep="")),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
-                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
+                         expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),expression('(PgC/yr)'),
                          expression('(PgC/yr)'),expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),
@@ -110,11 +140,11 @@ outfile_var_units    = c(expression('(MPa)'),expression(paste('kgH2Om'^-2,sep=""
                          expression('(PgC)'),expression('(PgC)'),expression('(PgC)'),expression('(0-1)'),expression('(MPa)'),
                          expression(paste('kgH2Om'^-2,sep="")))
 for (i in seq(1, length(var_and_units))) { 
-     create_spatially_aggregate_mean_annual_timeseries_and_anomaly(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
-                                                                   region_list[-3], region_list[-3], 
+     create_spatially_aggregate_mean_annual_timeseries_and_anomaly(do_global = FALSE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                                   zonal_names[-c(3,6)], zonal_names[-c(3,6)], 
                                                                    var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
-     create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
-                                                                                 region_list[-3], region_list[-3], 
+     create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area(do_global = FALSE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                                                 zonal_names[-c(3,6)], zonal_names[-c(3,6)], 
                                                                                  var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
 
 }
@@ -123,20 +153,20 @@ for (i in seq(1, length(var_and_units))) {
 # These should be made to include each of the reccap regions in a single panel plot
 var_and_units    = c("wSWP_MPa","SurfWater_kgH2Om2","CiCa","lai_m2m2","nbp_PgCday", "nbe_PgCday", "nee_PgCday","npp_PgCday", "gpp_PgCday", 
                      "reco_PgCday","rhet_PgCday", "rhet_litter_PgCday", "rhet_som_PgCday", "rauto_PgCday", "fire_PgCday", "harvest_PgCday",
-                     "grazing_PgCday","combined_alloc_foliage_PgCday","alloc_roots_PgCday")
+                     "combined_alloc_foliage_PgCday","alloc_roots_PgCday")
 outfile_var_name    = c("wSWP","SurfWater","CiCa","LAI","NBP", "NBE", "NEE", "NPP", "GPP", "Reco","Rhet", "Rhet_litter", "Rhet_som", "Rauto", "Fire", "Harvest",
-                        "Grazing","NPPflux_foliage","NPPflux_roots")
+                        "NPPflux_foliage","NPPflux_roots")
 outfile_var_units    = c(expression('(MPa)'),expression(paste('kgH2Om'^-2,sep="")),expression('(0-1)'),expression(paste('m'^2,'m'^-2,sep="")),expression('(PgC/day)'),
                          expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
                          expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
-                         expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
+                         expression('(PgC/day)'),expression('(PgC/day)'),expression('(PgC/day)'),
                          expression('(PgC/day)'))
 for (i in seq(1, length(var_and_units))) { 
-     create_spatially_aggregate_seasonal_cycles(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
-                                                region_list[-3], region_list[-3], 
+     create_spatially_aggregate_seasonal_cycles(do_global = FALSE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                zonal_names[-c(3,6)], zonal_names[-c(3,6)], 
                                                 var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
-     create_spatially_aggregate_seasonal_cycles_per_unit_area(do_global = TRUE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
-                                                              region_list[-3], region_list[-3], 
+     create_spatially_aggregate_seasonal_cycles_per_unit_area(do_global = FALSE, global_lab="Global", do_obs = TRUE, outfile_prefix = "zonal",
+                                                              zonal_names[-c(3,6)], zonal_names[-c(3,6)], 
                                                               var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
 }
 
@@ -148,7 +178,7 @@ outfile_var_units = c(expression('(Celsius)'),expression('(Celsius)'),expression
                       expression(paste('kgH2Om'^-2,'s'^-1,sep="")),expression('(Pa)'),expression('(0-1)'),expression('(0-1)'),expression(paste('ms'^-1,sep="")))
 for (i in seq(1, length(var_and_units))) { 
      create_spatially_aggregate_mean_annual_timeseries_and_anomaly_forcings(do_global = FALSE, do_obs = TRUE, outfile_prefix = "zonal",
-                                                                            zonal_names[c(-3,-6)], outfile_zonal_names[c(-3,-6)], 
+                                                                            zonal_names[-c(3,6)], outfile_zonal_names[-c(3,6)], 
                                                                             var_and_units[i], outfile_var_name[i], outfile_var_units[i]) 
 }
 

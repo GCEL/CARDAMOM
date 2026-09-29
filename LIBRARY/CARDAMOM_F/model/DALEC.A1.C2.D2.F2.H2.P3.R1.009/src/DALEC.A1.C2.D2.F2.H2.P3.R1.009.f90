@@ -749,19 +749,19 @@ module CARBON_MODEL_MOD
 
        ! temprate (i.e. temperature modified rate of metabolic activity))
        FLUXES(n,2) = exp(pars(10)*0.5d0*(met(3,n)+met(2,n)))
-       ! Estimate the maintenance respiration component of growth respiration (gC.m-2.day-1)
+       ! Estimate the maintenance respiration component of autotrophic respiration (gC.m-2.day-1)
        FLUXES(n,3) = pars(2)*FLUXES(n,1)
        ! labile production (gC.m-2.day-1)
        FLUXES(n,5) = (FLUXES(n,1)-FLUXES(n,3))*pars(13)
        ! root production (gC.m-2.day-1)
        FLUXES(n,6) = (FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,5))*pars(4)
-       ! wood production
+       ! wood production (gC.m-2.day-1)
        FLUXES(n,7) = FLUXES(n,1)-FLUXES(n,3)-FLUXES(n,5)-FLUXES(n,6)
 
        ! Accumulate this time steps labile C (gC.m-2.day-1)
        available_labile = POOLS(n,1) + (FLUXES(n,5) * mV%days_per_step)
        ! Do plant allocation
-       call plant_canopy_phenology(nodays, mV%gsi_lag_steps, n, mV%days_per_step,                 & ! Timing
+       call plant_canopy_phenology(nodays, mV%gsi_lag_steps, n, mV%days_per_step,       & ! Timing
                                    met(10,n), met(11,n), met(12,n),                     & ! GSI forcings
                                    pars(34), pars(35), pars(36), pars(37),              & ! GSI parameters 
                                    pars(38), pars(39), pars(14), pars(12), pars(5),     & ! 
@@ -775,26 +775,26 @@ module CARBON_MODEL_MOD
        ! those with time dependancies
        !
 
-       ! total wood litter production
+       ! total wood litter production (gC.m-2.day-1)
        FLUXES(n,11) = POOLS(n,4)*(1d0-(1d0-pars(6))**mV%days_per_step)/mV%days_per_step
-       ! total root litter production
+       ! total root litter production (gC.m-2.day-1)
        FLUXES(n,12) = POOLS(n,3)*(1d0-(1d0-pars(7))**mV%days_per_step)/mV%days_per_step
 
        !
        ! those with temperature AND time dependancies
        !
 
-       ! turnover of litter (mineralisation + decomposition)
+       ! turnover of litter (mineralisation + decomposition) (gC.m-2.day-1)
        tmp = POOLS(n,5)*(1d0-(1d0-FLUXES(n,2)*pars(8))**mV%days_per_step)*mV%deltat_1(n)
        ! Partition litter turnover between mineralisation and decomposition
        ! respiration heterotrophic litter ; decomposition of litter to som
        FLUXES(n,13) = tmp * (1d0-pars(1)) ; FLUXES(n,15) = tmp * pars(1)
-       ! respiration heterotrophic som
+       ! respiration heterotrophic som (gC.m-2.day-1)
        FLUXES(n,14) = POOLS(n,6)*(1d0-(1d0-FLUXES(n,2)*pars(9))**mV%days_per_step)/mV%days_per_step
-       ! turnover of wood litter (mineralisation + decompostion)
+       ! turnover of wood litter (mineralisation + decompostion) (gC.m-2.day-1)
        tmp = POOLS(n,7)*(1d0-(1d0-FLUXES(n,2)*pars(16))**mV%days_per_step)*mV%deltat_1(n)
        ! Partition litter turnover between mineralisation and decomposition
-       ! respiration heterotrophic litwood ; decomposition of litwood to som
+       ! respiration heterotrophic litwood ; decomposition of litwood to som (gC.m-2.day-1)
        FLUXES(n,30) = tmp * (1d0-pars(1)) ; FLUXES(n,31) = tmp * pars(1)
 
        !!!!!!!!!!

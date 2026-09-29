@@ -123,10 +123,11 @@ extract_timeseries_observations_with_uncertainty<- function(i1,j1,timestep_days,
                 # Only run for time steps when there is a value
                 pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
                 if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {       
-                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = obs_lag_out[pick]+1, na.rm=TRUE)
-                    obs_unc_agg[y] = weighted.mean(x = obs_unc_out[pick], w = obs_lag_out[pick]+1, na.rm=TRUE)
+                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
+                    obs_unc_agg[y] = weighted.mean(x = obs_unc_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
                     obs_lag_agg[y] = sum(obs_lag_out[pick], na.rm=TRUE)
                 }
+                   
            }
        } else if (agg_func == "sum") {
            # Loop through timeseries and aggregate
@@ -140,14 +141,13 @@ extract_timeseries_observations_with_uncertainty<- function(i1,j1,timestep_days,
                     obs_lag_agg[y] = sum(obs_lag_out[pick]+1, na.rm=TRUE)
                     # Then reaccumulate based on the total number of lags
                     obs_agg[y] = obs_agg[y] * obs_lag_agg[y]
-                    obs_unc_agg[y] = obs_unc_agg[y] * obs_lag_agg[y]
-                    # Correct the lag calculation
-                    obs_lag_agg[y] = obs_lag_agg[y] - length(pick)                
+                    obs_unc_agg[y] = obs_unc_agg[y] * obs_lag_agg[y]           
                 }
            }       
        } else {
             stop("A non-valid function has been specified for the extract_timeseries_observations_with_uncertainty()")
        }
+
        # Convert the lag periods into model time steps
        obs_lag_agg = ceiling(obs_lag_agg / mean(timestep_days))
 
@@ -245,8 +245,8 @@ extract_timeseries_observations_without_uncertainty<- function(i1,j1,timestep_da
                 # Only run for time steps when there is a value
                 pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
                 if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {       
-                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = obs_lag_out[pick]+1, na.rm=TRUE)
-                    obs_lag_agg[y] = sum(obs_lag_out[pick], na.rm=TRUE)
+                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
+                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick],na.rm=TRUE), na.rm=TRUE)
                 }
            }
        } else if (agg_func == "sum") {
@@ -259,15 +259,14 @@ extract_timeseries_observations_without_uncertainty<- function(i1,j1,timestep_da
                     obs_lag_agg[y] = sum(obs_lag_out[pick]+1, na.rm=TRUE)
                     # Then reaccumulate based on the total number of lags
                     obs_agg[y] = obs_agg[y] * obs_lag_agg[y]
-                    # Correct the lag calculation
-                    obs_lag_agg[y] = obs_lag_agg[y] - length(pick)
                 } 
            }    
        } else {
             stop("A non-valid function has been specified for the extract_timeseries_observations_without_uncertainty()")
        }
        # Convert the lag periods into model time steps
-       obs_lag_agg = ceiling(obs_lag_agg / mean(timestep_days))             
+       obs_lag_agg = ceiling(obs_lag_agg / mean(timestep_days))
+
        # update with new output information
        obs_out = obs_agg ; obs_lag_out = obs_lag_agg
        # clean up
@@ -436,7 +435,7 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
                 # Only run for time steps when there is a value
                 pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
                 if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {                           
-                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = obs_lag_out[pick]+1, na.rm=TRUE)
+                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
                     obs_lag_agg[y] = sum(obs_lag_out[pick], na.rm=TRUE)
                 }
            }
@@ -445,23 +444,23 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
            for (y in seq(1,length(run_day_selector))) {
                 # Only run for time steps when there is a value
                 pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
-                if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {                           
-                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = obs_lag_out[pick]+1, na.rm=TRUE)                          
-                    obs_lag_agg[y] = sum(obs_lag_out[pick]+1, na.rm=TRUE)
+                if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {                  
+                    # Ensure a minimum weighting value of 1 to ensure that instantanous values are counted.         
+                    obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)                          
+                    # Accumuate the weightings to allow the mass balance to be estimated below.
+                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
                     # Then reaccumulate based on the total number of lags
                     obs_agg[y] = obs_agg[y] * obs_lag_agg[y]
-                    # Correct the lag calculation
-                    obs_lag_agg[y] = obs_lag_agg[y] - length(pick)
                 } 
            }    
            # Final sanity check to ensure that time steps without values do not erroneous get turned into a -1 which is an impossible lag
            #obs_lag_agg = pmax(0,obs_lag_agg)
        } else {
-            stop("A non-valid function has been specified for the extract_timeseries_observations_without_uncertainty()")
+            stop("A non-valid function has been specified for the extract_timeseries_forcing()")
        }
 
        # Convert the lag periods into model time steps
-       obs_lag_agg = ceiling(obs_lag_agg / mean(timestep_days))             
+       obs_lag_agg = ceiling(obs_lag_agg / mean(timestep_days))        
 
        # As these are intended to be forcings we need to now distribute the values over the lagged periods.
        # We will use the inverse of the compound interest approach to achieve this.
@@ -475,6 +474,11 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
                 # If the lag is == zero then we don't need to do anything as its is instantaneously applied
                 if (obs_lag_agg[y] != 0) {
                     if (fraction) {
+                        # Sanity check 
+                        if (obs_agg[y] > 1) {
+                            print("WARNING: the extraction of a fractional forcing estimate which lagged sum is greater than 1.\\
+                                            This will likely result in the value being lost to NaN.")
+                        }
                         # If this is a fraction, i.e. not an absolute rate, 
                         # then we do a time varied average based on compound 
                         # interest calculation to preserve the mass balance

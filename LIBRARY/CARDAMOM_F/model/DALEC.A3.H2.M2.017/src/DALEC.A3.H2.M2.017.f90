@@ -3364,9 +3364,9 @@ module CARBON_MODEL_MOD
   
     !! Determine whether grazing has occured and the resulting impacts on the C-cycle
     !! Livestock units (LU) per hectare following the assumptions that:
-    !! (1) one cattle is 1â€‰LU and one sheep is 0.11â€‰LU, (2) 1â€‰LU weighs 650â€‰kg, 
-    !! (3) an animal demands â‰ˆ 2.5â€‰% (p31) of its weight in the form grass dry matter (DM) when grazing, 
-    !! and (4) 47.5â€‰% of DM consists of C (VertÃ¨s et al., 2018). 
+    !! (1) one cattle is 1 LU and one sheep is 0.11 LU, (2) 1 LU weighs 650kg, 
+    !! (3) an animal demands ~2.5% (p31) of its weight in the form grass dry matter (DM) when grazing, 
+    !! and (4) 47.5% of DM consists of C (Vert's et al., 2018). 
     !! This default assumption equates to 1 LSU / ha / day requiring ~0.77 gC/m2/day.
     
     implicit none

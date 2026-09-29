@@ -17,6 +17,7 @@ library(abind)
 library(corrplot)
 library(terra)
 library(Ternary)
+library(stringr)
 
 # Function calc_useful
 calc_useful<-function() {
@@ -4605,7 +4606,7 @@ global_zonal_budget<-function(){
     names_vars_no_unit    = c("CiCa","LAI_m2m2","wSWP_MPa","SurfWater_kgH2Om2","gs_demand_supply_ratio",
                               "MTT_biomass_years","MTT_labile_years","MTT_foliage_years",
                               "MTT_roots_years","MTT_wood_years","MTT_litter_years",
-                              "MTT_som_years","MTT_dom_years","CiCa_anomaly","LAI_m2m2_anomaly","wSWP_MPa_anomaly","SurfWater_kgH2Om2_anomaly")
+                              "MTT_som_years","MTT_dom_years","CiCa_anomaly","LAI_anomaly_m2m2","wSWP_anomaly_MPa","SurfWater_anomaly_kgH2Om2")
     names_vars_assimilated = c("GPP","GPP_unc","GPP_lag",
                                "LAI","LAI_unc","LAI_lag",
                                "NEE","NEE_unc","NEE_lag",
@@ -5599,7 +5600,7 @@ masked_budget<-function(landmask_grid, outfile_prefix){
     names_vars_no_unit    = c("CiCa","LAI_m2m2","wSWP_MPa","SurfWater_kgH2Om2","gs_demand_supply_ratio",
                               "MTT_biomass_years","MTT_labile_years","MTT_foliage_years",
                               "MTT_roots_years","MTT_wood_years","MTT_litter_years",
-                              "MTT_som_years","MTT_dom_years","CiCa_anomaly","LAI_m2m2_anomaly","wSWP_MPa_anomaly","SurfWater_kgH2Om2_anomaly")
+                              "MTT_som_years","MTT_dom_years","CiCa_anomaly","LAI_anomaly_m2m2","wSWP_anomaly_MPa","SurfWater_anomaly_kgH2Om2")
     names_vars_assimilated = c("GPP","GPP_unc","GPP_lag",
                                "LAI","LAI_unc","LAI_lag",
                                "NEE","NEE_unc","NEE_lag",
@@ -10270,11 +10271,6 @@ summary_plots<-function() {
     plot(landmask, add=TRUE, lwd=0.5)
     dev.off()
 
-
-    ###
-    ## Create maps of the confidence locations across 95 %CI and 68 % quantiles
-
-
     ###
     ## Create maps of the confidence locations across 95 %CI and 68 % quantiles
 
@@ -10299,8 +10295,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCbiomass_gCm2[,,ci95[2]]-grid_output$final_dCbiomass_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCdom_gCm2[,,ci95[2]]-grid_output$final_dCdom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)
@@ -10365,7 +10359,7 @@ summary_plots<-function() {
          main = "", col=(colour_choices_default), type="classes", levels = c("source","neutral","sink"))
     mtext(expression(paste(Delta,"DOM (95 % CI)",sep="")), side=3, cex = main_lab_cex, padj = main_lab_padj, adj = main_lab_adj)
     plot(landmask, add=TRUE, lwd=0.5)
-    # Change stocks for 95 % CI
+    # Change stocks for 68 % CI
     # Assign variables
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCbiomass_gCm2[,,mid_quant]*1e-2*(1/nos_years)
@@ -10395,7 +10389,7 @@ summary_plots<-function() {
     sourceC = 100*(length(biomass_sourceC) / PROJECT$nosites)
     neutralC = 100*(length(biomass_neutralC) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
-    print(paste("...Wood C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
+    print(paste("...Biomass C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
     sinkC = 100*(length(dom_sinkC) / PROJECT$nosites)
     sourceC = 100*(length(dom_sourceC) / PROJECT$nosites)
     neutralC = 100*(length(dom_sourceC) / PROJECT$nosites) 
@@ -10447,8 +10441,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCwood_gCm2[,,ci95[2]]-grid_output$final_dCwood_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCsom_gCm2[,,ci95[2]]-grid_output$final_dCsom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)
@@ -10513,7 +10505,7 @@ summary_plots<-function() {
          main = "", col=(colour_choices_default), type="classes", levels = c("source","neutral","sink"))
     mtext(expression(paste(Delta,"Soil (95 % CI)",sep="")), side=3, cex = main_lab_cex, padj = main_lab_padj, adj = main_lab_adj)
     plot(landmask, add=TRUE, lwd=0.5)
-    # Change stocks for 95 % CI
+    # Change stocks for 68 % CI
     # Assign variables
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCwood_gCm2[,,mid_quant]*1e-2*(1/nos_years)
@@ -10522,8 +10514,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCwood_gCm2[,,ci68[2]]-grid_output$final_dCwood_gCm2[,,ci68[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCsom_gCm2[,,ci68[2]]-grid_output$final_dCsom_gCm2[,,ci68[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci68[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci68[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] < 0)
@@ -10588,8 +10578,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCwood_gCm2[,,ci95[2]]-grid_output$final_dCwood_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCsom_gCm2[,,ci95[2]]-grid_output$final_dCsom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)
@@ -10654,7 +10642,7 @@ summary_plots<-function() {
          main = "", col=(colour_choices_default), type="classes", levels = c("source","neutral","sink"))
     mtext(expression(paste(Delta,"Soil (95 % CI)",sep="")), side=3, cex = main_lab_cex, padj = main_lab_padj, adj = main_lab_adj)
     plot(landmask, add=TRUE, lwd=0.5)
-    # Change stocks for 95 % CI
+    # Change stocks for 68 % CI
     # Assign variables
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCwood_gCm2[,,mid_quant]*1e-2*(1/nos_years)
@@ -10663,8 +10651,6 @@ summary_plots<-function() {
     var5 = (grid_output$final_dCwood_gCm2[,,ci68[2]]-grid_output$final_dCwood_gCm2[,,ci68[1]])*1e-2*(1/nos_years)
     var6 = (grid_output$final_dCsom_gCm2[,,ci68[2]]-grid_output$final_dCsom_gCm2[,,ci68[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    #print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    #print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
     total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] > 0)
     total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci68[2]] < 0)
     total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci68[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci68[1]] < 0)
@@ -10728,21 +10714,19 @@ summary_plots<-function() {
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCbiomass_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var3 = grid_output$final_dCdom_gCm2[,,mid_quant]*1e-2*(1/nos_years)
-    var4 = (grid_output$final_dCtotal_gCm2[,,high_quant]-grid_output$final_dCtotal_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var5 = (grid_output$final_dCbiomass_gCm2[,,high_quant]-grid_output$final_dCbiomass_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var6 = (grid_output$final_dCdom_gCm2[,,high_quant]-grid_output$final_dCdom_gCm2[,,low_quant])*1e-2*(1/nos_years)  
+    var4 = (grid_output$final_dCtotal_gCm2[,,ci95[2]]-grid_output$final_dCtotal_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var5 = (grid_output$final_dCbiomass_gCm2[,,ci95[2]]-grid_output$final_dCbiomass_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var6 = (grid_output$final_dCdom_gCm2[,,ci95[2]]-grid_output$final_dCdom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
-    total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] > 0)
-    total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,high_quant] < 0)
-    total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,high_quant] > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] < 0)
-    biomass_sinkC = which(var2 > 0 & grid_output$final_dCbiomass_gCm2[,,low_quant] > 0)
-    biomass_sourceC = which(var2 < 0 & grid_output$final_dCbiomass_gCm2[,,high_quant] < 0)
-    biomass_neutralC = which(abs(var2) < 0.1 & grid_output$final_dCbiomass_gCm2[,,high_quant] > 0 & grid_output$final_dCbiomass_gCm2[,,low_quant] < 0)
-    dom_sinkC = which(var3 > 0 & grid_output$final_dCdom_gCm2[,,low_quant] > 0)
-    dom_sourceC = which(var3 < 0 & grid_output$final_dCdom_gCm2[,,high_quant] < 0)
-    dom_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,high_quant] > 0 & grid_output$final_dCdom_gCm2[,,low_quant] < 0)
+    total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)
+    total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)
+    total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)
+    biomass_sinkC = which(var2 > 0 & grid_output$final_dCbiomass_gCm2[,,ci95[1]] > 0)
+    biomass_sourceC = which(var2 < 0 & grid_output$final_dCbiomass_gCm2[,,ci95[2]] < 0)
+    biomass_neutralC = which(abs(var2) < 0.1 & grid_output$final_dCbiomass_gCm2[,,ci95[2]] > 0 & grid_output$final_dCbiomass_gCm2[,,ci95[1]] < 0)
+    dom_sinkC = which(var3 > 0 & grid_output$final_dCdom_gCm2[,,ci95[1]] > 0)
+    dom_sourceC = which(var3 < 0 & grid_output$final_dCdom_gCm2[,,ci95[2]] < 0)
+    dom_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,ci95[2]] > 0 & grid_output$final_dCdom_gCm2[,,ci95[1]] < 0)
     # Create a filter for keeping these, this involves finding the locations which are not in the current filter
     possible_points = c(1:prod(dim(grid_output$final_dCtotal_gCm2)[1:2]))
     total_filter = unique(c(total_sinkC,total_sourceC,total_neutralC)) ; total_filter = possible_points[-total_filter]
@@ -10820,21 +10804,19 @@ summary_plots<-function() {
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCwood_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var3 = grid_output$final_dCsom_gCm2[,,mid_quant]*1e-2*(1/nos_years)
-    var4 = (grid_output$final_dCtotal_gCm2[,,high_quant]-grid_output$final_dCtotal_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var5 = (grid_output$final_dCwood_gCm2[,,high_quant]-grid_output$final_dCwood_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var6 = (grid_output$final_dCsom_gCm2[,,high_quant]-grid_output$final_dCsom_gCm2[,,low_quant])*1e-2*(1/nos_years)  
+    var4 = (grid_output$final_dCtotal_gCm2[,,ci95[2]]-grid_output$final_dCtotal_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var5 = (grid_output$final_dCwood_gCm2[,,ci95[2]]-grid_output$final_dCwood_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var6 = (grid_output$final_dCsom_gCm2[,,ci95[2]]-grid_output$final_dCsom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
-    print("=== Filter for pixels which are > 95 % confident in source or sink or neutral ===")
-    print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
-    total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] > 0)
-    total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,high_quant] < 0)
-    total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,high_quant] > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] < 0)
-    wood_sinkC = which(var2 > 0 & grid_output$final_dCwood_gCm2[,,low_quant] > 0)
-    wood_sourceC = which(var2 < 0 & grid_output$final_dCwood_gCm2[,,high_quant] < 0)
-    wood_neutralC = which(abs(var2) < 0.1 & grid_output$final_dCwood_gCm2[,,high_quant] > 0 & grid_output$final_dCwood_gCm2[,,low_quant] < 0)
-    som_sinkC = which(var3 > 0 & grid_output$final_dCsom_gCm2[,,low_quant] > 0)
-    som_sourceC = which(var3 < 0 & grid_output$final_dCsom_gCm2[,,high_quant] < 0)
-    som_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCsom_gCm2[,,high_quant] > 0 & grid_output$final_dCsom_gCm2[,,low_quant] < 0)
+    total_sinkC = which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)
+    total_sourceC = which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)
+    total_neutralC = which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)
+    wood_sinkC = which(var2 > 0 & grid_output$final_dCwood_gCm2[,,ci95[1]] > 0)
+    wood_sourceC = which(var2 < 0 & grid_output$final_dCwood_gCm2[,,ci95[2]] < 0)
+    wood_neutralC = which(abs(var2) < 0.1 & grid_output$final_dCwood_gCm2[,,ci95[2]] > 0 & grid_output$final_dCwood_gCm2[,,ci95[1]] < 0)
+    som_sinkC = which(var3 > 0 & grid_output$final_dCsom_gCm2[,,ci95[1]] > 0)
+    som_sourceC = which(var3 < 0 & grid_output$final_dCsom_gCm2[,,ci95[2]] < 0)
+    som_neutralC = which(abs(var3) < 0.1 & grid_output$final_dCsom_gCm2[,,ci95[2]] > 0 & grid_output$final_dCsom_gCm2[,,ci95[1]] < 0)
     # Create a filter for keeping these, this involves finding the locations which are not in the current filter
     possible_points = c(1:prod(dim(grid_output$final_dCtotal_gCm2)[1:2]))
     total_filter = unique(c(total_sinkC,total_sourceC,total_neutralC)) ; total_filter = possible_points[-total_filter]
@@ -10915,9 +10897,9 @@ summary_plots<-function() {
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCbiomass_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var3 = grid_output$final_dCdom_gCm2[,,mid_quant]*1e-2*(1/nos_years)
-    var4 = (grid_output$final_dCtotal_gCm2[,,high_quant]-grid_output$final_dCtotal_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var5 = (grid_output$final_dCbiomass_gCm2[,,high_quant]-grid_output$final_dCbiomass_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var6 = (grid_output$final_dCdom_gCm2[,,high_quant]-grid_output$final_dCdom_gCm2[,,low_quant])*1e-2*(1/nos_years)  
+    var4 = (grid_output$final_dCtotal_gCm2[,,ci95[2]]-grid_output$final_dCtotal_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var5 = (grid_output$final_dCbiomass_gCm2[,,ci95[2]]-grid_output$final_dCbiomass_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var6 = (grid_output$final_dCdom_gCm2[,,ci95[2]]-grid_output$final_dCdom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
     print("=== Median of ratio of uncertainty to FLUX ===")
     sinkC = round(median(var4 / abs(var1), na.rm=TRUE), digits=2)
@@ -10928,19 +10910,19 @@ summary_plots<-function() {
     print(paste("...DOM C CI:Est = ",neutralC,sep=""))        
     print("=== Percentage of pixels > 95 % confident in source or sink ===")
     print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
-    sinkC = 100*(length(which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,high_quant] > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...Total C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
-    sinkC = 100*(length(which(var2 > 0 & grid_output$final_dCbiomass_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var2 < 0 & grid_output$final_dCbiomass_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var2) < 0.1 & grid_output$final_dCbiomass_gCm2[,,high_quant] > 0 & grid_output$final_dCbiomass_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var2 > 0 & grid_output$final_dCbiomass_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var2 < 0 & grid_output$final_dCbiomass_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var2) < 0.1 & grid_output$final_dCbiomass_gCm2[,,ci95[2]] > 0 & grid_output$final_dCbiomass_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...Biomass C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
-    sinkC = 100*(length(which(var3 > 0 & grid_output$final_dCdom_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var3 < 0 & grid_output$final_dCdom_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,high_quant] > 0 & grid_output$final_dCdom_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var3 > 0 & grid_output$final_dCdom_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var3 < 0 & grid_output$final_dCdom_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var3) < 0.1 & grid_output$final_dCdom_gCm2[,,ci95[2]] > 0 & grid_output$final_dCdom_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...DOM C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
     rm(sinkC,sourceC,neutralC)
@@ -11013,9 +10995,9 @@ summary_plots<-function() {
     var1 = grid_output$final_dCtotal_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var2 = grid_output$final_dCwood_gCm2[,,mid_quant]*1e-2*(1/nos_years)
     var3 = grid_output$final_dCsom_gCm2[,,mid_quant]*1e-2*(1/nos_years)
-    var4 = (grid_output$final_dCtotal_gCm2[,,high_quant]-grid_output$final_dCtotal_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var5 = (grid_output$final_dCwood_gCm2[,,high_quant]-grid_output$final_dCwood_gCm2[,,low_quant])*1e-2*(1/nos_years)
-    var6 = (grid_output$final_dCsom_gCm2[,,high_quant]-grid_output$final_dCsom_gCm2[,,low_quant])*1e-2*(1/nos_years)  
+    var4 = (grid_output$final_dCtotal_gCm2[,,ci95[2]]-grid_output$final_dCtotal_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var5 = (grid_output$final_dCwood_gCm2[,,ci95[2]]-grid_output$final_dCwood_gCm2[,,ci95[1]])*1e-2*(1/nos_years)
+    var6 = (grid_output$final_dCsom_gCm2[,,ci95[2]]-grid_output$final_dCsom_gCm2[,,ci95[1]])*1e-2*(1/nos_years)  
     # Update information - what is the proportion of pixels we can assign source / sink / neutral too?
     print("=== Median of ratio of uncertainty to FLUX ===")
     sinkC = round(median(var4 / abs(var1), na.rm=TRUE), digits=2)
@@ -11026,19 +11008,19 @@ summary_plots<-function() {
     print(paste("...SOM C CI:Est = ",neutralC,sep=""))        
     print("=== Percentage of pixels > 95 % confident in source or sink ===")
     print(" Note: Neutral defined as < 0.1 MgC/ha/yr and 95 % CI spanning zero")
-    sinkC = 100*(length(which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,high_quant] > 0 & grid_output$final_dCtotal_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var1 > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var1 < 0 & grid_output$final_dCtotal_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var1) < 0.1 & grid_output$final_dCtotal_gCm2[,,ci95[2]] > 0 & grid_output$final_dCtotal_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...Total C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
-    sinkC = 100*(length(which(var2 > 0 & grid_output$final_dCwood_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var2 < 0 & grid_output$final_dCwood_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var2) < 0.1 & grid_output$final_dCwood_gCm2[,,high_quant] > 0 & grid_output$final_dCwood_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var2 > 0 & grid_output$final_dCwood_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var2 < 0 & grid_output$final_dCwood_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var2) < 0.1 & grid_output$final_dCwood_gCm2[,,ci95[2]] > 0 & grid_output$final_dCwood_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...Wood C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
-    sinkC = 100*(length(which(var3 > 0 & grid_output$final_dCsom_gCm2[,,low_quant] > 0)) / PROJECT$nosites)
-    sourceC = 100*(length(which(var3 < 0 & grid_output$final_dCsom_gCm2[,,high_quant] < 0)) / PROJECT$nosites)
-    neutralC = 100*(length(which(abs(var3) < 0.1 & grid_output$final_dCsom_gCm2[,,high_quant] > 0 & grid_output$final_dCsom_gCm2[,,low_quant] < 0)) / PROJECT$nosites) 
+    sinkC = 100*(length(which(var3 > 0 & grid_output$final_dCsom_gCm2[,,ci95[1]] > 0)) / PROJECT$nosites)
+    sourceC = 100*(length(which(var3 < 0 & grid_output$final_dCsom_gCm2[,,ci95[2]] < 0)) / PROJECT$nosites)
+    neutralC = 100*(length(which(abs(var3) < 0.1 & grid_output$final_dCsom_gCm2[,,ci95[2]] > 0 & grid_output$final_dCsom_gCm2[,,ci95[1]] < 0)) / PROJECT$nosites) 
     sinkC = round(sinkC,digits=2) ; sourceC = round(sourceC,digit=2) ; neutralC = round(neutralC,digits=2)
     print(paste("...SOM C sink = ",sinkC," source = ",sourceC," neutral = ",neutralC,sep=""))
     rm(sinkC,sourceC,neutralC)
@@ -13816,6 +13798,11 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area<-fun
         mfrow_ij = c(2,3)   
         mar_ijkz = c(4,4.5,2,1)     
         omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 7) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(3,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)
     } else if (nos_plots == 12) {
         height = 2000 ; width = 4000
         mfrow_ij = c(3,4)   
@@ -13858,6 +13845,8 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area<-fun
         find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
         find_file = find_file[grepl(paste("/",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
         if (length(find_file) > 1 | length(find_file) == 0) {
+            print(list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE) )
+print("c")
             print(find_file)
             print(paste(var_and_units,".txt",sep="")) ; print(paste(outfile_var_name,tmp,sep=""))
             stop("Could not positively identify the global file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
@@ -13937,6 +13926,8 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area<-fun
              find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
              find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
              if (length(find_file) > 1 | length(find_file) == 0) {
+            print(list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE) )
+print("d")
                  print(find_file)
                  print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
                  stop("Could not positively identify the masked file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
@@ -14029,6 +14020,8 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area<-fun
              find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
              find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
              if (length(find_file) > 1 | length(find_file) == 0) {
+print("e")
+            print(list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE) )
                  print(find_file)                 
                  print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
                  stop("Could not positively identify the masked file in create_spatially_aggregate_mean_annual_timeseries_and_anomaly_per_unit_area()")
@@ -14123,6 +14116,11 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly<-function(do_globa
         mfrow_ij = c(2,3)   
         mar_ijkz = c(4,4.5,2,1)     
         omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 7) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(3,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)
     } else if (nos_plots == 12) {
         height = 2000 ; width = 4000
         mfrow_ij = c(3,4)   
@@ -14293,6 +14291,11 @@ create_spatially_aggregate_mean_annual_timeseries_and_anomaly_forcings<-function
         mfrow_ij = c(2,3)   
         mar_ijkz = c(4,4.5,2,1)     
         omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 7) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(3,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)
     } else if (nos_plots == 12) {
         height = 2000 ; width = 4000
         mfrow_ij = c(3,4)   
@@ -14421,6 +14424,11 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
         mfrow_ij = c(2,3)   
         mar_ijkz = c(4,4.5,2,1)     
         omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 7) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(3,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)
     } else if (nos_plots == 12) {
         height = 2000 ; width = 4000
         mfrow_ij = c(3,4)   
@@ -14453,7 +14461,7 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
         if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
             tmp = ""
         } else {
-            tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+            tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp) ; tmp = gsub("day","",tmp)
             tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
             # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
             tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
@@ -14515,7 +14523,7 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
              if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
                  tmp = ""
              } else {
-                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp)  
+                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp) ; tmp = gsub("day","",tmp)  
                  tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
                  # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
                  tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
@@ -14543,7 +14551,7 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
          if (tmp[2] > yrange[2]) { yrange[2] = tmp[2] }
     } 
     # Add some buffer
-    yrange[2] = yrange[2] + abs(yrange[2])*0.05    
+    yrange[2] = yrange[2] + abs(yrange[2])*0.15
 
 
     # How consistent is the CARDAMOM analysis with available independent datasets?
@@ -14559,7 +14567,7 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
         ## Plot each masked area
         # Load the explicitly calculated anomaly for each term
         var2 = get(paste("agg_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,] 
-        var2 = (var2 * unit_correction) / masked_area_m2        
+        var2 = (var2 * unit_correction) / global_area_m2        
         
         # Determine the axis labels
         ylab.text = eval(bquote(expression(.(outfile_var_name_local) ~ .(outfile_var_units_local[[1]]))))
@@ -14588,10 +14596,40 @@ create_spatially_aggregate_seasonal_cycles_per_unit_area<-function(do_global,glo
          ## Plot each masked area
          # Load the explicitly calculated anomaly for each term
          var2 = get(paste("agg_",masked_names[m],"_seasonal_",var_and_units,sep=""), pos = grid_output)[2,,]         
+
+         # Load the current variables masked area aggregate file. We really just want the correct areas
+         find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+         find_file = find_file[grepl(paste("/",masked_names[m],"_",var_and_units,".txt",sep=""), find_file , ignore.case=TRUE)]
+         if (length(find_file) > 1 | length(find_file) == 0) {
+             # Try for the outfile variable name
+             if (grepl("CiCa",outfile_var_name, ignore.case=TRUE)) {
+                 tmp = ""
+             } else {
+                 tmp = gsub("\\(","",outfile_var_units) ; tmp = gsub("\\)","",tmp) ; tmp = gsub("/","",tmp) ; tmp = gsub("'\'","",tmp) ; tmp = gsub("day","",tmp)  
+                 tmp = gsub("paste","",tmp) ; tmp = gsub("\\b^\\b","",tmp) ; tmp = gsub("sep","",tmp) ; tmp = gsub("=","",tmp) ; tmp = gsub("-","",tmp)
+                 # fixed = TRUE treats the pattern as a literal string — no regex escaping needed
+                 tmp = str_replace_all(tmp, fixed("^"),  "") ; tmp = str_replace_all(tmp, fixed('"\"'), "") ; tmp = str_replace_all(tmp, fixed(","),  "")      
+                 tmp = str_replace_all(tmp, fixed(' '),  "") ; tmp = str_replace_all(tmp, fixed('"'),  "")
+                 tmp = paste("_",tmp,sep="")
+             }
+             find_file = list.files(output_dir, pattern = ".txt$", ignore.case=TRUE, full.names=TRUE)
+             find_file = find_file[grepl(paste("/",masked_names[m],"_",outfile_var_name,tmp,sep=""), find_file , ignore.case=TRUE)]        
+             if (length(find_file) > 1 | length(find_file) == 0) {
+                 print(find_file)
+                 print(paste(masked_names[m],"_",var_and_units,".txt",sep="")) ; print(paste(masked_names[m],"_",outfile_var_name,tmp,".txt",sep=""))                 
+                 stop("Could not positively identify the masked file in create_spatially_aggregate_seasonal_cycles_per_unit_area()")
+             }
+         }
+      
+         masked_area_m2 = read.table(find_file, sep=" ", header=TRUE)
+         #masked_area_m2 = read.table(paste(output_dir,"/",masked_names[m],"_",var_and_units,".txt",sep=""), sep=" ", header=TRUE)
+         masked_area_m2 = masked_area_m2$area_m2
+         if (masked_area_m2_flag == FALSE) {masked_area_m2 = 1}
+
          var2 = (var2 * unit_correction) / masked_area_m2
          
          # Determine the axis labels
-         ylab.text = eval(bquote(expression(.(outfile_var_name) ~ .(outfile_var_units_local[[1]]))))
+         ylab.text = eval(bquote(expression(.(outfile_var_name_local) ~ .(outfile_var_units_local[[1]]))))
          # Create initial plot
          plot(var2[,1], type="l", pch=16, cex = 0.5, col = colour_choices_years[2], 
               cex.main=1.3, cex.lab=1.2, cex.axis=1.2, ylim=yrange, 
@@ -14655,6 +14693,11 @@ create_spatially_aggregate_seasonal_cycles<-function(do_global,global_lab,do_obs
         mfrow_ij = c(2,3)   
         mar_ijkz = c(4,4.5,2,1)     
         omi_ijkz = c(0.1,0.1,0.14,0.1)        
+    } else if (nos_plots == 7) {
+        height = 2200 ; width = 3000
+        mfrow_ij = c(3,3)   
+        mar_ijkz = c(4,4.5,2,1)     
+        omi_ijkz = c(0.1,0.1,0.14,0.1)
     } else if (nos_plots == 12) {
         height = 2000 ; width = 4000
         mfrow_ij = c(3,4)   

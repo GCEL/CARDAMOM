@@ -123,12 +123,17 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
            info = paste("Mean estimate: ",par_names[p]," (97.5 % = ",var2,"; 50 % = ",var1,"; 2.5 % = ",var3,")", sep="")
            zrange = range(pretty(c(min(grid_output[[pp]][,,median_loc], na.rm=TRUE),max(grid_output[[pp]][,,median_loc],na.rm=TRUE))))
            if (zrange[1] >= 0 & zrange[2] > 0) {
+               # Gains only
                colour_choices = colour_choices_gain
            } else if (zrange[1] < 0 & zrange[2] > 0) {
+               # Sign change, also update ranges
                colour_choices = colour_choices_sign
+               zrange = c(-1,1) * max(abs(zrange))
            } else if (zrange[1] < 0 & zrange[2] <= 0) {
+               # Loss only
                colour_choices = rev(colour_choices_loss)
            } else {
+               # Default
                colour_choices = colour_choices_default
            }
            image.plot(x = grid_long, y = grid_lat, z = grid_output[[pp]][,,median_loc], zlim=zrange, main=info, col = colour_choices,
@@ -188,12 +193,17 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
        info = paste("Final estimate: ",par_names[p]," (97.5 % = ",var2,"; 50 % = ",var1,"; 2.5 % = ",var3,")", sep="")
        zrange = range(pretty(c(min(grid_output[[pp]][,,median_loc], na.rm=TRUE),max(grid_output[[pp]][,,median_loc],na.rm=TRUE))))
        if (zrange[1] >= 0 & zrange[2] > 0) {
+           # Gains only
            colour_choices = colour_choices_gain
        } else if (zrange[1] < 0 & zrange[2] > 0) {
+           # Sign change, also update ranges
            colour_choices = colour_choices_sign
+           zrange = c(-1,1) * max(abs(zrange))
        } else if (zrange[1] < 0 & zrange[2] <= 0) {
+           # Loss only
            colour_choices = rev(colour_choices_loss)
        } else {
+           # Default
            colour_choices = colour_choices_default
        }
        image.plot(x = grid_long, y = grid_lat, z = grid_output[[pp]][,,median_loc], main=info, col = colour_choices, zlim=zrange,
@@ -225,12 +235,17 @@ generate_simplified_stock_and_flux_maps<-function(PROJECT) {
        info = paste("Steady State: ",par_names[p]," (97.5 % = ",var2,"; 50 % = ",var1,"; 2.5 % = ",var3,")", sep="")
        zrange = range(pretty(c(min(grid_output[[pp]][,,median_loc], na.rm=TRUE),max(grid_output[[pp]][,,median_loc],na.rm=TRUE))))
        if (zrange[1] >= 0 & zrange[2] > 0) {
+           # Gains only
            colour_choices = colour_choices_gain
        } else if (zrange[1] < 0 & zrange[2] > 0) {
+           # Sign change, also update ranges
            colour_choices = colour_choices_sign
+           zrange = c(-1,1) * max(abs(zrange))
        } else if (zrange[1] < 0 & zrange[2] <= 0) {
+           # Loss only
            colour_choices = rev(colour_choices_loss)
        } else {
+           # Default
            colour_choices = colour_choices_default
        }
        image.plot(x = grid_long, y = grid_lat, z = grid_output[[pp]][,,median_loc], main=info, col = colour_choices, zlim=zrange,
