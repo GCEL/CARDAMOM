@@ -3625,7 +3625,8 @@ module CARBON_MODEL_MOD
                call acm_gpp_stage_1(mV)      
            end if ! alloc_leaf_fraction > 0
 
-       else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       !else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       else if (gsi_gradient <= leaf_phenology_threshold .or. gsi(step) <= vsmall) then
 
            !
            ! Leaf fall to litter (gC/m2/day)

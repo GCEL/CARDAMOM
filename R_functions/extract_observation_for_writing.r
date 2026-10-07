@@ -246,7 +246,7 @@ extract_timeseries_observations_without_uncertainty<- function(i1,j1,timestep_da
                 pick = (run_day_selector[y]-timestep_days[y]+1):run_day_selector[y]
                 if (length(which(is.na(obs_out[pick]) == FALSE)) > 0) {       
                     obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
-                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick],na.rm=TRUE), na.rm=TRUE)
+                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick]), na.rm=TRUE)
                 }
            }
        } else if (agg_func == "sum") {
@@ -448,9 +448,13 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
                     # Ensure a minimum weighting value of 1 to ensure that instantanous values are counted.         
                     obs_agg[y] = weighted.mean(x = obs_out[pick], w = pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)                          
                     # Accumuate the weightings to allow the mass balance to be estimated below.
-                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick], na.rm=TRUE), na.rm=TRUE)
+                    obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick]), na.rm=TRUE)
                     # Then reaccumulate based on the total number of lags
                     obs_agg[y] = obs_agg[y] * obs_lag_agg[y]
+                    if (obs_agg[y] > 1) {
+                            print(est_var_name_in) ; print(obs_agg[y]) ; print(obs_lag_agg[y])
+                            print(obs_out[pick]) ; print(obs_lag_out[pick])
+                    }
                 } 
            }    
            # Final sanity check to ensure that time steps without values do not erroneous get turned into a -1 which is an impossible lag
@@ -476,6 +480,7 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
                     if (fraction) {
                         # Sanity check 
                         if (obs_agg[y] > 1) {
+                            print(est_var_name_in) 
                             print("WARNING: the extraction of a fractional forcing estimate which lagged sum is greater than 1.\\
                                             This will likely result in the value being lost to NaN.")
                         }

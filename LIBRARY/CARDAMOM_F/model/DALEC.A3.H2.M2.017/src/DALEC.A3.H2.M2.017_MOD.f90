@@ -372,7 +372,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
   double precision, allocatable, dimension(:) :: gsi_lag_days, & ! Number of days equivelent over which GSI is lagged
                                               gsi_lag_history    ! Local storage of the GSI values to be worked on.
 
- end type
+  end type
   type(model_working_variables), allocatable, dimension(:):: mVs
 
   contains

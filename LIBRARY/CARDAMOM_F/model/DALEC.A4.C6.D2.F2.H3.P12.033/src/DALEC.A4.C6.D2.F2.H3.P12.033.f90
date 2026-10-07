@@ -245,7 +245,8 @@ module CARBON_MODEL_MOD
                                      ,rootcr_frac_removal    &
                                      ,Crootcr_part           &
                                      ,soil_loss_frac
-    double precision :: labile_loss,foliar_loss      &
+    double precision :: auto_loss,auto_residue       & 
+                       ,labile_loss,foliar_loss      &
                        ,roots_loss,wood_loss         &
                        ,rootcr_loss,stem_loss        &
                        ,labile_residue,foliar_residue&
@@ -417,6 +418,8 @@ module CARBON_MODEL_MOD
     mV%root_k = pars(26) ; mV%max_depth = pars(27)
     ! Initialise leaf growth / mortality history
     last_leaf_loss = 0d0 ; last_leaf_grow = 0d0 
+    ! Initial target allocation for Rm
+    mV%rauto_target = pars(48)
 
     ! assigning initial conditions
     POOLS(1,1) = pars(18) ! labile
@@ -426,6 +429,7 @@ module CARBON_MODEL_MOD
     POOLS(1,5) = pars(22) ! litter
     POOLS(1,6) = pars(23) ! som
     !POOLS(1,7) = assigned later ! soil water (0-10cm)
+    POOLS(1,8) = pars(47)
 
     if (.not.allocated(mV%deltat_1)) then 
       write(*,*) "Error - arrays not allocated - probably carbon_model() was called without initialize_mv()"
@@ -791,7 +795,7 @@ module CARBON_MODEL_MOD
            ! Estimate the ratio of leaf internal to ambient CO2 concentrations
            DIAGS(n,4) = mV%ci / mV%co2
            ! Estimate the full 24 hours leaf maintenance respiration (gC/m2/day)
-           FLUXES(n,3) = mV%dark_respiration * umol_to_gC * seconds_per_day
+           FLUXES(n,53) = mV%dark_respiration * umol_to_gC * seconds_per_day
            ! Determine the daily photosynthetic C return and convert to a per gC leaf basis
            ! i.e. GPP(dayl)-leaf Rm(24hrs)
            DIAGS(n,22) = (FLUXES(n,1) - FLUXES(n,3)) / POOLS(n,2)
@@ -801,22 +805,23 @@ module CARBON_MODEL_MOD
            transpiration = max(0d0,transpiration)
            ! Estimate maintenance respiration of the wood and fine roots
            FLUXES(n,16) = pars(2)*max(0d0,FLUXES(n,1))
-           ! Autotrophic respiration (gC.m-2.day-1)
-           ! Combine the fixed fraction assumption for maintenance of
-           ! fine root and wood with the maintenance respiration associated with leaves
-           FLUXES(n,3) = FLUXES(n,3) + FLUXES(n,16)
        else
            ! assume zero fluxes
            FLUXES(n,1) = 0d0 ; transpiration = 0d0 ; DIAGS(n,4) = 0d0 ; FLUXES(n,16) = 0d0
            ! Autotrophic respiration will continue to be assumed 
            ! to include the explicitly calculated leaf maintenance respiration
            mV%cold_shutdown = (mV%leafT - Vc_minT) / ((mV%leafT - Vc_minT) + Vc_coef)
-           FLUXES(n,3) = seconds_per_day * umol_to_gC * mV%lai * Rm_heskel_polynomial(mV%Rm_leaf_const,mV%leafT,mV%cold_shutdown)
+           FLUXES(n,53) = seconds_per_day * umol_to_gC * mV%lai * Rm_heskel_polynomial(mV%Rm_leaf_const,mV%leafT,mV%cold_shutdown)
            ! Determine the daily photosynthetic C return and convert to a per gC leaf basis
            ! i.e. GPP(dayl)-leaf Rm(24hrs)s
            ! NOTE it is assumed that the DIAGS is reset to zero
-           if (POOLS(n,2) > 0d0) DIAGS(n,22) = (FLUXES(n,1) - FLUXES(n,3)) / POOLS(n,2)
+           if (POOLS(n,2) > 0d0) DIAGS(n,22) = (FLUXES(n,1) - FLUXES(n,53)) / POOLS(n,2)
        endif
+
+       ! Autotrophic respiration (gC.m-2.day-1)
+       ! Combine the fixed fraction assumption for maintenance of
+       ! fine root and wood with the maintenance respiration associated with leaves
+       FLUXES(n,3) = FLUXES(n,53) + FLUXES(n,16)
 
        ! Estimate average leaf water potential (MPa) based on effective hydraulic resistance, wSWP and transpiration.
        ! Positive LWPs can be estimated given very small gs and cold temperatures.
@@ -845,27 +850,40 @@ module CARBON_MODEL_MOD
                                    FLUXES(n,10),FLUXES(n,12),FLUXES(n,11),& ! Natural litter fluxes (fol, root, wood)
                                    DIAGS(n,26),DIAGS(n,30),DIAGS(n,27), mV)     ! combined index of NCCE and gradient, dNCCE_loss, NCCE_gradient
 
-
        !
        ! Biomass growth / allocation (gC/m2/day)
        !
 
-       ! Determine whether we have enough GPP to cover maintenance respiration or 
-       ! whether we must draw from the labile reserves
-       if (FLUXES(n,1) > FLUXES(n,3)) then
-           ! GPP is greater than maintenance respiration costs
-           FLUXES(n,5) = FLUXES(n,1)-FLUXES(n,3) 
-           ! No maintenance respiration needs to be covered by the labile pool
-           FLUXES(n,9) = 0d0
-       else
-           ! All GPP is required to cover maintenance respiration,
-           ! none will be allocated to the labile pool
+       ! Is there more GPP than the target allocation?
+       if (FLUXES(n,1) > mV%rauto_target) then
+           ! Yes, allocate the target amount of photosynthate
+           FLUXES(n,52) = mV%rauto_target
+           ! Remaining GPP is allocated to NSC for tissue growth
+           FLUXES(n,5) = FLUXES(n,1)-FLUXES(n,52)
+       else 
+           ! No, allocate all GPP to the autotrophic pool
+           FLUXES(n,52) = FLUXES(n,1)
+           ! No GPP for NSC, placed here to maintain numerical security
            FLUXES(n,5) = 0d0
-           ! Maintenance respiration demand is greater than GPP,
-           ! the remainder must come from the labile pool
-           FLUXES(n,9) = FLUXES(n,3) - FLUXES(n,1)
+       end if
+
+       ! Do we have enough autotrophic carbon set aside to cover maintenance costs?
+       if (POOLS(n,8) < (FLUXES(n,3) * mV%days_per_step)) then
+           ! Not enough carbon in Cauto to cover costs.
+           ! Determine the deficit needed from NSC
+           FLUXES(n,9) = (FLUXES(n,3) - (POOLS(n,8) * mV%days_per_step_1)) 
+           ! Do we have enough carbon in NSC to provide this?
+           if (POOLS(n,1) < (FLUXES(n,9) * mV%days_per_step)) then
+               ! Not enough carbon in NSC to cover costs.
+               ! Determine the deficit, this will have to lead to a reduction in foliar pool
+               !... to be coded
+           end if
+       else
+           ! There is enough autotrophic carbon, so no need to draw from elsewhere
+           FLUXES(n,9) = 0d0
        endif
-       ! Accumulate this time steps labile C (gC.m-2.day-1)
+
+       ! Determine the total available NSC for growth this step (gC.m-2.day-1)
        available_labile = POOLS(n,1) + ((FLUXES(n,5)-FLUXES(n,9)) * mV%days_per_step)
        ! Do plant allocation
        call plant_allocation(nopools,mV%days_per_step, &
@@ -895,15 +913,6 @@ module CARBON_MODEL_MOD
        FLUXES(n,4)  = max(0d0,FLUXES(n,4)  - last_leaf_loss) ! Growth
        FLUXES(n,10) = max(0d0,FLUXES(n,10) - last_leaf_grow) ! Loss
 
-       ! Assume that only the largest flux of 
-       ! growth and mortality occurs
-       !if (FLUXES(n,4) > FLUXES(n,10)) then
-       !    ! Growth allocation is greater than loss desired
-       !    FLUXES(n,10) = 0d0
-       !else 
-       !    ! Mortality allocation is greater than growth desired
-       !    FLUXES(n,4) = 0d0
-       !end if
        ! Store canopy growth and loss information for the next time step
        last_leaf_loss = FLUXES(n,10) ; last_leaf_grow = FLUXES(n,4) 
 
@@ -936,7 +945,8 @@ module CARBON_MODEL_MOD
        ! update pools for next timestep
        !
 
-       ! labile pool - include bounding to prevent zero labile if C exhaustion occurs
+       ! NSC pool - include bounding to prevent zero labile if C exhaustion occurs
+       ! NOTE: the combination of NSC and autotrophic make up what was previously considered the labile pool.
        POOLS(n+1,1) = POOLS(n,1) + (FLUXES(n,5)-FLUXES(n,4)-FLUXES(n,6)-FLUXES(n,7)- &
                                     FLUXES(n,9)-FLUXES(n,8))*mV%days_per_step
        POOLS(n+1,1) = max(0d0,POOLS(n+1,1))
@@ -951,6 +961,9 @@ module CARBON_MODEL_MOD
        POOLS(n+1,5) = POOLS(n,5) + (FLUXES(n,10)+FLUXES(n,12)-FLUXES(n,13)-FLUXES(n,15))*mV%days_per_step
        ! som pool
        POOLS(n+1,6) = POOLS(n,6) + (FLUXES(n,15)-FLUXES(n,14)+FLUXES(n,11))*mV%days_per_step
+       ! Autrophic respiration pool
+       ! NOTE: the combination of NSC and autotrophic make up what was previously considered the labile pool.
+       POOLS(n+1,8) = POOLS(n,8) + (FLUXES(n,52) + FLUXES(n,9) - FLUXES(n,16) - FLUXES(n,53))
 
        !!!!!!!!!!
        ! Update soil water balance
@@ -1019,6 +1032,7 @@ module CARBON_MODEL_MOD
                ! that coarse root and fine root extractions are dependent on the
                ! management activity type, e.g. in coppice below ground remains.
                ! Thus, labile extractions are also dependent.
+               auto_loss   = POOLS(n+1,8) * labile_frac_removal * met(8,n)
                labile_loss = POOLS(n+1,1) * labile_frac_removal * met(8,n)
                foliar_loss = POOLS(n+1,2) * met(8,n)
                roots_loss  = POOLS(n+1,3) * roots_frac_removal(harvest_management) * met(8,n)
@@ -1029,6 +1043,7 @@ module CARBON_MODEL_MOD
                ! Transfer fraction of harvest waste to litter, wood litter or som pools.
                ! This includes explicit calculation of the stem and coarse root residues due
                ! to their potentially different treatments under management scenarios
+               auto_residue   = auto_loss*labile_frac_res
                labile_residue = labile_loss*labile_frac_res
                foliar_residue = foliar_loss*foliage_frac_res(harvest_management)
                roots_residue  = roots_loss*roots_frac_res(harvest_management)
@@ -1041,19 +1056,22 @@ module CARBON_MODEL_MOD
                                     * soil_loss_frac(harvest_management)
 
                ! Update pools
+               POOLS(n+1,8) = POOLS(n+1,8) - auto_loss
                POOLS(n+1,1) = POOLS(n+1,1) - labile_loss
                POOLS(n+1,2) = POOLS(n+1,2) - foliar_loss
                POOLS(n+1,3) = POOLS(n+1,3) - roots_loss
                POOLS(n+1,4) = POOLS(n+1,4) - wood_loss
-               POOLS(n+1,5) = POOLS(n+1,5) + (labile_residue+foliar_residue+roots_residue)
+               POOLS(n+1,5) = POOLS(n+1,5) + (auto_residue+labile_residue+foliar_residue+roots_residue)
                POOLS(n+1,6) = POOLS(n+1,6) - soil_loss_with_roots + wood_residue
-               ! mass balance check
-               where (POOLS(n+1,1:6) < 0d0) POOLS(n+1,1:6) = 0d0
+               ! Mass balance check, 
+               ! NOTE: this includes the water pool which is not correctbut considered an acceptable risk,
+               where (POOLS(n+1,1:8) < 0d0) POOLS(n+1,1:8) = 0d0
 
                ! Convert harvest related extractions to daily rate for output
                ! For dead organic matter pools, in most cases these will be zeros.
                ! But these variables allow for subseqent management where surface litter
                ! pools are removed or mechanical extraction from soil occurs.
+               FLUXES(n,54) = (auto_loss-auto_residue) * mV%days_per_step_1      ! Auto extraction
                FLUXES(n,31) = (labile_loss-labile_residue) * mV%days_per_step_1  ! Labile extraction
                FLUXES(n,32) = (foliar_loss-foliar_residue) * mV%days_per_step_1  ! foliage extraction
                FLUXES(n,33) = (roots_loss-roots_residue) * mV%days_per_step_1    ! fine roots extraction
@@ -1061,13 +1079,14 @@ module CARBON_MODEL_MOD
                FLUXES(n,35) = 0d0 ! litter extraction
                FLUXES(n,36) = soil_loss_with_roots * mV%days_per_step_1          ! som extraction
                ! Convert harvest related residue generations to daily rate for output
+               FLUXES(n,55) = auto_residue * mV%days_per_step_1   ! auto residues
                FLUXES(n,37) = labile_residue * mV%days_per_step_1 ! labile residues
                FLUXES(n,38) = foliar_residue * mV%days_per_step_1 ! foliage residues
                FLUXES(n,39) = roots_residue * mV%days_per_step_1  ! fine roots residues
                FLUXES(n,40) = wood_residue * mV%days_per_step_1   ! wood residues
 
                ! Total C extraction, including any potential litter and som.
-               FLUXES(n,30) = sum(FLUXES(n,31:36))
+               FLUXES(n,30) = sum(FLUXES(n,31:36)) + FLUXES(n,54)
 
            end if ! C_total > 0d0
 
@@ -1093,6 +1112,7 @@ module CARBON_MODEL_MOD
            if (burnt_area > 0d0) then
 
                ! first calculate combustion / emissions fluxes in g C m-2 d-1
+               FLUXES(n,56) = POOLS(n+1,8)*burnt_area*cf(1)*mV%days_per_step_1 ! autobile
                FLUXES(n,18) = POOLS(n+1,1)*burnt_area*cf(1)*mV%days_per_step_1 ! labile
                FLUXES(n,19) = POOLS(n+1,2)*burnt_area*cf(2)*mV%days_per_step_1 ! foliar
                FLUXES(n,20) = POOLS(n+1,3)*burnt_area*cf(3)*mV%days_per_step_1 ! roots
@@ -1101,6 +1121,7 @@ module CARBON_MODEL_MOD
                FLUXES(n,23) = POOLS(n+1,6)*burnt_area*cf(6)*mV%days_per_step_1 ! som
 
                ! second calculate litter transfer fluxes in g C m-2 d-1, all pools except som
+               FLUXES(n,57) = POOLS(n+1,8)*burnt_area*(1d0-cf(1))*(1d0-rfac(1))*mV%days_per_step_1 ! auto into litter
                FLUXES(n,24) = POOLS(n+1,1)*burnt_area*(1d0-cf(1))*(1d0-rfac(1))*mV%days_per_step_1 ! labile into litter
                FLUXES(n,25) = POOLS(n+1,2)*burnt_area*(1d0-cf(2))*(1d0-rfac(2))*mV%days_per_step_1 ! foliar into litter
                FLUXES(n,26) = POOLS(n+1,3)*burnt_area*(1d0-cf(3))*(1d0-rfac(3))*mV%days_per_step_1 ! roots into litter
@@ -1108,21 +1129,23 @@ module CARBON_MODEL_MOD
                FLUXES(n,28) = POOLS(n+1,5)*burnt_area*(1d0-cf(5))*(1d0-rfac(5))*mV%days_per_step_1 ! litter into som
 
                ! update pools - first remove burned vegetation
+               POOLS(n+1,1) = POOLS(n+1,8) - (FLUXES(n,56) + FLUXES(n,57)) * mV%days_per_step ! auto
                POOLS(n+1,1) = POOLS(n+1,1) - (FLUXES(n,18) + FLUXES(n,24)) * mV%days_per_step ! labile
                POOLS(n+1,2) = POOLS(n+1,2) - (FLUXES(n,19) + FLUXES(n,25)) * mV%days_per_step ! foliar
                POOLS(n+1,3) = POOLS(n+1,3) - (FLUXES(n,20) + FLUXES(n,26)) * mV%days_per_step ! roots
                POOLS(n+1,4) = POOLS(n+1,4) - (FLUXES(n,21) + FLUXES(n,27)) * mV%days_per_step ! wood
                ! update pools - add litter transfer
-               POOLS(n+1,5) = POOLS(n+1,5) + (FLUXES(n,24)+FLUXES(n,25)+FLUXES(n,26)-FLUXES(n,22)-FLUXES(n,28)) * mV%days_per_step
+               POOLS(n+1,5) = POOLS(n+1,5) + (FLUXES(n,24)+FLUXES(n,25)+FLUXES(n,26)+FLUXES(n,57)-FLUXES(n,22)-FLUXES(n,28)) &
+                                           * mV%days_per_step
                POOLS(n+1,6) = POOLS(n+1,6) + (FLUXES(n,27) + FLUXES(n,28) - FLUXES(n,23)) * mV%days_per_step
 
                ! calculate ecosystem emissions (gC/m2/day)
-               FLUXES(n,17) = FLUXES(n,18)+FLUXES(n,19)+FLUXES(n,20)+FLUXES(n,21)+FLUXES(n,22)+FLUXES(n,23)
+               FLUXES(n,17) = FLUXES(n,18)+FLUXES(n,19)+FLUXES(n,20)+FLUXES(n,21)+FLUXES(n,22)+FLUXES(n,23)+FLUXES(n,56)
 
            end if ! Burned_area > 0
        else
            ! set fluxes to zero
-           FLUXES(n,17:28) = 0d0
+           FLUXES(n,17:28) = 0d0 ; FLUXES(n,56:57) = 0d0
        end if
 
     end do ! nodays loop

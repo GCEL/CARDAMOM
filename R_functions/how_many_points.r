@@ -400,8 +400,10 @@ how_many_points<- function(path_to_landsea,lat,long,resolution,grid_type,sitenam
 
         # Set the threshold below which we assume that the pixel will be excluded
         #cover_threshold = 0.01 # currently, equal to 1 ha, assuming a 1 km grid
-        cover_threshold = 0.04 # currently, equal to 4 ha, assuming a 1 km grid
-        #cover_threshold = 0.20 # currently, equal to ~the largest third of Improved grassland areas, assuming a 1 km grid.
+        #cover_threshold = 0.04 # currently, equal to 4 ha, assuming a 1 km grid
+        #cover_threshold = 0.08 # currently, equal to 8 ha, assuming a 1 km grid
+        #cover_threshold = 0.18 # currently, equal to 18 ha, assuming a 1 km grid        
+        cover_threshold = 0.20 # currently, equal to ~the largest third of Improved grassland areas, assuming a 1 km grid.
         #                       # biased, yes, but to compromise on the number of pixels being simulated.
         #cover_threshold = 0.30 # Compromise to get a geographical spread but fewer pixels
 

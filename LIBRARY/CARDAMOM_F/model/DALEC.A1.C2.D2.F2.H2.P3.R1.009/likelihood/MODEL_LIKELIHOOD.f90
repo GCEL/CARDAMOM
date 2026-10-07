@@ -59,7 +59,7 @@ module model_likelihood_module
   type EDCDIAGNOSTICS
     integer :: EDC
     integer :: DIAG
-    integer :: PASSFAIL(150) ! allow space for 150 possible checks
+    integer :: PASSFAIL(200) ! allow space for 200 possible checks
     integer :: nedc ! number of edcs being assessed
   end type
 
@@ -300,44 +300,49 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
     endif
 
+    ! decomposition efficieny of litwood (pars(41)) should be greater than fine litter decomposition pars(1)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) > pars(41) ) ) then
+        EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
+    endif
+
     ! root turnover greater than som turnover at mean temperature
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(7) < (pars(9)*exp(pars(10)*meantemp)))) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
     endif
 
     ! Initial leaf area index should not be larger than ~10 m2/m2
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(19)/pars(17)) > 10d0) then
-        EDC1 = 0d0 ; EDCD%PASSFAIL(5) = 0
+        EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
     endif    
 
     ! Straight forward GSI parameter bounds
     ! Temperature
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(35) < pars(34))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
     end if
     ! Photoperiod
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(37) < pars(36))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(7) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
     end if
     ! VPD - may not be needed
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(39) < pars(38))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(8) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
     end if
 
     ! Photoperiod minimum cannot be substantially less than the observed minimum day length
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(36) < minval(MET(11,:))-14400d0)) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(9) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
     end if
     ! Photoperiod maximum cannot be greater than the observed maximum day length
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(37) > maxval(MET(11,:)))) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(10) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
     end if
 
     ! VPD at which stress in at maximum should be no larger than max(VPDlag21) +
     ! 1500 Pa from the max VPD tolerated parameter. The hypothesis being that plants would not
     ! make themselves resilient to an unexperiences environment.
     if ((EDC1 == 1 .or. DIAG == 1) .and. (pars(39) > maxval(MET(12,:))+1500d0)) then
-         EDC1 = 0d0 ; EDCD%PASSFAIL(11) = 0
+         EDC1 = 0d0 ; EDCD%PASSFAIL(12) = 0
     end if
 
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
@@ -345,19 +350,19 @@ module model_likelihood_module
 
     ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(29) < pars(30)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(12) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(13) = 0
     endif
     ! Combustion completeness for non-photosynthetic tissue should be greater than soil
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(30) < pars(31)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(13) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(14) = 0
     endif
     ! Combustion completeness for foliar + fine root litter should be greater than foliage
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(32) < pars(29)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(14) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(15) = 0
     endif
     ! Combustion completeness for wood litter should be greater than non-photosynthetic tissue
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(33) < pars(30)) then
-       EDC1 = 0d0 ; EDCD%PASSFAIL(15) = 0
+       EDC1 = 0d0 ; EDCD%PASSFAIL(16) = 0
     endif
 
     ! could always add more / remove some
@@ -538,7 +543,7 @@ module model_likelihood_module
         jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
             abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(16) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
         end if
     end if ! nos_years > 1
 
@@ -561,21 +566,21 @@ module model_likelihood_module
         jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
             abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(17) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
         end if
     end if ! nos_years > 1
 
     ! EDC just for DALEC_CDEA_ACM2_BUCKET due to complications linked to
     ! the empirical phenology but mechanistic hydrology / photosynthesis
     if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_DIAGS(1:nodays,1)) > 10d0 ) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(18) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(22) = 0
     end if
 
     ! The mean annual carbon stock change for soils+wood litter is unlikely to be >500 gC/m2/yr
     ! an informed guess. The combination of woodlitter and soil is for consistency with DALEC4 assumption that som contains wood litter.
     if ((EDC2 == 1 .or. DIAG == 1) .and. &
          abs(((M_POOLS(nodays,7)+M_POOLS(nodays,6))-(M_POOLS(1,7)+M_POOLS(1,6)))/dble(DATAin%nos_years)) > 500d0) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(19) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(23) = 0
     end if
 
     ! What are in effect the potential growth rates are modulated by the current 
@@ -587,25 +592,25 @@ module model_likelihood_module
     if ((EDC2 == 1 .or. DIAG == 1)) then
         ! Foliage
         if (maxval(M_FLUXES(:,8)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(20) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(24) = 0
         end if
         ! Fine roots
         if (maxval(M_FLUXES(:,6)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(21) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(25) = 0
         end if
         ! Wood
         if (maxval(M_FLUXES(:,7)) > 10d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(22) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(26) = 0
         end if
     end if
 
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. FT(8) > (5d0*FT(6))) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(23) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(27) = 0
     endif
     ! Average growth rates for foliage and fine roots cannot be 5 orders of magnitude different
     if ((EDC2 == 1 .or. DIAG == 1) .and. (FT(8)*5d0) < FT(6)) then
-        EDC2 = 0d0 ; EDCD%PASSFAIL(24) = 0
+        EDC2 = 0d0 ; EDCD%PASSFAIL(28) = 0
     endif
 
     if (EDC2 == 1 .or. DIAG == 1) then
@@ -614,54 +619,54 @@ module model_likelihood_module
 !        do n = 1, 3
 !           ! Restrict mean rates of increase
 !           if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-!               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+!               EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
 !           end if
 !           ! Restrict rates from deviating unrealistically from the mean
 !           if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
 !                     abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
-!               EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
+!               EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
 !           end if
 !        end do
 !        ! Foliage pool, note that in CDEA EDCs Fin has already been multiplied by time step
 !        n = 2
 !        ! Restrict mean rates of increase
 !        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+!            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
 !        end if
 !        ! Restrict exponential behaviour at initialisation         
 !        if (abs(abs(log(Fin_yr1(n)/Fout_yr1(n))) - abs(log(Fin_yr2(n)/Fout_yr2(n)))) > C_etol) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+!            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
 !        end if
         ! Fine root pool, note that in CDEA EDCs Fin has already been multiplied by time step
         n = 3
 !        ! Restrict mean rates of increase
 !        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+!            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
 !        end if
         ! Restrict rates from deviating unrealistically from the mean
         if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
                   abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
         end if
 !        ! Wood pool hack, note that in CDEA EDCs Fin has already been multiplied by time step
 !        n = 4
 !        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+!            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
 !        end if
 !        if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
 !                  abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
-!            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
+!            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
 !        end if
         ! Dead pools
         do n = 5, 7
            ! Restrict rates of increase
            if (abs(log(Fin(n)/Fout(n))) > EQF1_5) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+               EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
            end if
            ! Restrict rates from deviating unrealistically from the mean
            if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
                      abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
-               EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
+               EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
            end if
         end do
 
@@ -669,12 +674,12 @@ module model_likelihood_module
         n = 8  ! surface water pool
         ! Restrict rates of increase
         if (abs(log(Fin(n)/Fout(n))) > EQF1_5) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n-1) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
         end if
         ! Restrict rates from deviating unrealistically from the mean
         if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
                   abs(log(Fin(n)/Fout(n))) ) > H2O_etol ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n-1) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(40+n-1) = 0
         end if
 
         ! Determine the steady state estimate of wood (gC/m2)
@@ -688,17 +693,17 @@ module model_likelihood_module
         SSsom = Fin(6) - sum(M_FLUXES(io_start:io_finish,31))
         ! Now repeat the process as done for litwood to estimate the inputs,
         ! adjusting for the fraction of litwood output which is respired not decomposed
-        SSsom = SSsom + (SSlitwood * (Fout(7)/mean_pools(7)) * pars(1))
+        SSsom = SSsom + (SSlitwood * (Fout(7)/mean_pools(7)) * pars(41))
         ! Accounting for losses and scaling to SSsom
         SSsom = (SSsom / Fout(6)) * mean_pools(6)
         ! It is reasonable to assume that the steady state for woody litter
         ! should be ~ less than half that of woody biomass...
         if (SSlitwood / SSwood > 0.60d0  ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(45) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
         end if
         ! ... and less than soil organic matter
         if ( SSsom < SSlitwood ) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(46) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(51) = 0
         end if
 
     end if ! EDC2 == 1 .or. DIAG == 1
@@ -722,11 +727,11 @@ module model_likelihood_module
         tmp2 = max(1d0,0.08333333d0*(0.0031d0*(pars(17)*2.083333d0)**1.82d0))
         if (tmp < tmp1) then
             ! The current leaf lifespan is shorter than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(52) = 0
         endif        
         if (tmp > tmp2) then
             ! The current leaf life span is longer than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(53) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
 
@@ -738,7 +743,7 @@ module model_likelihood_module
             / mean_pools(2)      ! mean foliar pool
         if (pars(6) > tmp) then
             ! The leaf turnover is faster than wood
-            EDC2 = 0d0 ; EDCD%PASSFAIL(49) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(54) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
 
@@ -755,13 +760,13 @@ module model_likelihood_module
     if (EDC2 == 1 .or. DIAG == 1) then
         ! Assume max value can't be twice the observed values
         if (maxval(lab_ratio) > 0.25d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(55) = 0
         endif
     endif ! EDC2 == 1 .or. DIAG == 1
     if (EDC2 == 1 .or. DIAG == 1) then
         ! Assume the mean value can't be greater than largest observed value
         if (sum(lab_ratio)/dble(nodays) > 0.125d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(51) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(56) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
     if (EDC2 == 1 .or. DIAG == 1) then
@@ -772,7 +777,7 @@ module model_likelihood_module
              / dble(nodays) ! Labile outputs
         tmp = (mean_pools(1) / tmp1) * 0.002737851d0 ! residence time (years)
         if (tmp < 0.5d0 .or. tmp > 1.5d0) then
-            EDC2 = 0d0 ; EDCD%PASSFAIL(52) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(57) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1    
 
@@ -789,14 +794,14 @@ module model_likelihood_module
           if (minval(M_POOLS(1:nodays,n)) < 0d0 .or. &
               maxval(abs(M_POOLS(1:nodays,n))) == abs(log(infi)) .or. &
               minval(M_POOLS(1:nodays,n)) /= minval(M_POOLS(1:nodays,n))) then
-              EDC2 = 0d0 ; EDCD%PASSFAIL(55+n) = 0
+              EDC2 = 0d0 ; EDCD%PASSFAIL(60+n) = 0
           endif
        end do
 
        do n = 1, nofluxes
           if (maxval(abs(M_FLUXES(:,n))) == abs(log(infi)) .or. &
               minval(M_FLUXES(:,n)) /= minval(M_FLUXES(:,n))) then
-              EDC2 = 0d0 ; EDCD%PASSFAIL(55+nopools+n) = 0
+              EDC2 = 0d0 ; EDCD%PASSFAIL(70+nopools+n) = 0
           endif
        end do
 

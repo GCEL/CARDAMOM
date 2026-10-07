@@ -795,7 +795,7 @@ module CARBON_MODEL_MOD
        tmp = POOLS(n,7)*(1d0-(1d0-FLUXES(n,2)*pars(16))**mV%days_per_step)*mV%deltat_1(n)
        ! Partition litter turnover between mineralisation and decomposition
        ! respiration heterotrophic litwood ; decomposition of litwood to som (gC.m-2.day-1)
-       FLUXES(n,30) = tmp * (1d0-pars(1)) ; FLUXES(n,31) = tmp * pars(1)
+       FLUXES(n,30) = tmp * (1d0-pars(41)) ; FLUXES(n,31) = tmp * pars(41)
 
        !!!!!!!!!!
        ! calculate growth respiration and adjust allocation to pools assuming
@@ -3634,7 +3634,8 @@ module CARBON_MODEL_MOD
                call acm_gpp_stage_1(mV)      
            end if ! alloc_leaf_fraction > 0
 
-       else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       !else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       else if (gsi_gradient <= leaf_phenology_threshold .or. gsi(step) <= vsmall) then
 
            !
            ! Leaf fall to litter (gC/m2/day)

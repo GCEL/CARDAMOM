@@ -80,7 +80,7 @@ use samplers_shared, only: PARINFO
     PI%parmax(2) = 0.70d0 
 
     ! Canopy GSI phenology gradient threshold
-    PI%parmin(3) = -1d-3
+    PI%parmin(3) = -1d-2
     PI%parmax(3) =  1d-2
 
     ! NPP belowground allocation exponential parameter [0.01, 1.00]
@@ -132,15 +132,15 @@ use samplers_shared, only: PARINFO
     PI%parmin(13) = 273.15d0 
     PI%parmax(13) = 330d0!300d0 
 
-    ! GSI min photoperiod (sec) [3600, 36000]
-    PI%parmin(14) = 3600d0*3d0  !  3 hours
+    ! GSI min photoperiod (sec) [1, 36000]
+    PI%parmin(14) = 1d0 !3600d0*3d0  !  3 hours
     PI%parmax(14) = 3600d0*21d0 ! 21 hours
 
-    ! Leaf carbon per Area [20, 60]
+    ! Leaf carbon per Area [20, 60] gC/m2
     PI%parmin(15) = 20d0 
     PI%parmax(15) = 60d0 
 
-    ! GSI max photoperiod (sec) [3600, 64800]
+    ! GSI max photoperiod (sec) [10800, 64800]
     PI%parmin(20) = 3600d0*3d0  !  3 hours
     PI%parmax(20) = 3600d0*21d0 ! 21 hours
 
@@ -169,12 +169,12 @@ use samplers_shared, only: PARINFO
     ! which must remain after grazing.
     !! Note kg.DM.ha-1 converted to gC/m2 equivalent assuming 47.5 % C content
     PI%parmin(27) = 500d0*0.0475d0
-    PI%parmax(27) = 1500d0*0.0475d0 
+    PI%parmax(27) = 2100d0*0.0475d0 
 
     ! Minimum amount of DM in (above ground) labile and foliage for cutting to occur. 
     !! Note kg.DM.ha-1 converted to gC/m2 equivalent assuming 47.5 % C content
-    PI%parmin(28) = 1500d0*0.0475d0 
-    PI%parmax(28) = 3000d0*0.0475d0 
+    PI%parmin(28) = 1000d0*0.0475d0 
+    PI%parmax(28) = 6000d0*0.0475d0 
 
     ! leaf:stem allocation [0.05, 0.75]
     ! NOT CURRENTLY IN USE...
@@ -198,7 +198,7 @@ use samplers_shared, only: PARINFO
     PI%parmin(33) = 0.01d0 
     PI%parmax(33) = 0.75d0 
 
-    ! Minimum amount of DM which must be removed for grazing instance to occur (g.C.m-2.d-1)
+    ! Minimum amount of DM which must be removed for grazing instance to occur (gC.m-2.d-1)
     PI%parmin(34) = 0.1d0!/7d0 
     PI%parmax(34) = 1.0d0!/7d0
 

@@ -388,13 +388,13 @@ module model_likelihood_module
     ! Steady State Attractor:
     ! Log ratio difference between inputs and outputs of the system.
     double precision, parameter :: EQF1_5 = log(1.5d0), & ! 10.0 = order magnitude; 2 = double and half
-                                   EQF2 = log(2d0),   & ! 10.0 = order magnitude; 2 = double and half
-                                   EQF5 = log(5d0),   &
-                                   EQF10 = log(10d0), &
-                                   EQF15 = log(15d0), &
-                                   EQF20 = log(20d0), &
-                                  C_etol = 0.10d0,    & ! 0.20d0 lots of AGB !0.10d0 global / site more data !0.05d0 global 1 or 2 AGB estimates
-                                H2O_etol = 0.05d0       !
+                                   EQF2 = log(2d0),     &  
+                                   EQF5 = log(5d0),     &
+                                   EQF10 = log(10d0),   &
+                                   EQF15 = log(15d0),   &
+                                   EQF20 = log(20d0),   &
+                                  C_etol = 0.10d0,      & ! 0.20d0 lots of AGB !0.10d0 global / site more data !0.05d0 global 1 or 2 AGB estimates
+                                H2O_etol = 0.05d0         !
 
 !    ! Debugging print statements
 !    print*,"assess_EDC2: "
@@ -482,6 +482,13 @@ module model_likelihood_module
     Fout_yr1(7) = FT_yr1(42)+FT_yr1(41)+FT_yr1(46) 
 !    Fin_yr2(7)  = FT_yr2(47)
 !    Fout_yr2(7) = FT_yr2(42)+FT_yr2(41)+FT_yr2(46)
+    ! auto
+    Fin(8)  = FT(9)+FT(52)
+    Fout(8) = FT(16)+FT(53)+FT(54)+FT(55)+FT(56)+FT(57)
+    Fin_yr1(8)  = FT_yr1(9)+FT_yr1(52)
+    Fout_yr1(8) = FT_yr1(16)+FT_yr1(53)+FT_yr1(54)+FT_yr1(55)+FT_yr1(56)+FT_yr1(57)
+!    Fin_yr2(8)  = FT_yr2(9)+FT_yr2(52)
+!    Fout_yr2(8) = FT_yr2(16)+FT_yr2(53)+FT_yr2(54)+FT_yr2(55)+FT_yr2(56)+FT_yr2(57)
 
     !
     ! Begin EDCs here
@@ -597,6 +604,28 @@ module model_likelihood_module
     ! See Bloom et al., 2016 PNAS for details
 
     if (EDC2 == 1 .or. DIAG == 1) then
+
+        ! Labile pools, NSC for growth = 1, Autotrophic = 8
+        n = 1
+        ! Restrict rates of increase
+        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n) = 0
+        end if
+        ! Restrict rates from deviating unrealistically from the mean
+        if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
+                  abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n) = 0
+        end if
+        n = 8
+        ! Restrict rates of increase
+        if (abs(log(Fin(n)/Fout(n))) > EQF2) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(20+n) = 0
+        end if
+        ! Restrict rates from deviating unrealistically from the mean
+        if ( abs( abs(log(Fin_yr1(n)/Fout_yr1(n))) - &
+                  abs(log(Fin(n)/Fout(n))) ) > C_etol ) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(30+n) = 0
+        end if
 
 !        ! Living pools
 !        do n = 1, 3
@@ -744,11 +773,11 @@ module model_likelihood_module
         ! Mean equation LL(months) = 0.0031 * LMA**1.71, coefficient 95CI = 1.62,1.82
         ! Estimating the MTT, converting from days to years using 1/365.25 = 0.002737851
         ! 0.08333333 converts months to years for the LES equation.
-        tmp = sum(M_POOLS(:,2)) / dble(nodays)
-        tmp1 = sum(M_FLUXES(:,10)+M_FLUXES(:,19)+M_FLUXES(:,25)) / dble(nodays)
-        tmp = (tmp / tmp1) * 0.002737851d0
+        tmp = mean_pools(2)
+        tmp1 = sum(M_FLUXES(:,10)+M_FLUXES(:,19)+M_FLUXES(:,25)) / dble(nodays) ! Foliar outputs, not including deforestation
+        tmp = (tmp / tmp1) * 0.002737851d0 ! residence time (years)
         ! determine the lower and upper bound of the LES .
-        ! not for the upper bound, do not allow a value less than 1 years
+        ! not for the upper bound, do not allow a value less than 1 years, or longer than 8 years
         tmp1 = 0.08333333d0*(0.0031d0*(pars(17)*2.083333d0)**1.62d0)
         tmp2 = max(1d0,0.08333333d0*(0.0031d0*(pars(17)*2.083333d0)**1.82d0))
         if (tmp < tmp1) then
@@ -760,6 +789,52 @@ module model_likelihood_module
             EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
+
+    ! Foliar turnover should be faster than that of structure / wood carbon
+    ! Specifically not including disturbance forcings.
+    if (EDC2 == 1 .or. DIAG == 1) then
+        ! Estimating the turnover fraction of foliage from phenology
+        tmp = (sum(M_FLUXES(:,10)) / dble(nodays)) &  ! mean daily phenology losses
+            / mean_pools(2)      ! mean foliar pool
+        if (pars(6) > tmp) then
+            ! The leaf turnover is faster than wood
+            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+        endif        
+    endif ! EDC2 == 1 .or. DIAG == 1
+
+    ! Finally we would not expect that the mean labile stock is greater than
+    ! 8 % of the total ecosystem carbon stock, as we need structure to store
+    ! labile.
+    ! Gough et al (2009) Agricultural and Forest Meteorology. Avg 11, 12.5, 3 %
+    ! (Max across species for branch, bole and coarse roots). Provides evidence that
+    ! branches accumulate labile C prior to bud burst from other areas.
+    ! Wurth et al (2005) Oecologia, Clab 8 % of living biomass (DM) in tropical forest
+    ! Richardson et al (2013), New Phytologist, Clab 2.24 +/- 0.44 % in temperate (max = 4.2 %)
+    ! Estimate the labile ratio, also used below
+    lab_ratio =(M_POOLS(:,1)+M_POOLS(:,8)) / (M_POOLS(:,2) + M_POOLS(:,3) + M_POOLS(:,4))
+    if (EDC2 == 1 .or. DIAG == 1) then
+        ! Assume max value can't be twice the observed values
+        if (maxval(lab_ratio) > 0.25d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(49) = 0
+        endif
+    endif ! EDC2 == 1 .or. DIAG == 1
+    if (EDC2 == 1 .or. DIAG == 1) then
+        ! Assume the mean value can't be greater than largest observed value
+        if (sum(lab_ratio)/dble(nodays) > 0.125d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
+        endif        
+    endif ! EDC2 == 1 .or. DIAG == 1
+    if (EDC2 == 1 .or. DIAG == 1) then
+        ! The MRT of the autotrophic pool should be between 6 and 18 months.
+        ! Estimating the MTT, converting from days to years using 1/365.25 = 0.002737851
+        ! 0.08333333 converts months to years for the LES equation.
+        tmp1 = sum(M_FLUXES(:,16)+M_FLUXES(:,53)+M_FLUXES(:,54)+M_FLUXES(:,55)+M_FLUXES(:,56)+M_FLUXES(:,57)) &
+             / dble(nodays) ! Labile outputs
+        tmp = (mean_pools(8) / tmp1) * 0.002737851d0 ! residence time (years)
+        if (tmp < 0.5d0 .or. tmp > 1.5d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(51) = 0
+        endif        
+    endif ! EDC2 == 1 .or. DIAG == 1    
 
     !
     ! EDCs done, below are additional fault detection conditions

@@ -4584,7 +4584,7 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
       # Tidy up variables
       rm(output,MTT_years,SS_gCm2)
   } else if (model_name == "DALEC.A4.C6.D2.F2.H3.P12.033") {
-      output_dim = 83 ; MTT_dim = 6 ; SS_dim = 6
+      output_dim = 85 ; MTT_dim = 7 ; SS_dim = 7
       dyn.load(paste(PROJECT$exepath,"/dalec.so", sep=""))
       tmp=.Fortran( "rdalec33",output_dim=as.integer(output_dim)
                               ,MTT_dim=as.integer(MTT_dim),SS_dim = as.integer(SS_dim)
@@ -4870,7 +4870,13 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       mean_annual_ncce_grow_gCgC = output_annual[,,82],
                       ncce_loss_gCgC = output[,,83],
                       mean_ncce_loss_gCgC = output_mean[,83],
-                      mean_annual_ncce_loss_gCgC = output_annual[,,83],       
+                      mean_annual_ncce_loss_gCgC = output_annual[,,83],     
+                      alloc_auto_gCm2day = output[,,84],
+                      mean_alloc_auto_gCm2day = output_mean[,,84],
+                      mean_annual_alloc_auto_gCm2day = output_annual[,,84],
+                      rmain_foliage_gCm2day = output[,,85],
+                      mean_rmain_foliage_gCm2day = output_mean[,,85],
+                      mean_annual_rmain_foliage_gCm2day = output_annual[,,85],                 
                       ## Aggregated variables
                       # Mean Transit times
                       MTT_labile_years = MTT_years[,1],
@@ -4879,13 +4885,15 @@ simulate_all<- function (site,PROJECT,model_name,met,pars,lat,pft,parameter_type
                       MTT_wood_years = MTT_years[,4],
                       MTT_litter_years = MTT_years[,5],
                       MTT_som_years = MTT_years[,6],
+                      MTT_auto_years = MTT_years[,7],
                       # Steady state estimates
                       SS_labile_gCm2 = SS_gCm2[,1],
                       SS_foliage_gCm2 = SS_gCm2[,2],
                       SS_roots_gCm2 = SS_gCm2[,3],
                       SS_wood_gCm2 = SS_gCm2[,4],
                       SS_litter_gCm2 = SS_gCm2[,5],
-                      SS_som_gCm2 = SS_gCm2[,6])
+                      SS_som_gCm2 = SS_gCm2[,6],
+                      SS_auto_gCm2 = SS_gCm2[,7])
       # Determine the NPP fraction of expressed NPP
       # i.e. actual growth not GPP-Ra
       NPP_fraction = apply(states_all$labile_to_foliage_gCm2day +

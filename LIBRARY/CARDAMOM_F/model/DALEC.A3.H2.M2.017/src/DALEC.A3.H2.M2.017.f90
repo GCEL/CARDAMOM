@@ -421,7 +421,7 @@ module CARBON_MODEL_MOD
     mV%foliage_frac_res  = 0.05d0  !Â fraction of removed foliage that goes to litter
     mV%labile_frac_res   = 0.05d0  !Â fraction of removed labile that goes to litter
     mV%roots_frac_res    = 1d0     ! fraction of roots that die which go to litter 
-    mV%roots_frac_death  = 0.01d0  !Â fraction of roots that die in response to management
+    mV%roots_frac_death = 0.01d0  !Â fraction of roots that die in response to management
     
     ! How many steps in 2 weeks
     mV%two_week_lag = ceiling(14d0/deltat(1))
@@ -780,7 +780,9 @@ module CARBON_MODEL_MOD
        if (met(8,n) < 0d0 .and. gsi_lai_reduction > 0d0) then
 
            ! If LAI loss is greater than 80 % of the existing LAI we will consider whether a cutting has occured
-           if (abs(met(8,n)) > mV%lai*0.80d0) then
+           ! Comments from Vasilis, "Overall, if LAI > 4 or 5 (given uncertainty around real LAI) a reduction of > 50% is probably cutting..."
+           if (-met(8,n) > mV%lai*0.50d0 .and. -met(8,n) > 2d0) then           
+           !if (abs(met(8,n)) > mV%lai*0.80d0) then
 
                ! CUTTING 
                ! ------------------------------------------------------------------------------------------------------------- ! 
@@ -3308,7 +3310,7 @@ module CARBON_MODEL_MOD
         ! direct C losses
         labile_loss  = labile * 0.95d0 * post_cutting_labile_loss
         foliar_loss  = foliage * 0.95d0 ! 95% of leaves lost after cutting probably 99% lost in reality 
-        roots_loss   = 0d0 ! POOLS(n+1,3) * roots_frac_death ! allocation to roots will be reduced due to reduced LAI 
+        roots_loss   = roots * mV%roots_frac_death ! allocation to roots will be reduced due to reduced LAI 
 
         ! fraction of harvest wasted 
         labile_residue = labile_loss * mV%labile_frac_res
@@ -3317,7 +3319,7 @@ module CARBON_MODEL_MOD
 
         ! if harvest yields > 1500 kg.DM.ha-1 proceed with cut
         ! Note converted to gC/m2 equivalent assuming 47.5 % C content
-        ! yields 71.25 gC/m2
+        ! yields 71.25 gC/m2 (Qi et al., 2017)
         if ( ( (foliar_loss-foliar_residue)+ &
                (labile_loss-labile_residue)+ &
                (roots_loss -roots_residue ) ) >= 71.25d0 ) then
@@ -3371,7 +3373,7 @@ module CARBON_MODEL_MOD
     
     implicit none
 
-      type(model_working_variables) :: mV
+    type(model_working_variables) :: mV
     
     ! Arguments
     integer, intent(in) :: timestep, nodays
@@ -3419,8 +3421,6 @@ module CARBON_MODEL_MOD
     ! 1) An LAI reduction is specified
     ! 2) Labile+leaf C > grazing threshold 
     ! 3) No cutting in the last 2 weeks
-!    if ((labile*labile_ratio)+foliage >= grazing_threshold .and. &
-!        sum(harvest(max(1,timestep-two_week_lag):timestep)) == 0d0) then
     if ((labile*labile_ratio)+foliage >= grazing_threshold .and. foliage > 0d0 .and. &
         sum(harvest(max(1,timestep-mV%two_week_lag):timestep)) == 0d0) then
 
@@ -3434,10 +3434,7 @@ module CARBON_MODEL_MOD
         labile_loss  = labile * labile_ratio * fraction_loss * post_grazing_labile_loss
         ! Apply fractional loss to foliage
         foliar_loss  = foliage * fraction_loss
-        roots_loss   = 0d0 ! POOLS(n+1,3) * roots_frac_death
-!        labile_loss  = labile * post_grazing_labile_loss
-!        foliar_loss  = max(0d0,(lai_reduction * lca) - labile_loss)  
-!        roots_loss   = 0d0 ! POOLS(n+1,3) * roots_frac_death
+        roots_loss   = roots * mV%roots_frac_death
 
         ! fraction of grazing lost as residue (messy eaters)
         labile_residue = labile_loss * mV%labile_frac_res
@@ -3491,19 +3488,14 @@ module CARBON_MODEL_MOD
             ! Direct C losses
             !
 
-            ! Determine the adjustment to the existing loss terms, to ensure mass balance with the grazing_threshold value
+            ! Determine the adjustment to the existing loss terms
+            ! which ensures mass balance with the grazing_threshold value
             fraction_loss = (((labile*labile_ratio) + foliage) - grazing_threshold) / (labile_loss + foliar_loss)
             ! Adjust the existing labile loss based on adjustment fraction
             labile_loss  = labile_loss * fraction_loss
             ! Apply fractional loss to foliage
             foliar_loss  = foliar_loss * fraction_loss
-            roots_loss   = 0d0 ! POOLS(n+1,3) * roots_frac_death
-
-            !! Determine losses which result in remaining biomass to be the grazing_threshold value
-            !labile_loss  = labile * post_grazing_labile_loss
-            !foliar_loss  = foliage - (grazing_threshold - (labile - labile_loss))
-            !!foliar_loss  = foliage - (grazing_threshold - labile_loss)
-            !roots_loss   = 0d0 ! roots * roots_frac_death
+            roots_loss   = roots * mV%roots_frac_death
 
             ! fraction of harvest wasted 
             labile_residue = labile_loss * mV%labile_frac_res
@@ -3721,7 +3713,8 @@ module CARBON_MODEL_MOD
                call acm_gpp_stage_1(mV)      
            end if ! alloc_leaf_fraction > 0
 
-       else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       !else if (gsi_gradient <= leaf_phenology_threshold .and. gsi(step) <= vsmall) then
+       else if (gsi_gradient <= leaf_phenology_threshold .or. gsi(step) <= vsmall) then
 
            !
            ! Leaf fall to litter (gC/m2/day)

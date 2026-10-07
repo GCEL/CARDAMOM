@@ -529,7 +529,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
           OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
           # Hack to remove loss terms in pixels with disturbance
-          if (max(MET[,8]) > 0 | max(MET[,9]) > 0) {
+          if (max(MET[,8]) > 0.01 | max(MET[,9]) > 0.01) {
               OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
               OBSMAT[,53] = -9999            # Mean woody loss varince
               OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
@@ -683,7 +683,8 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
                                                                                             # from Kattge et al., (2011)
                                                                                             # Note that this prior is difference from DALEC.C1.D1.F2.P1.
                                                                                             # due to the different temperature response functions used in ACM2 vs ACM 1
-          PARPRIORS[17] = OBS$lca                              ; PARPRIORUNC[17] = OBS$lca_unc #; PARPRIORWEIGHT[17] = noyears
+          PARPRIORS[14] = 0                                    ; PARPRIORUNC[14] = 0.01     #; PARPRIORWEIGHT[14] = 1 # Canopy GSI phneology gradient threshold 
+          PARPRIORS[17] = OBS$lca                              ; PARPRIORUNC[17] = OBS$lca_unc ; PARPRIORWEIGHT[17] = noyears
           PARPRIORS[19] = OBS$Cfol_initial                     ; PARPRIORUNC[19] = OBS$Cfol_initial_unc # Cfoliar prior
           PARPRIORS[20] = OBS$Croots_initial                   ; PARPRIORUNC[20] = OBS$Croots_initial_unc # Croots prior
           PARPRIORS[21] = OBS$Cwood_initial                    ; PARPRIORUNC[21] = OBS$Cwood_initial_unc # Cwood prior
@@ -703,7 +704,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
           OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
           # Hack to remove loss terms in pixels with disturbance
-          if (max(MET[,8]) > 0 | max(MET[,9]) > 0) {
+          if (max(MET[,8]) > 0.01 | max(MET[,9]) > 0.01) {
               OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
               OBSMAT[,53] = -9999            # Mean woody loss varince
               OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
@@ -1483,16 +1484,25 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           MET[,8]  = OBS$lai_change  # m2/m2
 
           PARPRIORS[2]  = 0.54                 ; PARPRIORUNC[2] = 0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
+          PARPRIORS[4]  = 0.33                 ; PARPRIORUNC[4] = 0.07 # Exponential coefficient scaling leaf to root allocation Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
+          PARPRIORS[6]  = 3.5e-3               ; PARPRIORUNC[6] = 2e-3 # Fine root turnover. Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907
           PARPRIORS[11] = 21.1491              ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values from Kattge et al., (2011)
                                                                             # Note that this prior is difference from DALEC.C1.D1.F2.P1.
                                                                             # due to the different temperature response functions used in ACM2 vs ACM 1
+          PARPRIORS[13] = 17.25+273.15         ; PARPRIORUNC[13] = 5 # Prior temperature GSI temperature unlimited (K)
           #PARPRIORS[15] = OBS$lca              ; PARPRIORUNC[15] = OBS$lca_unc
           PARPRIORS[15] = 32                   ; PARPRIORUNC[15] = 13 ; PARPRIORWEIGHT[15] = noyears # Grass prior for UK purpose
           PARPRIORS[17] = OBS$Cfol_initial     ; PARPRIORUNC[17] = OBS$Cfol_initial_unc # Cfoliar prior
           PARPRIORS[18] = OBS$Croots_initial   ; PARPRIORUNC[18] = OBS$Croots_initial_unc # Croots prior
           PARPRIORS[19] = OBS$Clit_initial     ; PARPRIORUNC[19] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial     ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
-          PARPRIORS[25] = OBS$MaxRootDepth     ; PARPRIORUNC[25] = OBS$MaxRootDepth_unc # Maximum rooting depth prior,           
+          #PARPRIORS[25] = OBS$MaxRootDepth     ; PARPRIORUNC[25] = OBS$MaxRootDepth_unc # Maximum rooting depth prior,           
+          PARPRIORS[25] = 0.5                  ; PARPRIORUNC[25] = 0.2   # Maximum rooting depth prior (m),         
+          PARPRIORS[27] = 47.5                 ; PARPRIORUNC[27] = 9.5   # Minimum labile + foliage for grazing to happen (gC/m2/day, Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907)
+          PARPRIORS[28] = 152                  ; PARPRIORUNC[28] = 28.5  # Minimum labile + foliage for cutting to happen (gC/m2/day, Myrgiotis et al., (2020) https://doi.org/10.1016/j.agsy.2020.102907)
+          PARPRIORS[32] = 0.02                 ; PARPRIORUNC[32] = 0.010 # Post-grazing labile/stem loss
+          PARPRIORS[33] = 0.515                ; PARPRIORUNC[33] = 0.015 # Post-cutting labile/stem loss
+          PARPRIORS[34] = 0.77                 ; PARPRIORUNC[34] = 0.1   # Minimum grazing return to allow grazing to happen (assumed 1 LSU = gC/m2/day)
           # other priors
 #          OTHERPRIORS[2] =        ; OTHERPRIORUNC[2] =  # Initial soil water fraction 
 #          OTHERPRIORS[3] = 27.295              ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)

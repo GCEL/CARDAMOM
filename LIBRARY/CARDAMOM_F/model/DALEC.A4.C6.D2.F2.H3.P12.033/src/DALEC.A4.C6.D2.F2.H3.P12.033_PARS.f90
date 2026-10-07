@@ -66,7 +66,7 @@ use samplers_shared, only: PARINFO
 
     type(PARINFO), intent(inout):: PI
 
-    PI%npars = 46
+    PI%npars = 48
     if (.not. allocated(PI%parmin)) allocate(PI%parmin(PI%npars))
     if (.not. allocated(PI%parmax)) allocate(PI%parmax(PI%npars))
 
@@ -230,6 +230,10 @@ use samplers_shared, only: PARINFO
     PI%parmin(46) = 1d-6
     PI%parmax(46) = 1d-1
 
+    ! Initial target allocation for autotrophic carbon
+    PI%parmin(48) = 0.01d0
+    PI%parmax(48) = 10d0
+
     !
     ! INITIAL VALUES DECLARED HERE
     !
@@ -261,6 +265,10 @@ use samplers_shared, only: PARINFO
     ! Initial soil water fraction
     PI%parmin(24) = 0.05d0
     PI%parmax(24) = 1.00d0
+
+    ! C autotrophic
+    PI%parmin(47) = 1d0
+    PI%parmax(47) = 2000d0
 
   end subroutine pars_info
 

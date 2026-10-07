@@ -3770,7 +3770,7 @@ module CARBON_MODEL_MOD
                               available_labile,biomass,cdea,             &  ! C pools, cdea
                               alloc_leaf,alloc_root,alloc_wood,          &  ! tissue specific allocated C 
                               alloc_cdea_leaf,                           &  
-                              LabBio_limit,leafT_limit,rootT_limit,      & ! lab:bio, temperature and water limters
+                              LabBio_limit,leafT_limit,rootT_limit,      &  ! lab:bio, temperature and water limters
                               woodT_limit,leafW_limit,woodW_limit, mV)
     use carbon_model_memory
 

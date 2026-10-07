@@ -184,7 +184,7 @@ use samplers_shared, only: PARINFO
     PI%parmax(35) = 330d0
 
     ! GSI min photoperiod threshold (sec)
-    PI%parmin(36) = 3600d0*3d0  !  3 hours
+    PI%parmin(36) = 1d0         !  0 hours
     PI%parmax(36) = 3600d0*21d0 ! 21 hours
     ! GSI max photoperiod threshold (sec)
     PI%parmin(37) = 3600d0*3d0   !  3 hours

@@ -49,7 +49,6 @@ module carbon_model_memory
   implicit none
 
   ! make all private
-  !private
   public
 
   !!!!!!!!!
@@ -315,6 +314,7 @@ metabolic_limited_photosynthesis, & ! temperature, leaf area and foliar N limite
                  snow_melt, & ! snow melt (kgH2O/m2/s)
                   wind_spd, & ! wind speed (m/s)
                    vpd_kPa, & ! Vapour pressure deficit (kPa)
+              rauto_target, & ! target allocation per day to autotrophic pool (gC/m2/day)
  leaf_canopy_light_scaling, & ! approximate scaling factor from leaf to canopy for gpp and gs
                        lai    ! leaf area index (m2/m2)
 

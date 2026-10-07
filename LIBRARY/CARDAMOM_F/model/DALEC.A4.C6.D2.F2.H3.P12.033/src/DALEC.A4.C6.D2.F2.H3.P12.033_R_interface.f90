@@ -140,8 +140,10 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,16) = FLUXES(1:nodays,15)         ! Decomp_litter (gC/m2/day)
      out_var1(i,1:nodays,17) = FLUXES(1:nodays,16)         ! Maintenance respiration (wood+fine root, gC/m2/day)
      ! C disturbance fluxes (gC/m2/day)
-     out_var1(i,1:nodays,18) = FLUXES(1:nodays,18)         ! fire emission from labile (gC/m2/day)
-     out_var1(i,1:nodays,19) = FLUXES(1:nodays,24)         ! fire induced litter from labile (gC/m2/day)
+     out_var1(i,1:nodays,18) = FLUXES(1:nodays,18) &       ! fire emission from labile (gC/m2/day)
+                             + FLUXES(1:nodays,56)
+     out_var1(i,1:nodays,19) = FLUXES(1:nodays,24) &       ! fire induced litter from labile (gC/m2/day)
+                             + FLUXES(1:nodays,57)
      out_var1(i,1:nodays,20) = FLUXES(1:nodays,19)         ! fire emission from foliage (gC/m2/day)
      out_var1(i,1:nodays,21) = FLUXES(1:nodays,25)         ! fire induced litter from foliage (gC/m2/day)
      out_var1(i,1:nodays,22) = FLUXES(1:nodays,20)         ! fire emission from fine roots (gC/m2/day)
@@ -151,18 +153,21 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,26) = FLUXES(1:nodays,22)         ! fire emission from litter (gC/m2/day)
      out_var1(i,1:nodays,27) = FLUXES(1:nodays,28)         ! fire induced litter from litter (gC/m2/day)
      out_var1(i,1:nodays,28) = FLUXES(1:nodays,23)         ! fire emission from som (gC/m2/day)
-     out_var1(i,1:nodays,29) = FLUXES(1:nodays,31)         ! harvest extracted from labile (gC/m2/day)
+     out_var1(i,1:nodays,29) = FLUXES(1:nodays,31) &       ! harvest extracted from labile (gC/m2/day)
+                             + FLUXES(1:nodays,54)
      out_var1(i,1:nodays,30) = FLUXES(1:nodays,32)         ! harvest extracted from foliage (gC/m2/day)
      out_var1(i,1:nodays,31) = FLUXES(1:nodays,33)         ! harvest extracted from fine roots (gC/m2/day)
      out_var1(i,1:nodays,32) = FLUXES(1:nodays,34)         ! harvest extracted from wood (gC/m2/day)
      out_var1(i,1:nodays,33) = FLUXES(1:nodays,35)         ! harvest extracted from litter (gC/m2/day)
      out_var1(i,1:nodays,34) = FLUXES(1:nodays,36)         ! harvest extracted from som (gC/m2/day)
-     out_var1(i,1:nodays,35) = FLUXES(1:nodays,37)         ! harvest litter / residue from labile (gC/m2/day)
+     out_var1(i,1:nodays,35) = FLUXES(1:nodays,37) &       ! harvest litter / residue from labile (gC/m2/day)
+                             + FLUXES(1:nodays,55)
      out_var1(i,1:nodays,36) = FLUXES(1:nodays,38)         ! harvest litter / residue from foliage (gC/m2/day)
      out_var1(i,1:nodays,37) = FLUXES(1:nodays,39)         ! harvest litter / residue from fine roots (gC/m2/day)
      out_var1(i,1:nodays,38) = FLUXES(1:nodays,40)         ! harvest litter / residue from wood (gC/m2/day)
      ! C pools (gC/m2)
-     out_var1(i,1:nodays,39) = POOLS(1:nodays,1)           ! labile (gC/m2)
+     out_var1(i,1:nodays,39) = POOLS(1:nodays,1) &         ! labile (gC/m2)
+                             + POOLS(1:nodays,8)
      out_var1(i,1:nodays,40) = POOLS(1:nodays,2)           ! foliage (gC/m2)
      out_var1(i,1:nodays,41) = POOLS(1:nodays,3)           ! fine root (gC/m2)
      out_var1(i,1:nodays,42) = POOLS(1:nodays,4)           ! wood (gC/m2)
@@ -218,6 +223,9 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
      out_var1(i,1:nodays,81) = DIAGS(1:nodays,28)          ! 
      out_var1(i,1:nodays,82) = DIAGS(1:nodays,29)          ! NCCE of canopy growth (gC/gC-1)
      out_var1(i,1:nodays,83) = DIAGS(1:nodays,30)          ! NCCE of canopy loss   (gC/gC-1)
+     ! C autotrophic
+     out_var1(i,1:nodays,84) = FLUXES(1:nodays,52)         ! GPP to C autotrophic (gC/m2/day)
+     out_var1(i,1:nodays,85) = FLUXES(1:nodays,53)         ! Leaf maintenance respiration (gC/m2/day)
 
      !
      ! Calculate long-term mean of out_var1
@@ -248,7 +256,7 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
      ! Estimate residence time information
      !!!
 
-     ! Labile
+     ! Labile - NSC for growth
      ! Estimate MRT (years)
      pool_hak = 1 ; tmp = 0d0
      where (POOLS(1:nodays,1) > 0d0) ! protection against NaN from division by zero
@@ -308,6 +316,16 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
                   / POOLS(1:nodays,6))
      end where
      out_var2(i,6) = sum(tmp) / dble(nodays-sum(pool_hak))
+     ! Autotrophic - for maintenance respiration
+     ! Estimate MRT (years)
+     pool_hak = 1 ; tmp = 0d0
+     where (POOLS(1:nodays,8) > 0d0) ! protection against NaN from division by zero
+            pool_hak = 0 
+            tmp = ((FLUXES(1:nodays,16)  + FLUXES(1:nodays,53) + &
+                    FLUXES(1:nodays,54)  + FLUXES(1:nodays,55) + &
+                    FLUXES(1:nodays,56) + FLUXES(1:nodays,57)) / POOLS(1:nodays,8))
+     end where
+     out_var2(i,7) = sum(tmp) / dble(nodays-sum(pool_hak))
 
      !
      ! Estimate pool inputs needed for steady state calculation
@@ -328,11 +346,12 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
      ! but NOT natural wood. The natural wood input is estimated later based on
      ! its steady state estimate
      out_var3(i,6) = sum(FLUXES(:,15)+FLUXES(:,27)+FLUXES(:,28)+FLUXES(:,40)) ! som
+     out_var3(i,7) = sum(FLUXES(:,9)+FLUXES(:,52)) ! autotrophic
 
   end do ! nos_iter loop
 
   ! MTT - Convert daily fractional loss to years
-  out_var2 = (out_var2*365.25d0)**(-1d0) ! iter,(lab,fol,root,wood,lit,som)
+  out_var2 = (out_var2*365.25d0)**(-1d0) ! iter,(lab,fol,root,wood,lit,som,auto)
 
   ! Steady state gC/m2 estimation
   ! Determine the mean annual input (gC/m2/yr) based on current inputs for all pool,
@@ -340,6 +359,7 @@ subroutine rdalec33(output_dim,MTT_dim,SS_dim &
   out_var3 = (out_var3 / dble(nodays)) * 365.25d0 ! convert to annual mean input
   ! Then estimate the labile, foliar, fine root, wood and litter steady states.
   out_var3(1:nos_iter,1:5) = out_var3(1:nos_iter,1:5) * out_var2(1:nos_iter,1:5) ! multiply by residence time in years
+  out_var3(1:nos_iter,7) = out_var3(1:nos_iter,7) * out_var2(1:nos_iter,7)       ! multiply by residence time in years
   ! Using the wood SS estimate (gC/m2) the steady state input to the som litter pool...
   out_var3(1:nos_iter,6) = (out_var3(1:nos_iter,6) + &
                            (out_var3(1:nos_iter,4) / out_var2(1:nos_iter,4))) &

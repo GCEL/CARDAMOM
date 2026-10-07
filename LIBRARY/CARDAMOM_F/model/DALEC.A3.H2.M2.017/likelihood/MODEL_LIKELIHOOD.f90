@@ -294,7 +294,7 @@ module model_likelihood_module
     ! No individual daily rate of Reco should be > 20 gC/m2/day
     ! Mean annual Reco should be not less than 500 gC/m2/yr
     ! Mean annual Reco should be not more than 2600 gC/m2/yr
-    ! Soil C shuld not change by more than 5 % over life of analysis
+    ! Soil C should not change by more than 5 % over life of analysis
     ! or ( (rem[0,:]*21/float(650*0.035) > 70).any() ) # max total LSU_ha_week
     ! All specified cuts in input file are imposed
 
@@ -348,6 +348,7 @@ module model_likelihood_module
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
     ! IMPLICIT Combustion completeness for fol+root litter should be greater than soil
 
+! NOTE parameter numbers here are not correct, as the fire sub-model is not installed.
 !    ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
 !    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(29) < pars(30)) then
 !        EDC1 = 0d0 ; EDCD%PASSFAIL(6) = 0
