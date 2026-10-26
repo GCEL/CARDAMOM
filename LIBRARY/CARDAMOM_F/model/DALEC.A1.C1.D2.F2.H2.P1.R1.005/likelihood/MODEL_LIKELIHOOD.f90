@@ -531,10 +531,15 @@ module model_likelihood_module
         end if
     end if ! nos_years > 1
 
-    ! EDC just for DALEC_CDEA_ACM2_BUCKET due to complications linked to
-    ! the empirical phenology but mechanistic hydrology / photosynthesis
+    ! Maximum LAI value should not exceed 10 m2/m2
     if ((EDC2 == 1 .or. DIAG == 1) .and. maxval(M_DIAGS(1:nodays,1)) > 10d0 ) then
         EDC2 = 0d0 ; EDCD%PASSFAIL(11) = 0
+    end if
+
+    ! The mean annual carbon stock change for soils is unlikely to be >500 gC/m2/yr
+    ! an informed guess.
+    if ((EDC2 == 1 .or. DIAG == 1) .and. abs((M_POOLS(nodays,6)-M_POOLS(1,6))/dble(DATAin%nos_years)) > 500d0) then
+        EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
     end if
 
     ! Equilibrium factor (in comparison with initial conditions)
@@ -1440,6 +1445,21 @@ module model_likelihood_module
                                    DATAin%otherpriors(5),DATAin%otherpriorunc(5),dummy_lag,dummy_scaling,mod))
     end if
 
+    ! Estimate the biological mean transist time for soil C.
+    ! NOTE: this arrangement explicitly neglects the impact of disturbance on
+    ! residence time (i.e. no fire and biomass removal). This is because the current observation based estimates
+    ! come from soilC / Rhet assumptions.
+    if (DATAin%otherpriors(6) > -9998) then
+        ! Mean SOM pool
+        mod = sum(M_POOLS(1:DATAin%nodays,6)) / dble(DATAin%nodays)
+        ! Divided by the mean Rhet_som
+        mod = mod / (sum(M_FLUXES(1:DATAin%nodays,14)) / dble(DATAin%nodays))
+        ! Scaling from number of days to years (1/365.25 = 0.002737851)
+        mod = mod * 0.002737851d0
+        ML_obs_out = ML_obs_out + (DATAin%otherpriorweight(6)*likelihood(dummy_nodays,dummy_noobs,dummy_pts, &
+                                   DATAin%otherpriors(6),DATAin%otherpriorunc(6),dummy_lag,dummy_scaling,mod))
+    end if
+    
     return
 
   end subroutine calc_other_likelihoods

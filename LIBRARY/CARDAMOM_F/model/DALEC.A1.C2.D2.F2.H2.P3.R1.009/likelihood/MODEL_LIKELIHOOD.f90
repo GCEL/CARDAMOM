@@ -300,8 +300,8 @@ module model_likelihood_module
         EDC1 = 0d0 ; EDCD%PASSFAIL(3) = 0
     endif
 
-    ! decomposition efficieny of litwood (pars(41)) should be greater than fine litter decomposition pars(1)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) > pars(41) ) ) then
+    ! decomposition efficieny of litwood (pars(41)) should be less than fine litter decomposition pars(1)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) < pars(41) ) ) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
@@ -348,21 +348,25 @@ module model_likelihood_module
     ! IMPLICIT Combustion completeness for foliage should be greater than soil
     ! IMPLICIT Combustion completeness for wood litter and fol+root litter should be greater than soil
 
-    ! Combustion completeness for foliage should be greater than non-photosynthetic tissues
+    ! Combustion completeness for foliage (p29) should be greater than non-photosynthetic tissues (p30)
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(29) < pars(30)) then
        EDC1 = 0d0 ; EDCD%PASSFAIL(13) = 0
     endif
-    ! Combustion completeness for non-photosynthetic tissue should be greater than soil
+    ! Combustion completeness for non-photosynthetic tissue (p30) should be greater than soil (p31)
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(30) < pars(31)) then
        EDC1 = 0d0 ; EDCD%PASSFAIL(14) = 0
     endif
-    ! Combustion completeness for foliar + fine root litter should be greater than foliage
+    ! Combustion completeness for foliar + fine root litter (p32) should be greater than foliage (p29)
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(32) < pars(29)) then
        EDC1 = 0d0 ; EDCD%PASSFAIL(15) = 0
     endif
-    ! Combustion completeness for wood litter should be greater than non-photosynthetic tissue
+    ! Combustion completeness for wood litter (p33) should be greater than non-photosynthetic tissue (p30)
     if ((EDC1 == 1 .or. DIAG == 1) .and. pars(33) < pars(30)) then
        EDC1 = 0d0 ; EDCD%PASSFAIL(16) = 0
+    endif
+    ! Combustion completeness for wood litter (p33) should be less than fine litter (p32)
+    if ((EDC1 == 1 .or. DIAG == 1) .and. pars(33) > pars(32)) then
+       EDC1 = 0d0 ; EDCD%PASSFAIL(17) = 0
     endif
 
     ! could always add more / remove some
@@ -698,7 +702,7 @@ module model_likelihood_module
         SSsom = (SSsom / Fout(6)) * mean_pools(6)
         ! It is reasonable to assume that the steady state for woody litter
         ! should be ~ less than half that of woody biomass...
-        if (SSlitwood / SSwood > 0.60d0  ) then
+        if (SSlitwood / SSwood > 0.40d0  ) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
         end if
         ! ... and less than soil organic matter

@@ -451,7 +451,7 @@ extract_timeseries_forcing<- function(i1,j1,timestep_days,years_to_load,doy_obs,
                     obs_lag_agg[y] = sum(pmax(1,obs_lag_out[pick]), na.rm=TRUE)
                     # Then reaccumulate based on the total number of lags
                     obs_agg[y] = obs_agg[y] * obs_lag_agg[y]
-                    if (obs_agg[y] > 1) {
+                    if (obs_agg[y] > 1 & fraction == FALSE) {
                             print(est_var_name_in) ; print(obs_agg[y]) ; print(obs_lag_agg[y])
                             print(obs_out[pick]) ; print(obs_lag_out[pick])
                     }

@@ -501,6 +501,7 @@ generate_parameter_maps<-function(PROJECT) {
            if (length(which(is.na(grid_output$parameter_priors_array[,,p]) != TRUE)) > 0) {
                zrange = c(min(as.vector(grid_output$parameter_priors_array[,,p]),na.rm=TRUE),max(as.vector(grid_output$parameter_priors_array[,,p]),na.rm=TRUE))
                zrange = sort(zrange + (c(-0.01,0.01) * zrange))
+               if (diff(zrange) == 0) {zrange = c(-0.01,0.01)}
                if (zrange[1] >= 0 & zrange[2] > 0) {
                    colour_choices = colour_choices_gain
                } else if (zrange[1] < 0 & zrange[2] > 0) {

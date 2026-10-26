@@ -32,7 +32,7 @@
 read_site_specific_obs <- function(variable,infile) {
 
     # read in the data assuming hearder are present and row do not have numbers
-    input=read.csv(infile, header=TRUE)
+    input = read.csv(infile, header=TRUE)
     # check the variable exists in file
     if (length(which(names(input) == variable)) > 0) {
         # read from the table the desired informatin

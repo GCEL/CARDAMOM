@@ -535,13 +535,13 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
               OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
           }
           # Hack to remove LAI observations out of growing season for high LCA areas
-          if (PARPRIORS[17] > 100) {
-#              if (lat_degrees > 50) {
-                  filter = which(MET[,6] < 175 | MET[,6] > 250)
-                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
-                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
-#              }
-          }                    
+#          if (PARPRIORS[17] > 100) {
+##              if (lat_degrees > 50) {
+#                  filter = which(MET[,6] < 175 | MET[,6] > 250)
+#                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
+#                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
+##              }
+#          }                    
       } else if (modelname == "DALEC.A1.C1.D2.F2.H2.P1.R1.005") {
           PARPRIORS[10] = OBS$RhetQ10                      ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 21.1491                          ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values 
@@ -555,7 +555,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[22] = OBS$Clit_initial                 ; PARPRIORUNC[22] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial                 ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$frac_Cwood_coarse_root_prior ; PARPRIORUNC[25] = OBS$frac_Cwood_coarse_root_prior_unc # Fraction Cwood coarse root prior
-          PARPRIORS[27] = OBS$MaxRootDepth                 ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
+          PARPRIORS[27] = min(19.9,max(0.36,OBS$MaxRootDepth))  ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
 #          PARPRIORS[27] = 1.0                              ; PARPRIORUNC[27] = 0.5 # Maximum rooting depth prior, 
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
@@ -569,14 +569,21 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           OTHERPRIORS[2] = 0.54                ; OTHERPRIORUNC[2] = 0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034
           OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 #; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
+          OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
+          # Hack to remove loss terms in pixels with disturbance
+          if (max(MET[,8]) > 0.01 | max(MET[,9]) > 0.01) {
+              OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
+              OBSMAT[,53] = -9999            # Mean woody loss varince
+              OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
+          }
           # Hack to remove LAI observations out of growing season for high LCA areas
-          if (PARPRIORS[17] > 100) {
-#              if (lat_degrees > 50) {
-                  filter = which(MET[,6] < 175 | MET[,6] > 250)
-                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
-                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
-#              }
-          }                    
+#          if (PARPRIORS[17] > 100) {
+##              if (lat_degrees > 50) {
+#                  filter = which(MET[,6] < 175 | MET[,6] > 250)
+#                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
+#                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
+##              }
+#          }                    
       } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P1.R1.006") {
           PARPRIORS[10] = OBS$RhetQ10                      ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 21.1491                          ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values 
@@ -590,7 +597,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[22] = OBS$Clit_initial                 ; PARPRIORUNC[22] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial                 ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$frac_Cwood_coarse_root_prior ; PARPRIORUNC[25] = OBS$frac_Cwood_coarse_root_prior_unc # Fraction Cwood coarse root prior
-          PARPRIORS[27] = OBS$MaxRootDepth                 ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
+          PARPRIORS[27] = min(19.9,max(0.36,OBS$MaxRootDepth))  ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
 #          PARPRIORS[27] = 1.0                              ; PARPRIORUNC[27] = 0.5 # Maximum rooting depth prior, 
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
@@ -601,14 +608,21 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
 #NOTUSE          OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
           OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 #; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
-          # Hack to remove LAI observations out of growing season for high LCA areas
-          if (PARPRIORS[17] > 100) {
-#              if (lat_degrees > 50) {
-                  filter = which(MET[,6] < 175 | MET[,6] > 250)
-                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
-                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
-#              }
-          }                    
+          OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
+          # Hack to remove loss terms in pixels with disturbance
+          if (max(MET[,8]) > 0.01 | max(MET[,9]) > 0.01) {
+              OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
+              OBSMAT[,53] = -9999            # Mean woody loss varince
+              OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
+          }
+#          # Hack to remove LAI observations out of growing season for high LCA areas
+#          if (PARPRIORS[17] > 100) {
+##              if (lat_degrees > 50) {
+#                  filter = which(MET[,6] < 175 | MET[,6] > 250)
+#                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
+#                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
+##              }
+#          }                    
       } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P2.R1.007") {
           PARPRIORS[10] = OBS$RhetQ10                      ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 21.1491                          ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values 
@@ -622,7 +636,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
           PARPRIORS[22] = OBS$Clit_initial                 ; PARPRIORUNC[22] = OBS$Clit_initial_unc # Clitter prior
           PARPRIORS[23] = OBS$Csom_initial                 ; PARPRIORUNC[23] = OBS$Csom_initial_unc # Csom prior
           PARPRIORS[25] = OBS$frac_Cwood_coarse_root_prior ; PARPRIORUNC[25] = OBS$frac_Cwood_coarse_root_prior_unc # Fraction Cwood coarse root prior
-          PARPRIORS[27] = OBS$MaxRootDepth                 ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
+          PARPRIORS[27] = min(19.9,max(0.36,OBS$MaxRootDepth))  ; PARPRIORUNC[27] = OBS$MaxRootDepth_unc # Maximum rooting depth prior, 
 #          PARPRIORS[27] = 1.0                              ; PARPRIORUNC[27] = 0.5 # Maximum rooting depth prior, 
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
@@ -633,14 +647,21 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
 #NOTUSE          OTHERPRIORS[3] = 27.295        ; OTHERPRIORUNC[3] = 11.03755 # Foliar C:N (gC/gN) prior derived from Kattge et al., (2011)
           OTHERPRIORS[4] = 0.66                ; OTHERPRIORUNC[4] = 0.12 #; OTHERPRIORWEIGHT[4] = noyears # Prior on mean annual ET/P See Zhang et al., (2018) doi:10.5194/hess-22-241-2018
           OTHERPRIORS[5] = OBS$Cwood_potential ; OTHERPRIORUNC[5] = OBS$Cwood_potential_unc # Steady state attractor for wood
+          OTHERPRIORS[6] = OBS$MTTsom          ; OTHERPRIORUNC[6] = OBS$MTTsom_unc # Prior on the MTT of soil
+          # Hack to remove loss terms in pixels with disturbance
+          if (max(MET[,8]) > 0.01 | max(MET[,9]) > 0.01) {
+              OBSMAT[,52] = -9999            # Mean woody loss over lag period (gC/m2/day)
+              OBSMAT[,53] = -9999            # Mean woody loss varince
+              OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
+          }
           # Hack to remove LAI observations out of growing season for high LCA areas
-          if (PARPRIORS[17] > 100) {
-#              if (lat_degrees > 50) {
-                  filter = which(MET[,6] < 175 | MET[,6] > 250)
-                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
-                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
-#              }
-          }                    
+#          if (PARPRIORS[17] > 100) {
+##              if (lat_degrees > 50) {
+#                  filter = which(MET[,6] < 175 | MET[,6] > 250)
+#                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
+#                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
+##              }
+#          }                    
       } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P3.R1.008") {
           PARPRIORS[10] = OBS$RhetQ10                      ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 21.1491                          ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values 
@@ -684,7 +705,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
                                                                                             # Note that this prior is difference from DALEC.C1.D1.F2.P1.
                                                                                             # due to the different temperature response functions used in ACM2 vs ACM 1
           PARPRIORS[14] = 0                                    ; PARPRIORUNC[14] = 0.01     #; PARPRIORWEIGHT[14] = 1 # Canopy GSI phneology gradient threshold 
-          PARPRIORS[17] = OBS$lca                              ; PARPRIORUNC[17] = OBS$lca_unc ; PARPRIORWEIGHT[17] = noyears
+          PARPRIORS[17] = OBS$lca                              ; PARPRIORUNC[17] = OBS$lca_unc #; PARPRIORWEIGHT[17] = noyears
           PARPRIORS[19] = OBS$Cfol_initial                     ; PARPRIORUNC[19] = OBS$Cfol_initial_unc # Cfoliar prior
           PARPRIORS[20] = OBS$Croots_initial                   ; PARPRIORUNC[20] = OBS$Croots_initial_unc # Croots prior
           PARPRIORS[21] = OBS$Cwood_initial                    ; PARPRIORUNC[21] = OBS$Cwood_initial_unc # Cwood prior
@@ -710,13 +731,13 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
               OBSMAT[,54] = -9999            # Lag period over which to average  (steps)          
           }
           # Hack to remove LAI observations out of growing season for high LCA areas
-          if (PARPRIORS[17] > 100) {
-#              if (lat_degrees > 50) {
-                  filter = which(MET[,6] < 175 | MET[,6] > 250)
-                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
-                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
-#              }
-          }                    
+#          if (PARPRIORS[17] > 100) {
+##              if (lat_degrees > 50) {
+#                  filter = which(MET[,6] < 175 | MET[,6] > 250)
+#                  OBSMAT[filter,4]  = -9999 ; OBSMAT[filter,5]  = -9999 # Filter LAI estimates
+#                  OBSMAT[filter,34] = -9999 ; OBSMAT[filter,35] = -9999 # Filter fAPAR estimates
+##              }
+#          }                    
       } else if (modelname == "DALEC.A1.C2.D2.F2.H1.P4.R2.010") {
           PARPRIORS[10] = OBS$RhetQ10                      ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 0.2764618                        ; PARPRIORUNC[11] = 0.2014871 # log10 avg foliar N (gN.m-2)

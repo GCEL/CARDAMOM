@@ -677,7 +677,7 @@ module model_likelihood_module
         SSsom = (SSsom / Fout(6)) * mean_pools(6)
         ! It is reasonable to assume that the steady state for woody litter
         ! should be ~ less than half that of woody biomass...
-        if (SSlitwood / SSwood > 0.60d0  ) then
+        if (SSlitwood / SSwood > 0.40d0  ) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(45) = 0
         end if
         ! ... and less than soil organic matter

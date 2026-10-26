@@ -761,12 +761,12 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         Clit_stock_lag = read_site_specific_obs("Clit_stock_lag_step",infile)
         if (length(Clit_stock_unc) == 1) {
             # on the other hand if not then we have no uncertainty info, so use default
-           Clit_stock_unc = rep(-9999,times = length(Clit_stock))
-           Clit_stock_unc[which(Clit_stock != -9999)] = abs(0.38 * Clit_stock[which(Clit_stock != -9999)])
+            Clit_stock_unc = rep(-9999,times = length(Clit_stock))
+            Clit_stock_unc[which(Clit_stock != -9999)] = abs(0.38 * Clit_stock[which(Clit_stock != -9999)])
         }
         if (length(Clit_stock_lag) == 1) {
             # on the other hand if not then we have no uncertainty info, so use default
-           Clit_stock_lag = rep(1,times = length(Clit_stock))
+            Clit_stock_lag = rep(1,times = length(Clit_stock))
         }
     } else {
         # assume no data available
@@ -777,22 +777,22 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     ## Get some Csom information (stock)
 
     if (Csom_stock_source == "site_specific") {
-      infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
-      Csom_stock = read_site_specific_obs("Csom_stock_gCm2",infile)
-      Csom_stock_unc = read_site_specific_obs("Csom_stock_unc_gCm2",infile)
-      Csom_stock_lag = read_site_specific_obs("Csom_stock_lag_step",infile)
-      if (length(Csom_stock_unc) == 1) {
-        # on the other hand if not then we have no uncertainty info, so use default
-        Csom_stock_unc = rep(-9999,times = length(Csom_stock))
-        Csom_stock_unc[which(Csom_stock != -9999)] = abs(0.24 * Csom_stock[which(Csom_stock != -9999)])
-      }
-      if (length(Csom_stock_lag) == 1) {
-        # on the other hand if not then we have no uncertainty info, so use default
-        Csom_stock_lag = rep(1,times = length(Csom_stock))
-      }
+        infile = paste(path_to_site_obs,site_name,"_timeseries_obs.csv",sep="")
+        Csom_stock = read_site_specific_obs("Csom_stock_gCm2",infile)
+        Csom_stock_unc = read_site_specific_obs("Csom_stock_unc_gCm2",infile)
+        Csom_stock_lag = read_site_specific_obs("Csom_stock_lag_step",infile)
+        if (length(Csom_stock_unc) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Csom_stock_unc = rep(-9999,times = length(Csom_stock))
+            Csom_stock_unc[which(Csom_stock != -9999)] = abs(0.24 * Csom_stock[which(Csom_stock != -9999)])
+        }
+        if (length(Csom_stock_lag) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+           Csom_stock_lag = rep(1,times = length(Csom_stock))
+        }
     } else {
-      # assume no data available
-      Csom_stock = -9999 ; Csom_stock_unc = -9999 ; Csom_stock_lag = -9999
+        # assume no data available
+        Csom_stock = -9999 ; Csom_stock_unc = -9999 ; Csom_stock_lag = -9999
     }
     # Now assuming we have actual information we need to add the model structural uncertainty.
     # A structural of uncertainty has been estimates at ~ 1000 gC/m2 based on Smallman et al., (2017)
@@ -809,15 +809,15 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
         Ccoarseroot_stock = read_site_specific_obs("Ccoarseroot_stock_gCm2",infile)
         Ccoarseroot_stock_unc = read_site_specific_obs("Ccoarseroot_stock_unc_gCm2",infile)
         Ccoarseroot_stock_lag = read_site_specific_obs("Ccoarseroot_stock_lag_step",infile)
-      if (length(Ccoarseroot_stock_unc) == 1) {
-          # on the other hand if not then we have no uncertainty info, so use default
-          Ccoarseroot_stock_unc = rep(-9999,times = length(Ccoarseroot_stock))
-          Ccoarseroot_stock_unc[which(Ccoarseroot_stock != -9999)] = abs(0.24 * Ccoarseroot_stock[which(Ccoarseroot_stock != -9999)])
-      }
-      if (length(Ccoarseroot_stock_lag) == 1) {
-          # on the other hand if not then we have no uncertainty info, so use default
-          Ccoarseroot_stock_lag = rep(1,times = length(Ccoarseroot_stock))
-      }
+        if (length(Ccoarseroot_stock_unc) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Ccoarseroot_stock_unc = rep(-9999,times = length(Ccoarseroot_stock))
+            Ccoarseroot_stock_unc[which(Ccoarseroot_stock != -9999)] = abs(0.24 * Ccoarseroot_stock[which(Ccoarseroot_stock != -9999)])
+        }
+        if (length(Ccoarseroot_stock_lag) == 1) {
+            # on the other hand if not then we have no uncertainty info, so use default
+            Ccoarseroot_stock_lag = rep(1,times = length(Ccoarseroot_stock))
+        }
     } else {
         # assume no data available
         Ccoarseroot_stock = -9999 ; Ccoarseroot_stock_unc = -9999 ; Ccoarseroot_stock_lag = -9999
