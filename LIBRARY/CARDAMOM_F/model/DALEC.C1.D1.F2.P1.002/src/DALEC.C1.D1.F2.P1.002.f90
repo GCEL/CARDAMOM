@@ -683,7 +683,7 @@ module CARBON_MODEL_MOD
     use carbon_model_memory
     
     ! the Aggregated Canopy Model, is a Gross Primary Productivity (i.e.
-    ! Photosyntheis) emulator which operates at a daily time step. ACM can be
+    ! Photosynthesis) emulator which operates at a daily time step. ACM can be
     ! paramaterised to provide reasonable results for most ecosystems.
 
     implicit none
@@ -709,7 +709,7 @@ module CARBON_MODEL_MOD
     nit = drivers(4)  ! Load foliar N (gN/m2leaf)
     co2 = drivers(5)  ! Atmospheric CO2 (ppm)
     doy = drivers(6)  ! Julian Day of year
-    radiation = drivers(8) ! Short wave radation (MJ/m2/day)
+    radiation = drivers(8) ! Short wave radiation (MJ/m2/day)
     lat = drivers(7) ! latitude (degrees)
 
     ! load parameters into correct local vars
@@ -732,11 +732,11 @@ module CARBON_MODEL_MOD
     gc = abs(deltaWP)**(hydraulic_exponent)/((hydraulic_temp_coef*Rtot+trange))
     ! maximum rate of temperature and nitrogen (canopy efficiency) limited photosynthesis (gC.m-2.day-1)
     pn = lai*nit*NUE*exp(temp_exponent*maxt)
-    ! pp and qq represent limitation by diffusion and metabolites respecitively
+    ! pp and qq represent limitation by diffusion and metabolites respectively
     pp = pn/gc ; qq = co2_comp_point-co2_half_sat
     ! calculate internal CO2 concentration (ppm)
     ci = 0.5d0*(co2+qq-pp+((co2+qq-pp)**2d0-4d0*(co2*qq-pp*co2_comp_point))**0.5d0)
-    ! limit maximum quantium efficiency by leaf area, hyperbola
+    ! limit maximum quantum efficiency by leaf area, hyperbola
     e0 = lai_coef*lai**2d0/(lai**2d0+lai_const)
     ! calculate day length (hours)
 !    dec = - asin( sin( 23.45d0 * pi / 180d0 ) * cos( 2d0 * pi * ( doy + 10d0 ) /365d0 ) )

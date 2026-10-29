@@ -699,6 +699,7 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
 #              }
           }                    
       } else if (modelname == "DALEC.A1.C2.D2.F2.H2.P3.R1.009") {
+          PARPRIORS[1] = 0.5                                   ; PARPRIORUNC[1] = 0.05 #; PARPRIORWEIGHT[1] = 1 # Decomposition efficiency 0.5, widely used.
           PARPRIORS[10] = OBS$RhetQ10                          ; PARPRIORUNC[10] = OBS$RhetQ10_unc #; PARPRIORWEIGHT[10] = 1 # Heterotrophic exponential temperature response (Q10 = 1.4, Hashimoto et al., 2015; doi:10.5194/bg-12-4121-2015)
           PARPRIORS[11] = 21.1491                              ; PARPRIORUNC[11] = 8.534234 #; PARPRIORWEIGHT[11] = 1 # Ceff: derived from multiple trait values 
                                                                                             # from Kattge et al., (2011)
@@ -717,6 +718,10 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
           PARPRIORS[31] = 0.01                             ; PARPRIORUNC[31] = 0.05 # Soil combustion completeness
+          PARPRIORS[34] = min(MET[,10]+273.15)             ; PARPRIORUNC[34] = 10 # Temperature at which foliage fully limited (K)
+          PARPRIORS[35] = max(MET[,10]+273.15)             ; PARPRIORUNC[35] = 10 # Temperature at which foliage non-limited (K)
+          PARPRIORS[36] = min(MET[,11])                    ; PARPRIORUNC[36] = 86400 # Photoperiod at which foliage fully limited (s) - intended to provide start not constrain
+          PARPRIORS[37] = max(MET[,11])                    ; PARPRIORUNC[37] = 86400 # Photoperiod at which foliage non-limited (s) - intended to provide start not constrain
           # Other priors
           #OTHERPRIORS[1] =        ; OTHERPRIORUNC[1] =  # Initial soil water fraction (GLEAM v3.1a)
           OTHERPRIORS[2] = 0.54                ; OTHERPRIORUNC[2] = 0.12 # Ra:GPP Collalti & Prentice (2019), Tree Physiology, 10.1093/treephys/tpz034

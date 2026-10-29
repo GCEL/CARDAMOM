@@ -301,7 +301,9 @@ module model_likelihood_module
     endif
 
     ! decomposition efficieny of litwood (pars(41)) should be less than fine litter decomposition pars(1)
-    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) < pars(41) ) ) then
+    ! SOME DEBATE ON THIS
+    !if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) < pars(41) ) ) then
+    if ((EDC1 == 1 .or. DIAG == 1) .and. ( pars(1) > pars(41) ) ) then
         EDC1 = 0d0 ; EDCD%PASSFAIL(4) = 0
     endif
 
@@ -702,7 +704,7 @@ module model_likelihood_module
         SSsom = (SSsom / Fout(6)) * mean_pools(6)
         ! It is reasonable to assume that the steady state for woody litter
         ! should be ~ less than half that of woody biomass...
-        if (SSlitwood / SSwood > 0.40d0  ) then
+        if (SSlitwood / SSwood > 0.40d0) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
         end if
         ! ... and less than soil organic matter
