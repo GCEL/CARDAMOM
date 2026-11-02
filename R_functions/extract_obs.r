@@ -902,12 +902,12 @@ extract_obs<-function(grid_long_loc,grid_lat_loc,latlon_wanted,lai_all,Csom_all,
     ## Get some Cfoliage information (initial conditions)
 
     if (Cfol_initial_source == "site_specific") {
-        infile=paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
-        Cfol_initial=read_site_specific_obs("Cfol_initial_gCm2",infile)
-        Cfol_initial_unc=read_site_specific_obs("Cfol_initial_unc_gCm2",infile)
+        infile = paste(path_to_site_obs,site_name,"_initial_obs.csv",sep="")
+        Cfol_initial = read_site_specific_obs("Cfol_initial_gCm2",infile)
+        Cfol_initial_unc = read_site_specific_obs("Cfol_initial_unc_gCm2",infile)
         if (Cfol_initial_unc == -9999 & Cfol_initial > 0) {
-          # on the other hand if not then we have no uncertainty info, so use default
-          Cfol_initial_unc = 0.25 * Cfol_initial
+            # on the other hand if not then we have no uncertainty info, so use default
+            Cfol_initial_unc = 0.25 * Cfol_initial
         }
     } else {
         # assume no data available

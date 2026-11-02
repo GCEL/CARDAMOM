@@ -685,6 +685,17 @@ module model_likelihood_module
         if ( SSsom < SSlitwood ) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(46) = 0
         end if
+        ! Claude facilitated literature review suggests that a plausible maximum wood:som = 3.5
+        ! Therefore, where the ratio is greater than this is rejected. 
+        ! Assumes som depth being simulated is >= 1 m
+        if (SSwood / SSsom > 3.5d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
+        end if
+        ! Claude facilitated literature review suggests that a plausible maximum wood steady state is ~500 MgC/ha (50000 gC/m2).
+        ! This is based on a trawl of site level estimates rather than remote sensing map based. 
+        if (SSwood > 50000d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+        end if        
 
     end if ! EDC2 == 1 .or. DIAG == 1
 
@@ -707,11 +718,11 @@ module model_likelihood_module
         tmp2 = max(1d0,0.08333333d0*(0.0031d0*(pars(17)*2.083333d0)**1.82d0))
         if (tmp < tmp1) then
             ! The current leaf lifespan is shorter than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(49) = 0
         endif        
         if (tmp > tmp2) then
             ! The current leaf life span is longer than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
 
@@ -1087,7 +1098,8 @@ module model_likelihood_module
   subroutine calc_obs_likelihoods(ML_obs_out, M_POOLS, M_FLUXES, M_DIAGS)
     use cardamom_structures, only: DATAin
     use carbon_model_memory, only: sw_par_fraction, top_soil_depth
-! Subroutine to control the calculation of the observation related
+
+    ! Subroutine to control the calculation of the observation related
     ! log-likelihoods and accounting for the various scalings
 
     ! Arguements
@@ -1244,7 +1256,8 @@ module model_likelihood_module
   subroutine calc_scaled_obs_likelihoods(ML_obs_out, M_POOLS, M_FLUXES, M_DIAGS)
     use cardamom_structures, only: DATAin
     use carbon_model_memory, only: sw_par_fraction, top_soil_depth
-! Subroutine to control the calculation of the observation related
+
+    ! Subroutine to control the calculation of the observation related
     ! log-likelihoods and accounting for the various scalings
 
     ! Arguements
@@ -1451,6 +1464,21 @@ module model_likelihood_module
                                    DATAin%otherpriors(5),DATAin%otherpriorunc(5),dummy_lag,dummy_scaling,mod))
     end if
 
+    ! Estimate the biological mean transist time for soil C.
+    ! NOTE: this arrangement explicitly neglects the impact of disturbance on
+    ! residence time (i.e. no fire and biomass removal). This is because the current observation based estimates
+    ! come from soilC / Rhet assumptions.
+    if (DATAin%otherpriors(6) > -9998) then
+        ! Mean SOM pool
+        mod = sum(M_POOLS(1:DATAin%nodays,6)) / dble(DATAin%nodays)
+        ! Divided by the mean Rhet_som
+        mod = mod / (sum(M_FLUXES(1:DATAin%nodays,14)) / dble(DATAin%nodays))
+        ! Scaling from number of days to years (1/365.25 = 0.002737851)
+        mod = mod * 0.002737851d0
+        ML_obs_out = ML_obs_out + (DATAin%otherpriorweight(6)*likelihood(dummy_nodays,dummy_noobs,dummy_pts, &
+                                   DATAin%otherpriors(6),DATAin%otherpriorunc(6),dummy_lag,dummy_scaling,mod))
+    end if
+    
     return
 
   end subroutine calc_other_likelihoods

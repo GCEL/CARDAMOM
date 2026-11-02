@@ -496,29 +496,33 @@ module model_likelihood_module
     ! Begin EDCs here
     !
 
+    ! We assume that the first January's LAI should not be significantly different
+    ! from the mean LAI. 
     if (DATAin%nos_years > 1) then
-        ! Determine the mean and standard deviation of January LAIs 
-        jan_sd_lai = 0d0 ; jan_mean_lai = 0d0 ; jan_first_lai = 0d0 ! reset 
+        ! Determine the mean and standard deviation of January LAIs
+        jan_sd_lai = 0d0 ; jan_mean_lai = 0d0 ; jan_first_lai = 0d0 ! reset
         jan_first_lai = M_DIAGS(1,1) ! First January LAI
         ! Initially sum each January from each year
         do y = 1, DATAin%nos_years
-           nn = 1 + (steps_per_year * (y - 1)) 
+           nn = 1 + (steps_per_year * (y - 1))
            jan_mean_lai = jan_mean_lai + M_DIAGS(nn,1)
         end do
         ! Calculate the mean
         jan_mean_lai = jan_mean_lai / dble(DATAin%nos_years)
         ! Calculate the standard deviation now
         do y = 1, DATAin%nos_years
-           nn = 1 + (steps_per_year * (y - 1)) 
+           nn = 1 + (steps_per_year * (y - 1))
            jan_sd_lai = jan_sd_lai + (jan_mean_lai - M_DIAGS(nn,1))**2d0
         end do
-        jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
+        jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years) - 1))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
-            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
+            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0)) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(12) = 0
         end if
     end if ! nos_years > 1
 
+    ! We assume that the first January's wSWP should not be significantly different
+    ! from the mean wSWP
     if (DATAin%nos_years > 1) then
         ! Determine the mean and standard deviation of January wSWPs 
         jan_sd_lai = 0d0 ; jan_mean_lai = 0d0 ; jan_first_lai = 0d0 ! reset 
@@ -537,7 +541,7 @@ module model_likelihood_module
         end do
         jan_sd_lai = sqrt(jan_sd_lai / (dble(DATAin%nos_years - 1)))
         if ((EDC2 == 1 .or. DIAG == 1) .and. &
-            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0) .and. abs(jan_first_lai-jan_mean_lai) > 0.01d0) then
+            abs(jan_first_lai-jan_mean_lai) > (jan_sd_lai*2d0)) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(13) = 0
         end if
     end if ! nos_years > 1
@@ -686,6 +690,17 @@ module model_likelihood_module
         if ( SSsom < SSlitwood ) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(46) = 0
         end if
+        ! Claude facilitated literature review suggests that a plausible maximum wood:som = 3.5
+        ! Therefore, where the ratio is greater than this is rejected. 
+        ! Assumes som depth being simulated is >= 1 m
+        if (SSwood / SSsom > 3.5d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
+        end if
+        ! Claude facilitated literature review suggests that a plausible maximum wood steady state is ~500 MgC/ha (50000 gC/m2).
+        ! This is based on a trawl of site level estimates rather than remote sensing map based. 
+        if (SSwood > 50000d0) then
+            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+        end if        
 
     end if ! EDC2 == 1 .or. DIAG == 1
 
@@ -708,11 +723,11 @@ module model_likelihood_module
         tmp2 = max(1d0,0.08333333d0*(0.0031d0*(pars(17)*2.083333d0)**1.82d0))
         if (tmp < tmp1) then
             ! The current leaf lifespan is shorter than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(47) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(49) = 0
         endif        
         if (tmp > tmp2) then
             ! The current leaf life span is longer than expected
-            EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
+            EDC2 = 0d0 ; EDCD%PASSFAIL(50) = 0
         endif        
     endif ! EDC2 == 1 .or. DIAG == 1
 

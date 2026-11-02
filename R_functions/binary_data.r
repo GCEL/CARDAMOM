@@ -718,8 +718,8 @@ binary_data<-function(met,OBS,file,EDC,lat_degrees,ctessel_pft,modelname,paramet
 #                                                                                   # based on median from Fan et al., (2017) 
 #                                                                                   # https://www.pnas.org/doi/epdf/10.1073/pnas.1712381114
           PARPRIORS[31] = 0.01                             ; PARPRIORUNC[31] = 0.05 # Soil combustion completeness
-          PARPRIORS[34] = min(MET[,10]+273.15)             ; PARPRIORUNC[34] = 10 # Temperature at which foliage fully limited (K)
-          PARPRIORS[35] = max(MET[,10]+273.15)             ; PARPRIORUNC[35] = 10 # Temperature at which foliage non-limited (K)
+          PARPRIORS[34] = min(MET[,10]+273.15)             ; PARPRIORUNC[34] = 30 # Temperature at which foliage fully limited (K)
+          PARPRIORS[35] = max(MET[,10]+273.15)             ; PARPRIORUNC[35] = 30 # Temperature at which foliage non-limited (K)
           PARPRIORS[36] = min(MET[,11])                    ; PARPRIORUNC[36] = 86400 # Photoperiod at which foliage fully limited (s) - intended to provide start not constrain
           PARPRIORS[37] = max(MET[,11])                    ; PARPRIORUNC[37] = 86400 # Photoperiod at which foliage non-limited (s) - intended to provide start not constrain
           # Other priors
