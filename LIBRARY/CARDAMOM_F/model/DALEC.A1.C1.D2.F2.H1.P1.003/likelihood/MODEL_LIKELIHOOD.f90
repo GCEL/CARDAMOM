@@ -1159,9 +1159,11 @@ module model_likelihood_module
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nreco,DATAin%recopts,DATAin%Reco,DATAin%Reco_unc,DATAin%Reco_lag, &
                                              1d0,mod)
     endif ! nreco > 0
-    ! Calculate log-likelihood for total wood net increment
+    ! Calculate log-likelihood for total wood net increment, natural + disturbance
     if (DATAin%nCwood_inc > 0) then
-        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11)
+        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11) - & 
+              M_FLUXES(1:DATAin%nodays,21) - M_FLUXES(1:DATAin%nodays,27) - &
+              M_FLUXES(1:DATAin%nodays,34) - M_FLUXES(1:DATAin%nodays,40) 
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nCwood_inc,DATAin%Cwood_incpts, &
                                              DATAin%Cwood_inc,DATAin%Cwood_inc_unc,DATAin%Cwood_inc_lag, &
                                              1d0,mod)
@@ -1307,9 +1309,11 @@ module model_likelihood_module
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nreco,DATAin%recopts,DATAin%Reco,DATAin%Reco_unc,DATAin%Reco_lag, &
                                              DATAin%Reco_scaling,mod)
     endif ! nreco > 0
-    ! Calculate log-likelihood for total wood net increment
+    ! Calculate log-likelihood for total wood net increment, natural + disturbance
     if (DATAin%nCwood_inc > 0) then
-        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11)
+        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11) - & 
+              M_FLUXES(1:DATAin%nodays,21) - M_FLUXES(1:DATAin%nodays,27) - &
+              M_FLUXES(1:DATAin%nodays,34) - M_FLUXES(1:DATAin%nodays,40) 
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nCwood_inc,DATAin%Cwood_incpts, &
                                              DATAin%Cwood_inc,DATAin%Cwood_inc_unc,DATAin%Cwood_inc_lag, &
                                              DATAin%Cwood_inc_scaling,mod)
@@ -1320,7 +1324,7 @@ module model_likelihood_module
                                              DATAin%Cwood_growth,DATAin%Cwood_growth_unc,DATAin%Cwood_growth_lag, &
                                              DATAin%Cwood_growth_scaling,M_FLUXES(1:DATAin%nodays,7))
     endif ! nCwood_inc > 0
-    ! Calculate log-likelihood for total wood mortality
+    ! Calculate log-likelihood for natural wood mortality
     if (DATAin%nCwood_mortality > 0) then
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nCwood_mortality,DATAin%Cwood_mortalitypts, &
                                              DATAin%Cwood_mortality,DATAin%Cwood_mortality_unc,DATAin%Cwood_mortality_lag, &

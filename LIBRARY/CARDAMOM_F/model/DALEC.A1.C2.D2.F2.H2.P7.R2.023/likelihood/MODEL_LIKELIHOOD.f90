@@ -692,6 +692,7 @@ module model_likelihood_module
         end if
         ! Claude facilitated literature review suggests that a plausible maximum wood steady state is ~500 MgC/ha (50000 gC/m2).
         ! This is based on a trawl of site level estimates rather than remote sensing map based. 
+        ! Literature trawl would suggest 350 MgC/ha is a more reasonable upper bound.
         if (SSwood > 50000d0) then
             EDC2 = 0d0 ; EDCD%PASSFAIL(48) = 0
         end if        
@@ -1225,9 +1226,11 @@ module model_likelihood_module
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nreco,DATAin%recopts,DATAin%Reco,DATAin%Reco_unc,DATAin%Reco_lag, &
                                              1d0,mod)
     endif ! nreco > 0
-    ! Calculate log-likelihood for total wood net increment
+    ! Calculate log-likelihood for total wood net increment, natural + disturbance
     if (DATAin%nCwood_inc > 0) then
-        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11)
+        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11) - & 
+              M_FLUXES(1:DATAin%nodays,21) - M_FLUXES(1:DATAin%nodays,27) - &
+              M_FLUXES(1:DATAin%nodays,36) - M_FLUXES(1:DATAin%nodays,43) 
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nCwood_inc,DATAin%Cwood_incpts, &
                                              DATAin%Cwood_inc,DATAin%Cwood_inc_unc,DATAin%Cwood_inc_lag, &
                                              1d0,mod)
@@ -1384,9 +1387,11 @@ module model_likelihood_module
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nreco,DATAin%recopts,DATAin%Reco,DATAin%Reco_unc,DATAin%Reco_lag, &
                                              DATAin%Reco_scaling,mod)
     endif ! nreco > 0
-    ! Calculate log-likelihood for total wood net increment
+    ! Calculate log-likelihood for total wood net increment, natural + disturbance
     if (DATAin%nCwood_inc > 0) then
-        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11)
+        mod = M_FLUXES(1:DATAin%nodays,7) - M_FLUXES(1:DATAin%nodays,11) - & 
+              M_FLUXES(1:DATAin%nodays,21) - M_FLUXES(1:DATAin%nodays,27) - &
+              M_FLUXES(1:DATAin%nodays,36) - M_FLUXES(1:DATAin%nodays,43) 
         ML_obs_out = ML_obs_out + likelihood(DATAin%nodays,DATAin%nCwood_inc,DATAin%Cwood_incpts, &
                                              DATAin%Cwood_inc,DATAin%Cwood_inc_unc,DATAin%Cwood_inc_lag, &
                                              DATAin%Cwood_inc_scaling,mod)
@@ -1476,7 +1481,7 @@ module model_likelihood_module
         ML_obs_out = ML_obs_out + (DATAin%otherpriorweight(6)*likelihood(dummy_nodays,dummy_noobs,dummy_pts, &
                                    DATAin%otherpriors(6),DATAin%otherpriorunc(6),dummy_lag,dummy_scaling,mod))
     end if
-    
+
     return
 
   end subroutine calc_other_likelihoods
